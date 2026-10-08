@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { siteName, siteDescription } from "@/data/site";
+import { Accroche } from "@/components/accueil/Accroche";
+import { Methode } from "@/components/accueil/Methode";
+import { Offre } from "@/components/accueil/Offre";
+import { Parcours } from "@/components/accueil/Parcours";
+import { Realisations } from "@/components/accueil/Realisations";
+import { SectionContact } from "@/components/accueil/SectionContact";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-/** Page d'accueil placeholder : à remplacer entièrement par le design du site. */
 export default function HomePage() {
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-16">
-      <h1 className="text-3xl font-semibold">{siteName}</h1>
-      <p>{siteDescription}</p>
-      <p>
-        <Link href="/contact" className="underline">
-          Nous contacter
-        </Link>
-      </p>
-    </section>
+    <>
+      <Accroche />
+      <Offre />
+      <Realisations />
+      <Methode />
+      <Parcours />
+      <SectionContact />
+    </>
   );
 }

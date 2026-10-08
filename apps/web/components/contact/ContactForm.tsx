@@ -11,10 +11,9 @@ import { siteName } from "@/data/site";
 
 const initialState: ContactFormState = { status: "idle", message: "" };
 
-// Classes minimales : bordure et espacement. Le design est à faire par site.
-const champ = "border px-3 py-2";
-const champFautif = "border-2";
-const etiquette = "flex flex-col gap-1 text-sm font-medium";
+// Classes aux couleurs de l'Atelier clair.
+const champ = "rounded-xl border bg-papier px-4 py-3 outline-none transition-colors focus:border-encre";
+const etiquette = "flex flex-col gap-2 text-sm font-medium";
 
 export function ContactForm() {
   const [state, formAction, pending] = useActionState(submitContactForm, initialState);
@@ -24,7 +23,7 @@ export function ContactForm() {
   function attributs(nom: NonNullable<ContactFormState["champ"]>) {
     const fautif = enErreur && state.champ === nom;
     return {
-      className: `${champ}${fautif ? ` ${champFautif}` : ""}`,
+      className: `${champ} ${fautif ? "border-brique" : "border-trait"}`,
       "aria-invalid": fautif || undefined,
       "aria-describedby": fautif ? "contact-retour" : undefined,
     };
@@ -88,12 +87,12 @@ export function ContactForm() {
         className="hidden"
       />
 
-      <button type="submit" disabled={pending} className="self-start border px-6 py-2 font-semibold">
+      <button type="submit" disabled={pending} className="self-start rounded-full bg-encre px-6 py-3 text-sm font-medium text-papier transition-opacity hover:opacity-85 disabled:opacity-60">
         {pending ? "Envoi…" : "Envoyer"}
       </button>
 
       {/* Information au point de collecte, article 13 du RGPD / CNIL. */}
-      <p className="text-xs">
+      <p className="text-xs text-encre-douce">
         Le responsable du traitement est {siteName}. Nom, email et message sont
         obligatoires ; le téléphone est facultatif. Ces données servent
         uniquement à répondre à votre demande (mesures précontractuelles,
@@ -114,7 +113,7 @@ export function ContactForm() {
           // Une erreur doit interrompre le lecteur d'écran ; une confirmation
           // peut attendre une accalmie.
           role={enErreur ? "alert" : "status"}
-          className="border px-4 py-3 text-sm"
+          className="rounded-xl border border-trait px-4 py-3 text-sm"
         >
           {state.message}
         </p>
