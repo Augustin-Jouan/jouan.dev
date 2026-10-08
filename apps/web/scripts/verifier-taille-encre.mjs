@@ -5,7 +5,7 @@
  *
  * Usage : pnpm --filter web verifier-taille-encre   (après `pnpm build`)
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gzipSync } from "node:zlib";
@@ -21,6 +21,11 @@ function* fichiersJs(chemin) {
     if (statSync(complet).isDirectory()) yield* fichiersJs(complet);
     else if (nom.endsWith(".js")) yield complet;
   }
+}
+
+if (!existsSync(dossier)) {
+  console.error("Build introuvable (.next/static/chunks) : lancer pnpm build.");
+  process.exit(1);
 }
 
 const trouves = [...fichiersJs(dossier)].filter((f) => readFileSync(f, "utf8").includes(MARQUEUR));
