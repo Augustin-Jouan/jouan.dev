@@ -11,7 +11,7 @@ export function SkipLink() {
   return (
     <a
       href={`#${CONTENU_ID}`}
-      className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:underline"
+      className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-papier focus:px-4 focus:py-2 focus:underline"
     >
       Aller au contenu
     </a>

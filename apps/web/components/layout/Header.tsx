@@ -1,32 +1,20 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { navLinks } from "@/data/navigation";
 import { siteName } from "@/data/site";
 
-/**
- * En-tête minimal : nom du site et menu. `aria-current` marque la page
- * courante pour les lecteurs d'écran ; c'est la seule raison du `use client`.
- * Le design (logo, menu mobile, bouton d'appel) est à faire par site.
- */
+/** En-tête : nom du site et liens vers les sections de l'accueil. */
 export function Header() {
-  const pathname = usePathname();
-
   return (
-    <header className="border-b">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="font-semibold">
+    <header>
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-5 sm:px-8">
+        <Link href="/" className="font-serif text-2xl leading-none">
           {siteName}
         </Link>
         <nav aria-label="Navigation principale">
-          <ul className="flex flex-wrap gap-4">
+          <ul className="flex gap-5 text-sm text-encre-douce">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <Link
-                  href={link.href}
-                  aria-current={estCourant(pathname, link.href) ? "page" : undefined}
-                >
+                <Link href={link.href} className="transition-colors hover:text-encre">
                   {link.label}
                 </Link>
               </li>
@@ -36,10 +24,4 @@ export function Header() {
       </div>
     </header>
   );
-}
-
-/** L'accueil ne s'allume que sur « / » ; les autres couvrent leurs sous-pages. */
-function estCourant(pathname: string | null, href: string): boolean {
-  if (!pathname) return false;
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }

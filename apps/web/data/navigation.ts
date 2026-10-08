@@ -3,8 +3,12 @@ export type NavLink = {
   label: string;
 };
 
-/** Menu principal, dans l'ordre d'affichage. Ajouter une entrée par page créée. */
+/**
+ * Liens de l'en-tête vers les sections de l'accueil. Des ancres absolues
+ * (`/#offre`) : elles ramènent aussi à l'accueil depuis les pages légales.
+ */
 export const navLinks: NavLink[] = [
-  { href: "/", label: "Accueil" },
-  { href: "/contact", label: "Contact" },
+  { href: "/#realisations", label: "Réalisations" },
+  { href: "/#offre", label: "Offre" },
+  { href: "/#contact", label: "Contact" },
 ];
