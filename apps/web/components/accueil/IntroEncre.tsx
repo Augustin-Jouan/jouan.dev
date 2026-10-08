@@ -79,7 +79,7 @@ export function IntroEncre() {
           tactile: window.matchMedia("(pointer: coarse)").matches,
           surPret: () => {
             setEncre("actif");
-            if (jouerIntro) setIntro("en-cours");
+            if (jouerIntro) setIntro((etat) => etat ?? "en-cours");
           },
           surFinIntro: () => {
             setIntro("terminee");
@@ -90,7 +90,9 @@ export function IntroEncre() {
         moteur?.demarrer();
       })
       // Morceau de JS introuvable (réseau coupé, déploiement en cours).
-      .catch(echouer);
+      .catch(() => {
+        if (!annule) echouer();
+      });
 
     if (jouerIntro) {
       EVENEMENTS_SAUT.forEach((nom) => window.addEventListener(nom, sauter, { passive: true }));

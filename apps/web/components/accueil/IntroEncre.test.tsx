@@ -64,6 +64,15 @@ describe("IntroEncre", () => {
     expect(window.localStorage.getItem(CLE_INTRO_VUE)).toBe("1");
   });
 
+  it("ne ramène jamais l'intro en arrière si elle se termine avant la première image", async () => {
+    navigateur();
+    const { container } = render(<IntroEncre />);
+    await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
+    act(() => options().surFinIntro?.());
+    act(() => options().surPret?.());
+    expect(fond(container)).toHaveAttribute("data-intro", "terminee");
+  });
+
   it("passe l'intro au premier clic", async () => {
     navigateur();
     render(<IntroEncre />);
