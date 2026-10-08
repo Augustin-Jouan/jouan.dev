@@ -84,6 +84,9 @@ jobs:
           path: |
             apps/web/playwright-report
             apps/web/.lighthouseci
+          # Sans cette option, upload-artifact ignore les dossiers cachés
+          # (`.lighthouseci`) : les rapports Lighthouse manqueraient.
+          include-hidden-files: true
           retention-days: 7
 
   image:
