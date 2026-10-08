@@ -4,8 +4,9 @@ export const CONTENU_ID = "contenu";
 /**
  * Premier élément focusable de la page : un utilisateur au clavier ou au
  * lecteur d'écran saute l'en-tête et sa navigation d'un seul Tab + Entrée.
- * Invisible tant qu'il n'a pas le focus. Le style au focus est à faire par
- * site ; ne pas retirer `sr-only` / `focus:not-sr-only`.
+ * Invisible tant qu'il n'a pas le focus, puis affiché en pastille papier en
+ * haut à gauche (classes `focus:*`) ; ne pas retirer `sr-only` /
+ * `focus:not-sr-only`.
  */
 export function SkipLink() {
   return (

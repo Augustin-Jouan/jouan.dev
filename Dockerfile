@@ -27,7 +27,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
-# Lue au build par data/site.ts : elle est figée dans les pages statiques
+# Lue au build par apps/web/data/site.ts : elle est figée dans les pages statiques
 # (canonical, sitemap, JSON-LD). Un build avec une URL locale échoue exprès.
 ARG SITE_URL=https://jouan.dev
 ENV SITE_URL=${SITE_URL}

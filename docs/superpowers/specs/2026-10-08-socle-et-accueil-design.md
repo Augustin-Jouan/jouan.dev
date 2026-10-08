@@ -182,7 +182,7 @@ Adapté :
 | JS compressé au premier chargement | ≤ 160 Kio (plancher Next 16.4 + React 19 mesuré à 153 Ko) | CI |
 | Intro (shader + moteur), chargée après l'affichage | < 10 Ko compressés | CI |
 
-L'objectif « moins d'1 s » du brief s'entend en conditions réelles ; la simulation mobile lente de Lighthouse ne permet à aucun site de descendre sous ≈ 1,2 s, d'où le seuil de 1,8 s en CI.
+L'objectif « moins d'1 s » du brief s'entend en conditions réelles ; la simulation mobile lente de Lighthouse ne permet à aucun site de descendre sous ≈ 1,2 s, d'où un seuil CI distinct de l'objectif réel (2,8 s, voir le tableau).
 
 Les cibles initiales (1,8 s et ≈ 110 Ko) supposaient un plancher de framework plus léger : pour une page vide, Next 16.4 + React 19 mesurent 153 Ko de JS et 2,5 s de LCP simulé ; l'objectif réel (LCP < 1 s sur ordinateur) reste inchangé.
 
