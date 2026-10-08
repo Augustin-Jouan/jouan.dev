@@ -12,13 +12,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Deux valeurs à changer au démarrage d'un site (README, étape 9) :
 env:
   # URL finale du site, figée dans les pages au build (canonical, sitemap…).
-  SITE_URL: https://www.exemple.fr
+  # La prévisualisation (portfolio.jouan.dev) sert déjà ces pages.
+  SITE_URL: https://jouan.dev
   # GHCR impose un nom en minuscules, d'où le nom en dur plutôt que
   # `github.repository`.
-  IMAGE: ghcr.io/augustin-jouan/site-vitrine-template
+  IMAGE: ghcr.io/augustin-jouan/jouan.dev
 
 jobs:
   verifier:
@@ -28,24 +28,27 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Lit la version de pnpm dans le champ `packageManager` du package.json.
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
-      - run: npm run lint
+      - run: pnpm lint
 
-      - run: npx tsc --noEmit
+      - run: pnpm typecheck
 
-      - run: npm test
+      - run: pnpm test
 
-      # À décommenter au démarrage d'un site : bloque tant qu'un placeholder
-      # « [...] » subsiste dans data/ ou app/. (Échoue exprès dans le template.)
-      # - run: npm run verifier-placeholders
+      # Laissé commenté tant que les mentions légales attendent les
+      # informations de l'EI ; à activer avant la bascule sur jouan.dev.
+      # - run: pnpm verifier-placeholders
 
-      - run: npm run build
+      - run: pnpm build
 
   image:
     name: Image Docker

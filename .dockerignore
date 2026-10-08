@@ -1,14 +1,17 @@
 # Tout ce qui n'entre pas dans l'image : le build repart de zéro.
-node_modules
-.next
+**/node_modules
+**/.next
 .git
 .github
 .claude
 .superpowers
 docs
-coverage
-*.tsbuildinfo
-next-env.d.ts
+**/coverage
+**/test-results
+**/playwright-report
+**/.lighthouseci
+**/*.tsbuildinfo
+**/next-env.d.ts
 # Les secrets viennent de l'hébergeur, jamais du dépôt.
-.env*
-!.env.example
+**/.env*
+!**/.env.example
