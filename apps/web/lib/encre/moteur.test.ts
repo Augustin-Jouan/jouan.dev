@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
-import { creerMoteur } from "./moteur";
+import { creerMoteur, tailleRendu } from "./moteur";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -39,5 +39,18 @@ describe("creerMoteur", () => {
     moteur!.arreter();
     expect(loseContext).toHaveBeenCalledOnce();
     expect(surEchec).not.toHaveBeenCalled();
+  });
+});
+
+describe("tailleRendu", () => {
+  it("dessine à demi-résolution CSS, quelle que soit la densité de l'écran", () => {
+    // Le shader tourne pour chaque pixel : sans carte graphique (rendu
+    // logiciel), la pleine résolution bloque le fil principal à chaque image.
+    expect(tailleRendu(1440, 900)).toEqual({ largeur: 720, hauteur: 450 });
+    expect(tailleRendu(375, 667)).toEqual({ largeur: 188, hauteur: 334 });
+  });
+
+  it("garde au moins un pixel", () => {
+    expect(tailleRendu(0, 0)).toEqual({ largeur: 1, hauteur: 1 });
   });
 });

@@ -109,7 +109,7 @@ Le contraste de chaque couple texte/fond est vérifié (WCAG AA) ; `brique` n'es
 
 - Rendu stoppé quand rien ne bouge (halo immobile et souris inactive), repris au mouvement.
 - Pause quand l'onglet est caché (`visibilitychange`).
-- Densité de pixels plafonnée à 1,5.
+- Rendu à demi-résolution (0,5 pixel de canvas par pixel CSS), agrandi par le navigateur : le halo est flou, et sans carte graphique (rendu logiciel) la pleine résolution bloquait le fil principal à chaque image.
 
 ### Quand l'intro ne se joue pas
 

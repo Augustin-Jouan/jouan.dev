@@ -14,8 +14,14 @@ import { SOURCE_FRAGMENT, SOURCE_SOMMET } from "./shader";
 /** Repère ce morceau de JS dans le build (scripts/verifier-taille-encre.mjs). */
 export const MARQUEUR_MOTEUR = "moteur-encre:v1";
 
-/** Au-delà, le coût GPU augmente sans gain visible sur un fond flou. */
-const DPR_MAX = 1.5;
+/**
+ * Pixels du canvas par pixel CSS. Le shader est calculé pour chaque pixel :
+ * sans carte graphique (rendu logiciel, machines de CI comprises), la pleine
+ * résolution bloque le fil principal à chaque image. Le halo est flou et le
+ * bord de la goutte adouci par `smoothstep` : la demi-résolution, agrandie
+ * par le navigateur, ne se voit pas.
+ */
+const ECHELLE_RENDU = 0.5;
 /** Écart au-dessous duquel le halo est considéré arrivé : on cesse de dessiner. */
 const REPOS = 0.0005;
 
@@ -43,6 +49,14 @@ export type Moteur = {
   suivreSouris(point: Point | null): void;
   arreter(): void;
 };
+
+/** Taille du canvas, en pixels, pour une surface affichée de `largeurCss` × `hauteurCss`. */
+export function tailleRendu(largeurCss: number, hauteurCss: number) {
+  return {
+    largeur: Math.max(1, Math.round(largeurCss * ECHELLE_RENDU)),
+    hauteur: Math.max(1, Math.round(hauteurCss * ECHELLE_RENDU)),
+  };
+}
 
 export function creerMoteur(options: OptionsMoteur): Moteur | null {
   const { canvas } = options;
@@ -97,9 +111,7 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
   let aLEcran = true;
 
   function redimensionner() {
-    const dpr = Math.min(window.devicePixelRatio || 1, DPR_MAX);
-    const largeur = Math.max(1, Math.round(canvas.clientWidth * dpr));
-    const hauteur = Math.max(1, Math.round(canvas.clientHeight * dpr));
+    const { largeur, hauteur } = tailleRendu(canvas.clientWidth, canvas.clientHeight);
     if (canvas.width !== largeur || canvas.height !== hauteur) {
       canvas.width = largeur;
       canvas.height = hauteur;
