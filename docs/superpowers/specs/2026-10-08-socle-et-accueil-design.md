@@ -176,13 +176,15 @@ Adapté :
 | Mesure | Budget | Où c'est vérifié |
 |---|---|---|
 | Score Lighthouse mobile (performance) | ≥ 95 | CI (Lighthouse CI) |
-| LCP, simulation mobile Lighthouse | < 1,8 s | CI |
+| LCP, simulation mobile Lighthouse | < 2,8 s (plancher mesuré 2,5 s) | CI |
 | LCP réel sur ordinateur, bonne connexion | < 1 s | Vérification manuelle avant mise en ligne |
 | CLS | < 0,05 | CI |
-| JS compressé au premier chargement | ≈ 110 Ko | CI (rapport de build) |
+| JS compressé au premier chargement | ≤ 160 Kio (plancher Next 16.4 + React 19 mesuré à 153 Ko) | CI |
 | Intro (shader + moteur), chargée après l'affichage | < 10 Ko compressés | CI |
 
 L'objectif « moins d'1 s » du brief s'entend en conditions réelles ; la simulation mobile lente de Lighthouse ne permet à aucun site de descendre sous ≈ 1,2 s, d'où le seuil de 1,8 s en CI.
+
+Les cibles initiales (1,8 s et ≈ 110 Ko) supposaient un plancher de framework plus léger : pour une page vide, Next 16.4 + React 19 mesurent 153 Ko de JS et 2,5 s de LCP simulé ; l'objectif réel (LCP < 1 s sur ordinateur) reste inchangé.
 
 ## 10. Tests
 
