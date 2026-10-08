@@ -45,3 +45,67 @@ body::before {
   opacity: 0.35;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
 }
+
+/*
+ * Fond de l'accueil (components/accueil/IntroEncre.tsx) : couvre le premier
+ * écran, sous le contenu ; passe au-dessus de tout pendant l'intro.
+ * Le corps est en `position: relative` (app/layout.tsx).
+ */
+.fond-accueil {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 100svh;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fond-accueil[data-intro="en-cours"] {
+  z-index: 50;
+}
+
+.fond-accueil canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Halo final de l'intro : mêmes position et rayon que HALO dans
+   lib/encre/chronologie.ts (x 80 %, y 24 %, rayon 0,32 hauteur d'écran). */
+.halo-css {
+  position: absolute;
+  left: 80%;
+  top: 24%;
+  width: 64svh;
+  height: 64svh;
+  translate: -50% -50%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 45% 45%,
+    var(--color-braise) 0%,
+    var(--color-braise-claire) 40%,
+    transparent 70%
+  );
+  filter: blur(28px);
+  opacity: 0.85;
+  transition: opacity 300ms;
+}
+
+/* Le canvas dessine le halo : on efface la copie CSS pour ne pas le doubler. */
+.fond-accueil[data-encre="actif"] .halo-css {
+  opacity: 0;
+}
+
+.fond-accueil__nom {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  color: var(--color-papier);
+  opacity: 0;
+}

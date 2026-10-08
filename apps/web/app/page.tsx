@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Accroche } from "@/components/accueil/Accroche";
+import { IntroEncre } from "@/components/accueil/IntroEncre";
 import { Methode } from "@/components/accueil/Methode";
 import { Offre } from "@/components/accueil/Offre";
 import { Parcours } from "@/components/accueil/Parcours";
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
+      <IntroEncre />
       <Accroche />
       <Offre />
       <Realisations />
