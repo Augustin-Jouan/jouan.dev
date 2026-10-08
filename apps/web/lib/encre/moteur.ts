@@ -81,7 +81,12 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
   };
   gl.uniform3fv(uniformes.couleurClaire, BRAISE_CLAIRE);
 
-  let debut = 0;
+  /** Instant (horloge rAF) de la première image d'intro ; posé à ce moment-là. */
+  let debut: number | null = null;
+  let demarre = false;
+  /** Horloge du shader (ms) : n'avance que sur les images dessinées, sans saut après une pause. */
+  let horloge = 0;
+  let precedent: number | null = null;
   let introFinie = !options.intro;
   let halo: Point = { x: HALO.x, y: HALO.y };
   let souris: Point | null = null;
@@ -103,13 +108,15 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
   }
 
   function dessiner(etat: EtatEncre, maintenant: number) {
+    horloge += precedent === null ? 0 : Math.min(maintenant - precedent, 50);
+    precedent = maintenant;
     gl!.uniform2f(uniformes.resolution, canvas.width, canvas.height);
     gl!.uniform2f(uniformes.centre, etat.centre.x, etat.centre.y);
     gl!.uniform1f(uniformes.rayon, etat.rayon);
     gl!.uniform1f(uniformes.flou, etat.flou);
     gl!.uniform3fv(uniformes.couleur, etat.couleur);
     gl!.uniform1f(uniformes.melange, etat.melange);
-    gl!.uniform1f(uniformes.temps, maintenant / 1000);
+    gl!.uniform1f(uniformes.temps, (horloge / 1000) % 1000);
     gl!.clearColor(0, 0, 0, 0);
     gl!.clear(gl!.COLOR_BUFFER_BIT);
     gl!.drawArrays(gl!.TRIANGLES, 0, 3);
@@ -131,7 +138,7 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     redimensionner();
 
     if (!introFinie) {
-      const etat = etatEncre(maintenant - debut, rayonCouverture(canvas.width, canvas.height));
+      const etat = etatEncre(maintenant - (debut ??= maintenant), rayonCouverture(canvas.width, canvas.height));
       if (options.nom) options.nom.style.opacity = String(etat.opaciteNom);
       dessiner(etat, maintenant);
       if (etat.terminee) terminerIntro();
@@ -145,11 +152,12 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     // Au repos, plus rien ne bouge : la prochaine image viendra d'un mouvement
     // de souris, d'un redimensionnement ou du retour sur l'onglet.
     const auRepos = !options.tactile && Math.hypot(cible.x - halo.x, cible.y - halo.y) < REPOS;
-    if (!auRepos) demanderImage();
+    if (auRepos) precedent = null;
+    else demanderImage();
   }
 
   function demanderImage() {
-    if (image || arrete || !aLEcran || document.visibilityState !== "visible") return;
+    if (image || !demarre || arrete || !aLEcran || document.visibilityState !== "visible") return;
     image = requestAnimationFrame(boucle);
   }
 
@@ -164,8 +172,8 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
   const vigie =
     typeof IntersectionObserver === "undefined"
       ? null
-      : new IntersectionObserver(([entree]) => {
-          aLEcran = entree.isIntersecting;
+      : new IntersectionObserver((entrees) => {
+          aLEcran = entrees[entrees.length - 1].isIntersecting;
           demanderImage();
         });
 
@@ -186,15 +194,16 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
 
   return {
     demarrer() {
-      debut = performance.now();
+      demarre = true;
       demanderImage();
     },
     sauter() {
-      if (introFinie) return;
+      if (arrete || introFinie) return;
       terminerIntro();
       demanderImage();
     },
     suivreSouris(point) {
+      if (arrete) return;
       souris = point;
       demanderImage();
     },
