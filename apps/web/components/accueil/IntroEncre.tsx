@@ -12,8 +12,18 @@ import {
 } from "@/lib/encre/decision";
 import type { Moteur } from "@/lib/encre/moteur";
 
-/** Un geste du visiteur termine l'intro immédiatement. */
-const EVENEMENTS_SAUT = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
+/**
+ * Un geste du visiteur termine l'intro immédiatement. `scroll` couvre aussi
+ * le glisser de la barre de défilement, qui n'émet ni `wheel` ni `pointerdown`.
+ */
+const EVENEMENTS_SAUT = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"] as const;
+
+/**
+ * Au-delà de ce délai après le montage, le moteur arrive trop tard : le
+ * visiteur lit déjà la page, une intro qui la recouvrirait n'en est plus une.
+ * On pose alors directement le halo.
+ */
+const DELAI_MAX_INTRO_MS = 3000;
 
 /**
  * Fond de l'accueil. Rendu côté serveur, c'est un simple halo CSS ; une fois
@@ -28,11 +38,14 @@ const EVENEMENTS_SAUT = ["pointerdown", "keydown", "wheel", "touchstart"] as con
 export function IntroEncre() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nomRef = useRef<HTMLParagraphElement>(null);
+  /** Instant du montage (performance.now), point de départ de DELAI_MAX_INTRO_MS. */
+  const montageRef = useRef(0);
   const [mode, setMode] = useState<ModeEncre>("halo-css");
   const [intro, setIntro] = useState<"en-cours" | "terminee">();
   const [encre, setEncre] = useState<"actif" | "repli">();
 
   useEffect(() => {
+    montageRef.current = performance.now();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- la décision dépend du navigateur : impossible au rendu serveur
     setMode(
       deciderMode({
@@ -50,8 +63,15 @@ export function IntroEncre() {
     const jouerIntro = mode === "intro";
     let moteur: Moteur | null = null;
     let annule = false;
+    /** Geste fait avant l'arrivée du moteur : l'intro ne doit plus se jouer. */
+    let sautDemande = false;
 
-    const sauter = () => moteur?.sauter();
+    const sauter = () => {
+      if (moteur) moteur.sauter();
+      else sautDemande = true;
+    };
+    const retirerSaut = () =>
+      EVENEMENTS_SAUT.forEach((nom) => window.removeEventListener(nom, sauter));
     const suivre = (evenement: PointerEvent) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -72,16 +92,30 @@ export function IntroEncre() {
     import("@/lib/encre/moteur")
       .then(({ creerMoteur }) => {
         if (annule || !canvasRef.current) return;
+        // L'intro ne se joue que si rien n'a bougé pendant le chargement : ni
+        // geste, ni défilement, ni attente trop longue.
+        const introEffective =
+          jouerIntro &&
+          !sautDemande &&
+          window.scrollY === 0 &&
+          performance.now() - montageRef.current <= DELAI_MAX_INTRO_MS;
+        // Intro annulée avant d'avoir commencé : elle est terminée d'emblée,
+        // sans être marquée comme vue (le visiteur ne l'a pas vue).
+        if (jouerIntro && !introEffective) {
+          retirerSaut();
+          setIntro("terminee");
+        }
         moteur = creerMoteur({
           canvas: canvasRef.current,
-          intro: jouerIntro,
+          intro: introEffective,
           nom: nomRef.current,
           tactile: window.matchMedia("(pointer: coarse)").matches,
           surPret: () => {
             setEncre("actif");
-            if (jouerIntro) setIntro((etat) => etat ?? "en-cours");
+            if (introEffective) setIntro((etat) => etat ?? "en-cours");
           },
           surFinIntro: () => {
+            retirerSaut();
             setIntro("terminee");
             marquerIntroVue(stockageLocal());
           },
@@ -102,7 +136,7 @@ export function IntroEncre() {
     return () => {
       annule = true;
       moteur?.arreter();
-      EVENEMENTS_SAUT.forEach((nom) => window.removeEventListener(nom, sauter));
+      retirerSaut();
       window.removeEventListener("pointermove", suivre);
     };
   }, [mode]);
