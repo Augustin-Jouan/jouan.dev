@@ -50,11 +50,47 @@ jobs:
 
       - run: pnpm build
 
+  e2e:
+    name: Bout en bout et performances
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+
+      - run: pnpm e2e
+
+      - run: pnpm --filter web verifier-taille-encre
+
+      - run: pnpm --filter web lighthouse
+
+      - name: Rapports en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports
+          path: |
+            apps/web/playwright-report
+            apps/web/.lighthouseci
+          retention-days: 7
+
   image:
     name: Image Docker
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: verifier
+    needs: [verifier, e2e]
     permissions:
       contents: read
       packages: write
