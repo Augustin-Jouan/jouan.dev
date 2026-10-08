@@ -25,9 +25,8 @@ export default function PolitiqueConfidentialitePage() {
         </h2>
         <p>
           Le responsable du traitement des données collectées sur ce site est{" "}
-          {mentionsLegales.raisonSociale}, dont le siège est situé{" "}
-          {mentionsLegales.adresse}, représentée par{" "}
-          {mentionsLegales.directeurPublication}.
+          {mentionsLegales.editeur} ({mentionsLegales.statut}), joignable par
+          e-mail à l&apos;adresse {mentionsLegales.email}.
         </p>
       </div>
 
@@ -63,7 +62,7 @@ export default function PolitiqueConfidentialitePage() {
         <h2 className="text-xl font-semibold">Destinataires</h2>
         <p>
           Vos données sont destinées exclusivement à{" "}
-          {mentionsLegales.raisonSociale} et ne sont ni vendues ni cédées à des
+          {mentionsLegales.editeur} et ne sont ni vendues ni cédées à des
           tiers. Deux prestataires techniques y ont accès du seul fait de leur
           rôle, sans autorisation d&apos;en faire un autre usage : l&apos;hébergeur
           du site, et le prestataire d&apos;envoi de mails qui achemine le message
@@ -107,10 +106,6 @@ export default function PolitiqueConfidentialitePage() {
           vos données. Pour exercer ces droits, contactez-nous par email à{" "}
           <a href={`mailto:${contact.email}`} className="underline">
             {contact.email}
-          </a>{" "}
-          ou par téléphone au{" "}
-          <a href={contact.telephoneLien} className="underline">
-            {contact.telephone}
           </a>
           .
         </p>

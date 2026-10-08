@@ -5,52 +5,41 @@ import { siteName } from "@/data/site";
 export const A_COMPLETER = "[À compléter]"; // placeholder-ok
 
 export type MentionsLegales = {
-  raisonSociale: string;
-  /** Sociétés uniquement ; pour une entreprise individuelle, mettre "Sans objet". */
-  capitalSocial: string;
+  /** Nom et prénom de l'entrepreneur individuel. */
+  editeur: string;
+  statut: string;
+  /** Adresse de domiciliation de l'entreprise (art. 6 III de la LCEN). */
   adresse: string;
   telephone: string;
   email: string;
-  /** Ville du greffe + numéro, ex. « Nantes 123 456 789 ». RM pour un artisan. */
-  rcs: string;
-  tvaIntracommunautaire: string;
+  siren: string;
+  /** Numéro de TVA intracommunautaire, ou mention de franchise en base. */
+  tva: string;
   directeurPublication: string;
   hebergeur: {
     nom: string;
     adresse: string;
     telephone: string;
   };
-  /** Obligatoire dès que l'entreprise vend à des particuliers (art. L.616-1 code conso). */
+  /** Obligatoire dès qu'une prestation peut être vendue à un particulier (art. L.616-1 code conso). */
   mediateur: {
     nom: string;
     adresse: string;
     site: string;
   };
-  /**
-   * Assurance professionnelle : obligatoire pour les artisans du bâtiment
-   * (art. 22-2 de la loi n° 96-603). Laisser absente pour les autres métiers.
-   */
-  assurance?: {
-    assureur: string;
-    adresse: string;
-    contrat: string;
-    garanties: string;
-    couvertureGeographique: string;
-  };
-  /** Phrase décrivant un éventuel transfert hors UE, une fois l'hébergeur connu. */
+  /** Phrase décrivant un éventuel transfert hors UE, selon l'hébergeur. */
   transfertHorsUe: string;
 };
 
 export const mentionsLegales: MentionsLegales = {
-  raisonSociale: siteName,
-  capitalSocial: A_COMPLETER,
-  adresse: contact.adresse,
-  telephone: contact.telephone,
+  editeur: siteName,
+  statut: "Entrepreneur individuel (EI)",
+  adresse: A_COMPLETER,
+  telephone: A_COMPLETER,
   email: contact.email,
-  rcs: A_COMPLETER,
-  tvaIntracommunautaire: A_COMPLETER,
-  directeurPublication: A_COMPLETER,
-  // Hébergement par défaut : VPS OVH (voir README, étape 9).
+  siren: A_COMPLETER,
+  tva: A_COMPLETER,
+  directeurPublication: siteName,
   hebergeur: {
     nom: "OVH SAS",
     adresse: "2 rue Kellermann, 59100 Roubaix, France",
@@ -78,5 +67,4 @@ function champsIncomplets(objet: object, prefixe = ""): string[] {
 }
 
 /** Champs légalement dus qui restent à renseigner avant la mise en ligne. */
-export const mentionsLegalesManquantes: string[] =
-  champsIncomplets(mentionsLegales);
+export const mentionsLegalesManquantes: string[] = champsIncomplets(mentionsLegales);

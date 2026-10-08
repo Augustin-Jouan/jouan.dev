@@ -4,14 +4,13 @@ import ContactPage from "./page";
 import { contact } from "@/data/contact";
 
 describe("ContactPage", () => {
-  it("affiche le formulaire et les coordonnées", () => {
+  it("affiche le formulaire et l'e-mail direct", () => {
     render(<ContactPage />);
     expect(screen.getByRole("heading", { level: 1, name: "Contact" })).toBeInTheDocument();
     expect(screen.getByLabelText("Nom")).toBeInTheDocument();
-    expect(screen.getByText(contact.adresse)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: contact.telephone })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: contact.email })).toHaveAttribute(
       "href",
-      contact.telephoneLien
+      `mailto:${contact.email}`
     );
   });
 });

@@ -4,10 +4,10 @@ import { contact } from "./contact";
 import { siteName } from "./site";
 
 describe("mentionsLegales", () => {
-  it("réutilise les coordonnées connues du site", () => {
-    expect(mentionsLegales.raisonSociale).toBe(siteName);
-    expect(mentionsLegales.adresse).toBe(contact.adresse);
-    expect(mentionsLegales.telephone).toBe(contact.telephone);
+  it("présente l'éditeur comme entrepreneur individuel joignable par e-mail", () => {
+    expect(mentionsLegales.editeur).toBe(siteName);
+    expect(mentionsLegales.directeurPublication).toBe(siteName);
+    expect(mentionsLegales.statut).toMatch(/entrepreneur individuel/i);
     expect(mentionsLegales.email).toBe(contact.email);
   });
 
@@ -18,24 +18,11 @@ describe("mentionsLegales", () => {
     );
   });
 
-  it("laisse l'assurance absente par défaut", () => {
-    expect(mentionsLegales.assurance).toBeUndefined();
-  });
-
-  // Dans le template, ces champs sont attendus vides : c'est le site créé
-  // à partir du template qui devra les remplir (voir README).
+  // Informations à fournir par l'EI avant la bascule sur jouan.dev.
   it("liste précisément les champs à compléter", () => {
-    expect(mentionsLegalesManquantes.sort()).toEqual(
-      [
-        "capitalSocial",
-        "rcs",
-        "tvaIntracommunautaire",
-        "directeurPublication",
-        "mediateur.nom",
-        "mediateur.adresse",
-        "mediateur.site",
-      ].sort()
+    expect([...mentionsLegalesManquantes].sort()).toEqual(
+      ["adresse", "mediateur.adresse", "mediateur.nom", "mediateur.site", "siren", "telephone", "tva"].sort()
     );
-    expect(mentionsLegales.rcs).toBe(A_COMPLETER);
+    expect(mentionsLegales.siren).toBe(A_COMPLETER);
   });
 });

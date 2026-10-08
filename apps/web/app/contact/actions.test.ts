@@ -12,6 +12,7 @@ vi.mock("next/headers", () => ({
 import { submitContactForm, type ContactFormState } from "./actions";
 import { LIMITES } from "./limites";
 import { reinitialiserLimites } from "@/lib/rate-limit";
+import { contact } from "@/data/contact";
 
 const idle: ContactFormState = { status: "idle", message: "" };
 
@@ -137,5 +138,25 @@ describe("submitContactForm", () => {
     expect(state.message).toContain(
       "EAUTH 535 AUTH PLAIN 535-5.7.8 Username and Password not accepted. 535 5.7.8"
     );
+  });
+
+  it("propose l'e-mail direct quand l'envoi échoue", async () => {
+    sendContactEmail.mockRejectedValue(new Error("smtp down"));
+    const state = await submitContactForm(
+      idle,
+      buildFormData({ nom: "Jean", email: "jean@exemple.fr", message: "Bonjour" })
+    );
+    expect(state.status).toBe("error");
+    expect(state.message).toContain(contact.email);
+  });
+
+  it("propose l'e-mail direct quand la limite d'envois est atteinte", async () => {
+    const envoyer = () =>
+      submitContactForm(
+        idle,
+        buildFormData({ nom: "Jean", email: "jean@exemple.fr", message: "Bonjour" })
+      );
+    for (let i = 0; i < 5; i += 1) await envoyer();
+    expect((await envoyer()).message).toContain(contact.email);
   });
 });

@@ -3,10 +3,10 @@
 // n'y existe pas et la valeur retomberait sur le défaut.
 export const siteUrl = resolveSiteUrl();
 
-export const siteName = "[Nom de l'entreprise]";
+export const siteName = "Augustin Jouan";
 
 export const siteDescription =
-  "[Description du site en une phrase — 150 caractères max — reprise par Google et les partages]";
+  "Développeur full stack indépendant : applications métier sur mesure et sites vitrines, conçus, développés et hébergés de A à Z.";
 
 /**
  * Cette URL alimente les balises canonical, le sitemap, le robots.txt, les
@@ -15,7 +15,7 @@ export const siteDescription =
  * on préfère faire échouer le build.
  */
 function resolveSiteUrl(): string {
-  const url = process.env.SITE_URL ?? "https://www.exemple.fr";
+  const url = process.env.SITE_URL ?? "https://jouan.dev";
 
   if (
     process.env.NODE_ENV === "production" &&

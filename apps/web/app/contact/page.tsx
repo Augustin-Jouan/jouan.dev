@@ -5,27 +5,25 @@ import { siteName } from "@/data/site";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: `Contactez ${siteName} : formulaire, téléphone et adresse.`,
+  description: `Contacter ${siteName}, développeur full stack indépendant : formulaire ou e-mail.`,
   alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-16">
-      <h1 className="text-3xl font-semibold">Contact</h1>
+    <section className="mx-auto flex max-w-3xl flex-col gap-10 px-5 py-16">
+      <h1 className="font-serif text-5xl">Contact</h1>
 
       <ContactForm />
 
-      <address className="not-italic">
-        <h2 className="mb-2 font-semibold">Nos coordonnées</h2>
-        <p>{contact.adresse}</p>
+      <div>
+        <h2 className="mb-2 font-semibold">Écrire directement</h2>
         <p>
-          <a href={contact.telephoneLien}>{contact.telephone}</a>
+          <a href={`mailto:${contact.email}`} className="underline">
+            {contact.email}
+          </a>
         </p>
-        <p>
-          <a href={`mailto:${contact.email}`}>{contact.email}</a>
-        </p>
-      </address>
+      </div>
     </section>
   );
 }

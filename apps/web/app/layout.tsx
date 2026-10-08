@@ -4,7 +4,7 @@ import "./globals.css";
 import { SkipLink, CONTENU_ID } from "@/components/layout/SkipLink";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { LocalBusinessJsonLd } from "@/components/shared/LocalBusinessJsonLd";
+import { PersonJsonLd } from "@/components/shared/PersonJsonLd";
 import { Umami } from "@/components/shared/Umami";
 import { siteUrl, siteName, siteDescription } from "@/data/site";
 
@@ -52,7 +52,7 @@ export default function RootLayout({
     <html lang="fr" className={`${inter.variable} ${instrument.variable}`}>
       {/* `relative` : le fond de l'accueil se positionne par rapport au corps. */}
       <body className="relative flex min-h-screen flex-col font-sans text-encre">
-        <LocalBusinessJsonLd />
+        <PersonJsonLd />
         <Umami />
         <SkipLink />
         <Header />

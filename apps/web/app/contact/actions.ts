@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { contact } from "@/data/contact";
 import { sendContactEmail } from "@/lib/email";
 import { verifierLimite } from "@/lib/rate-limit";
 import { LIMITES } from "./limites";
@@ -42,7 +43,7 @@ export async function submitContactForm(
       status: "error",
       message: `Vous avez déjà envoyé plusieurs messages. Merci de réessayer dans ${minutes} minute${
         minutes > 1 ? "s" : ""
-      }, ou de nous appeler directement.`,
+      }, ou de m'écrire directement à ${contact.email}.`,
     };
   }
 
@@ -59,7 +60,7 @@ export async function submitContactForm(
       status: "error",
       // Le code d'erreur SMTP est affiché pour identifier la panne sans accès
       // aux logs de l'hébergeur (EAUTH, ETIMEDOUT…). Aucun secret dedans.
-      message: `L'envoi a échoué (${codeErreur(err)}). Merci de réessayer ou de nous appeler.`,
+      message: `L'envoi a échoué (${codeErreur(err)}). Merci de réessayer ou de m'écrire directement à ${contact.email}.`,
     };
   }
 
