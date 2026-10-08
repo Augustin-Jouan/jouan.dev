@@ -20,12 +20,14 @@ FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
+COPY apps/demo-marches/package.json apps/demo-marches/
 RUN pnpm install --frozen-lockfile
 
 FROM base AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/apps/demo-marches/node_modules ./apps/demo-marches/node_modules
 COPY . .
 # Lue au build par apps/web/data/site.ts : elle est figée dans les pages statiques
 # (canonical, sitemap, JSON-LD). Un build avec une URL locale échoue exprès.
@@ -36,7 +38,8 @@ ENV SITE_URL=${SITE_URL}
 ARG UMAMI_WEBSITE_ID=
 ENV UMAMI_WEBSITE_ID=${UMAMI_WEBSITE_ID}
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm --filter web build
+# La démo (apps/demo-marches) puis le site ; la sortie de la démo tombe dans apps/web/public.
+RUN pnpm build
 
 FROM node:${NODE_VERSION}-alpine AS runner
 WORKDIR /app

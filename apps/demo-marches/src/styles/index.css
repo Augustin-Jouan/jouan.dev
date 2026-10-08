@@ -1,0 +1,5 @@
+/* L'entrée unique du style : Tailwind, puis l'identité (jetons → thème → base). */
+@import "tailwindcss";
+@import "./jetons.css";
+@import "./theme.css";
+@import "./base.css";

@@ -74,6 +74,8 @@ jobs:
 
       - run: pnpm --filter web verifier-taille-encre
 
+      - run: pnpm --filter web verifier-taille-demo
+
       - run: pnpm --filter web lighthouse
 
       - name: Rapports en cas d'échec

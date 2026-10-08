@@ -13,6 +13,7 @@
     "e2e": "playwright test",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
     "verifier-taille-encre": "node scripts/verifier-taille-encre.mjs",
+    "verifier-taille-demo": "node scripts/verifier-taille-demo.mjs",
     "verifier-placeholders": "node scripts/verifier-placeholders.mjs"
   },
   "dependencies": {
