@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 import { redirections } from "./data/redirections";
 
 const enDeveloppement = process.env.NODE_ENV === "development";
@@ -59,6 +60,11 @@ const securityHeaders = [
       ]),
 ];
 
+// Monorepo : le lockfile pnpm et les dépendances hissées sont à la racine du
+// dépôt. Le traçage du mode standalone et Turbopack doivent partir de là,
+// sinon l'image Docker manque des modules (doc Next : output.md, turbopack.md).
+const racineDepot = path.join(__dirname, "../..");
+
 const nextConfig: NextConfig = {
   // Hébergement : VPS OVH via Coolify, qui tire l'image construite par
   // GitHub Actions à partir du `Dockerfile` du dépôt. Le build ne garde que
@@ -70,6 +76,8 @@ const nextConfig: NextConfig = {
   // produit pas. Next prévient que les deux sont incompatibles : on n'active
   // le standalone qu'en dehors de Vercel.
   output: process.env.VERCEL ? undefined : "standalone",
+  outputFileTracingRoot: racineDepot,
+  turbopack: { root: racineDepot },
 
   // `quality={90}` sur une photo importante serait sinon recalé sur 75 par
   // Next 16 ; garder 90 dans la liste.
