@@ -1,0 +1,140 @@
+import type { Metadata } from "next";
+import { contact } from "@/data/contact";
+import { A_COMPLETER, mentionsLegales } from "@/data/legal";
+import { siteName } from "@/data/site";
+
+export const metadata: Metadata = {
+  title: "Politique de confidentialité",
+  description: `Politique de confidentialité et traitement des données personnelles (RGPD) du site de ${siteName}.`,
+  alternates: { canonical: "/politique-de-confidentialite" },
+};
+
+export default function PolitiqueConfidentialitePage() {
+  const transfertPlaceholder =
+    mentionsLegales.transfertHorsUe === A_COMPLETER;
+
+  return (
+    <section className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-12">
+      <h1 className="text-3xl font-bold">
+        Politique de confidentialité
+      </h1>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">
+          Responsable du traitement
+        </h2>
+        <p>
+          Le responsable du traitement des données collectées sur ce site est{" "}
+          {mentionsLegales.raisonSociale}, dont le siège est situé{" "}
+          {mentionsLegales.adresse}, représentée par{" "}
+          {mentionsLegales.directeurPublication}.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">Données collectées</h2>
+        <p>
+          Lorsque vous utilisez le formulaire de contact, nous collectons les
+          informations que vous renseignez : nom, adresse email, numéro de
+          téléphone (facultatif) et le contenu de votre message. Les champs nom,
+          email et message sont obligatoires : sans eux, la demande ne peut pas
+          être traitée.
+        </p>
+        <p>
+          Lors de l&apos;envoi du formulaire, l&apos;adresse IP est utilisée de
+          façon temporaire (une heure, en mémoire) pour limiter les envois
+          abusifs. L&apos;hébergeur peut également conserver des journaux
+          techniques d&apos;accès (adresse IP, date, page consultée) pour la
+          sécurité et le bon fonctionnement du site.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">Finalité du traitement</h2>
+        <p>
+          Ces données sont utilisées uniquement pour répondre à votre demande de
+          devis ou de renseignement. La base légale du traitement est
+          l&apos;exécution de mesures précontractuelles prises à votre demande
+          (article 6.1.b du RGPD).
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">Destinataires</h2>
+        <p>
+          Vos données sont destinées exclusivement à{" "}
+          {mentionsLegales.raisonSociale} et ne sont ni vendues ni cédées à des
+          tiers. Deux prestataires techniques y ont accès du seul fait de leur
+          rôle, sans autorisation d&apos;en faire un autre usage : l&apos;hébergeur
+          du site, et le prestataire d&apos;envoi de mails qui achemine le message
+          envoyé depuis le formulaire jusqu&apos;à notre boîte.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">
+          Transferts hors de l&apos;Union européenne
+        </h2>
+        <p>
+          Un transfert hors de l&apos;Union européenne dépend de l&apos;hébergeur
+          retenu.{" "}
+          <span className={transfertPlaceholder ? "italic" : undefined}>
+            {mentionsLegales.transfertHorsUe}
+          </span>
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">
+          Durée de conservation
+        </h2>
+        <p>
+          Les messages reçus via le formulaire sont conservés{" "}
+          <strong>trois ans à compter du dernier contact</strong>, puis supprimés.
+          Lorsqu&apos;une demande débouche sur une relation contractuelle, les
+          documents correspondants relèvent des obligations comptables et sont
+          conservés dix ans, conformément à l&apos;article L123-22 du code de
+          commerce.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">Vos droits</h2>
+        <p>
+          Conformément au Règlement général sur la protection des données (RGPD),
+          vous disposez d&apos;un droit d&apos;accès, de rectification,
+          d&apos;effacement, de limitation, d&apos;opposition et de portabilité de
+          vos données. Pour exercer ces droits, contactez-nous par email à{" "}
+          <a href={`mailto:${contact.email}`} className="underline">
+            {contact.email}
+          </a>{" "}
+          ou par téléphone au{" "}
+          <a href={contact.telephoneLien} className="underline">
+            {contact.telephone}
+          </a>
+          .
+        </p>
+        <p>
+          Vous pouvez également introduire une réclamation auprès de la CNIL
+          (www.cnil.fr) si vous estimez que vos droits ne sont pas respectés.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">
+          Cookies et mesure d&apos;audience
+        </h2>
+        <p>
+          Ce site ne dépose aucun cookie de suivi. La fréquentation est mesurée
+          avec Umami, un outil respectueux de la vie privée : il ne dépose pas
+          de cookie, ne collecte aucune donnée personnelle et ne permet pas de
+          suivre un visiteur d&apos;un site à l&apos;autre. Les données sont
+          agrégées et anonymes (pages consultées, type d&apos;appareil, pays).
+          Conformément aux recommandations de la CNIL, cette mesure
+          d&apos;audience est exemptée de consentement, ce qui explique
+          l&apos;absence de bandeau cookie.
+        </p>
+      </div>
+    </section>
+  );
+}

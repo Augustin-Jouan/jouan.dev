@@ -1,0 +1,34 @@
+# Mises à jour automatiques en pull request, validées par la CI. Groupées pour
+# ne pas recevoir une PR par paquet : une pour les dépendances, une pour les
+# actions GitHub, au plus une fois par semaine.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: Europe/Paris
+    groups:
+      dependances:
+        patterns: ["*"]
+    # Next et React : à passer à la main, en lisant les notes de version.
+    ignore:
+      - dependency-name: next
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-dom
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: Europe/Paris
+    groups:
+      actions:
+        patterns: ["*"]

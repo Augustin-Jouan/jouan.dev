@@ -1,0 +1,18 @@
+import { describe, it, expect } from "vitest";
+import sitemap from "./sitemap";
+import { siteUrl } from "@/data/site";
+
+describe("sitemap", () => {
+  it("inclut l'accueil, le contact et les pages légales", () => {
+    const urls = sitemap().map((entree) => entree.url);
+    expect(urls).toContain(`${siteUrl}`);
+    expect(urls).toContain(`${siteUrl}/contact`);
+    expect(urls).toContain(`${siteUrl}/mentions-legales`);
+    expect(urls).toContain(`${siteUrl}/politique-de-confidentialite`);
+  });
+
+  it("ne déclare aucune URL en double", () => {
+    const urls = sitemap().map((entree) => entree.url);
+    expect(new Set(urls).size).toBe(urls.length);
+  });
+});
