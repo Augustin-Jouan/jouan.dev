@@ -185,6 +185,12 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     canvas.removeEventListener("webglcontextlost", surContextePerdu);
     observateur?.disconnect();
     vigie?.disconnect();
+    // Libère le contexte tout de suite, sans attendre le ramasse-miettes : le
+    // navigateur en limite le nombre (≈ 16) et perd d'office le plus ancien
+    // au-delà, après des allers-retours entre l'accueil et les autres pages.
+    // Écouteur `webglcontextlost` déjà retiré : la perte volontaire n'est pas
+    // prise pour un échec.
+    if (!gl!.isContextLost()) gl!.getExtension("WEBGL_lose_context")?.loseContext();
   }
 
   document.addEventListener("visibilitychange", surVisibilite);
