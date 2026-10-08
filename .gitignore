@@ -43,3 +43,8 @@ next-env.d.ts
 
 # internal scratch dir (sdd workflow)
 .superpowers/
+
+# Playwright et Lighthouse
+test-results/
+playwright-report/
+.lighthouseci/
