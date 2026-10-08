@@ -32,4 +32,10 @@ test("un refus du serveur d'envoi affiche une erreur avec l'e-mail direct", asyn
   await envoyer(page, `Test ${MOT_REFUS}`);
   await expect(retour(page)).toHaveAttribute("role", "alert");
   await expect(retour(page)).toContainText(contact.email);
+  // React vide le formulaire avant chaque action : la saisie doit revenir.
+  // Visé par son rôle : le texte rétabli du message entre dans le texte de
+  // son <label>, que getByLabel compare.
+  await expect(page.getByRole("textbox", { name: "Nom", exact: true })).toHaveValue("Client Test");
+  await expect(page.getByRole("textbox", { name: "Email", exact: true })).toHaveValue("client@exemple.fr");
+  await expect(page.getByRole("textbox", { name: "Message", exact: true })).toHaveValue(new RegExp(MOT_REFUS));
 });

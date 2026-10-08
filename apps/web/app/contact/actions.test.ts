@@ -159,4 +159,42 @@ describe("submitContactForm", () => {
     for (let i = 0; i < 5; i += 1) await envoyer();
     expect((await envoyer()).message).toContain(contact.email);
   });
+
+  // Revue finale, Important 2 : React vide le formulaire avant chaque action ;
+  // l'état d'erreur renvoie la saisie pour la rétablir.
+  describe("renvoie la saisie avec chaque erreur", () => {
+    const saisie = {
+      nom: "Jean",
+      email: "jean@exemple.fr",
+      telephone: "0612345678",
+      message: "Bonjour,\nun long message à ne pas perdre.",
+    };
+
+    it("après une validation refusée", async () => {
+      const state = await submitContactForm(idle, buildFormData({ ...saisie, email: "pas-un-email" }));
+      expect(state.status).toBe("error");
+      expect(state.valeurs).toEqual({ ...saisie, email: "pas-un-email" });
+    });
+
+    it("après la limite d'envois atteinte", async () => {
+      for (let i = 0; i < 5; i += 1) await submitContactForm(idle, buildFormData(saisie));
+      const state = await submitContactForm(idle, buildFormData(saisie));
+      expect(state.status).toBe("error");
+      expect(state.valeurs).toEqual(saisie);
+    });
+
+    it("après un échec d'envoi", async () => {
+      sendContactEmail.mockRejectedValue(new Error("smtp down"));
+      const state = await submitContactForm(idle, buildFormData(saisie));
+      expect(state.status).toBe("error");
+      expect(state.valeurs).toEqual(saisie);
+    });
+
+    it("mais pas après un envoi réussi", async () => {
+      const state = await submitContactForm(idle, buildFormData(saisie));
+      expect(state.status).toBe("success");
+      expect(state.valeurs).toBeUndefined();
+    });
+  });
 });
+

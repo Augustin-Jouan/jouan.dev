@@ -19,10 +19,15 @@ export function ContactForm() {
   const [state, formAction, pending] = useActionState(submitContactForm, initialState);
   const enErreur = state.status === "error";
 
-  /** Marque le champ signalé par le serveur et le relie au message d'erreur. */
+  /**
+   * Marque le champ signalé par le serveur et le relie au message d'erreur.
+   * La valeur par défaut est la saisie renvoyée par une erreur : React vide
+   * le formulaire avant chaque action, il revient ainsi à cette saisie.
+   */
   function attributs(nom: NonNullable<ContactFormState["champ"]>) {
     const fautif = enErreur && state.champ === nom;
     return {
+      defaultValue: state.valeurs?.[nom],
       className: `${champ} ${fautif ? "border-brique" : "border-trait"}`,
       "aria-invalid": fautif || undefined,
       "aria-describedby": fautif ? "contact-retour" : undefined,

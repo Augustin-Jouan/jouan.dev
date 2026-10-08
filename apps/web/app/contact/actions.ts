@@ -9,8 +9,14 @@ import { LIMITES } from "./limites";
 export type ContactFormState = {
   status: "idle" | "success" | "error";
   message: string;
-    /** Nom du premier champ fautif, pour le signaler dans le formulaire. */
+  /** Nom du premier champ fautif, pour le signaler dans le formulaire. */
   champ?: "nom" | "email" | "telephone" | "message";
+  /**
+   * Saisie du visiteur, renvoyée avec chaque erreur : React vide le formulaire
+   * avant toute action, le formulaire la rétablit en valeurs par défaut (avec
+   * ou sans JavaScript).
+   */
+  valeurs?: Champs;
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // placeholder-ok (classe de caractères, pas un placeholder)
@@ -28,13 +34,19 @@ export async function submitContactForm(
     return { status: "success", message: "Merci, votre message a bien été envoyé." };
   }
 
-  const nom = String(formData.get("nom") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const telephone = String(formData.get("telephone") ?? "").trim();
-  const message = String(formData.get("message") ?? "").trim();
+  const valeurs: Champs = {
+    nom: String(formData.get("nom") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    telephone: String(formData.get("telephone") ?? ""),
+    message: String(formData.get("message") ?? ""),
+  };
+  const nom = valeurs.nom.trim();
+  const email = valeurs.email.trim();
+  const telephone = valeurs.telephone.trim();
+  const message = valeurs.message.trim();
 
   const invalide = valider({ nom, email, telephone, message });
-  if (invalide) return invalide;
+  if (invalide) return { ...invalide, valeurs };
 
   const limite = verifierLimite(await cleAppelant(), LIMITE_ENVOIS);
   if (!limite.autorise) {
@@ -44,6 +56,7 @@ export async function submitContactForm(
       message: `Vous avez déjà envoyé plusieurs messages. Merci de réessayer dans ${minutes} minute${
         minutes > 1 ? "s" : ""
       }, ou de m'écrire directement à ${contact.email}.`,
+      valeurs,
     };
   }
 
@@ -61,6 +74,7 @@ export async function submitContactForm(
       // Le code d'erreur SMTP est affiché pour identifier la panne sans accès
       // aux logs de l'hébergeur (EAUTH, ETIMEDOUT…). Aucun secret dedans.
       message: `L'envoi a échoué (${codeErreur(err)}). Merci de réessayer ou de m'écrire directement à ${contact.email}.`,
+      valeurs,
     };
   }
 
