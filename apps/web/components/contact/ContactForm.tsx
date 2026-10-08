@@ -11,8 +11,11 @@ import { siteName } from "@/data/site";
 
 const initialState: ContactFormState = { status: "idle", message: "" };
 
-// Classes aux couleurs de l'Atelier clair.
-const champ = "rounded-xl border bg-papier px-4 py-3 outline-none transition-colors focus:border-encre";
+// Classes aux couleurs de l'Atelier clair. Bordure au repos encre-douce/80 :
+// ≈ 4:1 sur le papier (WCAG 1.4.11 demande 3:1 pour la limite d'un champ).
+// Le focus ajoute un anneau de 2 px : il ne repose pas sur la seule couleur.
+const champ =
+  "rounded-xl border bg-papier px-4 py-3 outline-none transition-colors focus:border-encre focus-visible:ring-2 focus-visible:ring-encre focus-visible:ring-offset-2 focus-visible:ring-offset-papier";
 const etiquette = "flex flex-col gap-2 text-sm font-medium";
 
 export function ContactForm() {
@@ -28,7 +31,7 @@ export function ContactForm() {
     const fautif = enErreur && state.champ === nom;
     return {
       defaultValue: state.valeurs?.[nom],
-      className: `${champ} ${fautif ? "border-brique" : "border-trait"}`,
+      className: `${champ} ${fautif ? "border-brique" : "border-encre-douce/80"}`,
       "aria-invalid": fautif || undefined,
       "aria-describedby": fautif ? "contact-retour" : undefined,
     };

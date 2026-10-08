@@ -14,10 +14,8 @@ export default function PolitiqueConfidentialitePage() {
     mentionsLegales.transfertHorsUe === A_COMPLETER;
 
   return (
-    <section className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-12">
-      <h1 className="text-3xl font-bold">
-        Politique de confidentialité
-      </h1>
+    <section className="mx-auto flex max-w-3xl flex-col gap-8 px-5 py-16">
+      <h1 className="font-serif text-5xl">Politique de confidentialité</h1>
 
       <div className="flex flex-col gap-3">
         <h2 className="text-xl font-semibold">
@@ -33,7 +31,7 @@ export default function PolitiqueConfidentialitePage() {
       <div className="flex flex-col gap-3">
         <h2 className="text-xl font-semibold">Données collectées</h2>
         <p>
-          Lorsque vous utilisez le formulaire de contact, nous collectons les
+          Lorsque vous utilisez le formulaire de contact, je collecte les
           informations que vous renseignez : nom, adresse email, numéro de
           téléphone (facultatif) et le contenu de votre message. Les champs nom,
           email et message sont obligatoires : sans eux, la demande ne peut pas
@@ -66,7 +64,7 @@ export default function PolitiqueConfidentialitePage() {
           tiers. Deux prestataires techniques y ont accès du seul fait de leur
           rôle, sans autorisation d&apos;en faire un autre usage : l&apos;hébergeur
           du site, et le prestataire d&apos;envoi de mails qui achemine le message
-          envoyé depuis le formulaire jusqu&apos;à notre boîte.
+          envoyé depuis le formulaire jusqu&apos;à ma boîte.
         </p>
       </div>
 
@@ -103,7 +101,7 @@ export default function PolitiqueConfidentialitePage() {
           Conformément au Règlement général sur la protection des données (RGPD),
           vous disposez d&apos;un droit d&apos;accès, de rectification,
           d&apos;effacement, de limitation, d&apos;opposition et de portabilité de
-          vos données. Pour exercer ces droits, contactez-nous par email à{" "}
+          vos données. Pour exercer ces droits, écrivez-moi à{" "}
           <a href={`mailto:${contact.email}`} className="underline">
             {contact.email}
           </a>

@@ -10,8 +10,8 @@ export default function Error({ error }: { error: Error & { digest?: string } })
 
   return (
     <section className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-24">
-      <h1 className="text-2xl font-semibold">Une erreur est survenue</h1>
-      <p>Désolé, un problème est survenu. Vous pouvez réessayer ou nous contacter directement.</p>
+      <h1 className="font-serif text-5xl">Une erreur est survenue</h1>
+      <p>Désolé, un problème est survenu. Vous pouvez réessayer ou me contacter directement.</p>
       <p className="flex gap-4">
         <button type="button" onClick={() => window.location.reload()} className="underline">
           Réessayer
