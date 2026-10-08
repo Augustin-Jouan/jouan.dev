@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+
+# pnpm 10 n'exécute les scripts d'installation des dépendances que sur
+# autorisation explicite. Ajouter ici un paquet signalé par « Ignored build
+# scripts » au `pnpm install` seulement s'il compile du code natif.
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver

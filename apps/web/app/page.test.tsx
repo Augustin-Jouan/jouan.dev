@@ -1,0 +1,69 @@
+import { render, screen, within } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import HomePage from "./page";
+import {
+  ANCRES,
+  accroche,
+  etapes,
+  offres,
+  parcours,
+  realisations,
+  sections,
+} from "@/data/accueil";
+import { contact } from "@/data/contact";
+
+describe("HomePage", () => {
+  it("affiche l'accroche et ses deux actions", () => {
+    render(<HomePage />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      `${accroche.titreAvant}${accroche.titreAccent}${accroche.titreApres}`
+    );
+    expect(screen.getByRole("link", { name: accroche.actionPrincipale.libelle })).toHaveAttribute(
+      "href",
+      accroche.actionPrincipale.href
+    );
+    expect(screen.getByRole("link", { name: accroche.actionSecondaire.libelle })).toHaveAttribute(
+      "href",
+      accroche.actionSecondaire.href
+    );
+  });
+
+  it("affiche les sections dans l'ordre, chacune à son ancre", () => {
+    render(<HomePage />);
+    const titres = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    expect(titres).toEqual([
+      sections.offre.titre,
+      sections.realisations.titre,
+      sections.methode.titre,
+      sections.parcours.titre,
+      sections.contact.titre,
+    ]);
+    for (const id of Object.values(ANCRES)) {
+      expect(document.getElementById(id)).not.toBeNull();
+    }
+  });
+
+  it("affiche les offres, les réalisations, les étapes et le parcours", () => {
+    render(<HomePage />);
+    for (const offre of offres) {
+      expect(screen.getByRole("heading", { level: 3, name: offre.titre })).toBeInTheDocument();
+    }
+    for (const r of realisations) {
+      expect(screen.getByRole("heading", { level: 3, name: r.titre })).toBeInTheDocument();
+    }
+    for (const etape of etapes) {
+      expect(screen.getByRole("heading", { level: 3, name: etape.titre })).toBeInTheDocument();
+    }
+    for (const ligne of parcours) expect(screen.getByText(ligne)).toBeInTheDocument();
+  });
+
+  it("intègre le formulaire et l'e-mail direct dans la section contact", () => {
+    render(<HomePage />);
+    const section = document.getElementById(ANCRES.contact)!;
+    expect(within(section).getByLabelText("Nom")).toBeInTheDocument();
+    expect(within(section).getByRole("link", { name: contact.email })).toHaveAttribute(
+      "href",
+      `mailto:${contact.email}`
+    );
+  });
+});
