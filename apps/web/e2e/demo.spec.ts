@@ -1,8 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { surveillerErreurs } from "./outils";
 
-const espaces = (t: string | null) => (t ?? "").replace(/[\u00a0\u202f]/g, " ");
-
 test.describe("ordinateur", () => {
   test.skip(({ isMobile }) => isMobile, "La démo s'ouvre en plein écran sur mobile.");
 
@@ -12,8 +10,13 @@ test.describe("ordinateur", () => {
     page.on("request", (r) => r.url().includes("/demo/") && requetes.push(r.url()));
     await page.goto("/realisations/suivi-de-marches");
     await page.waitForLoadState("networkidle");
+    // La fenêtre doit commencer hors de l'écran, marge d'approche (200 px) comprise :
+    // sinon ce test passerait sans rien prouver.
+    const apercu = page.getByRole("img", { name: /Écran des marchés de la démo/ });
+    expect((await apercu.boundingBox())!.y).toBeGreaterThan(600 + 200);
+    await expect(page.locator("iframe")).toHaveCount(0);
     expect(requetes).toEqual([]);
-    await page.getByRole("img", { name: /Écran des marchés de la démo/ }).scrollIntoViewIfNeeded();
+    await apercu.scrollIntoViewIfNeeded();
     await expect(page.frameLocator('iframe[title^="Démo interactive"]').getByRole("heading", { name: "Suivi de marchés" })).toBeVisible();
   });
 
@@ -32,7 +35,8 @@ test.describe("ordinateur", () => {
     await panneau.getByRole("button", { name: "Certificat de paiement" }).click();
     const apercu = demo.getByRole("dialog", { name: "Certificat de paiement n° 03 — Lot 07" });
     await apercu.getByLabel("Cumul des travaux réalisés HT").fill("9 850,00");
-    expect(espaces(await apercu.getByTestId("mandate").textContent())).toBe("3 021,00 €");
+    // `\s` couvre les espaces insécables du format fr-FR.
+    await expect(apercu.getByTestId("mandate")).toHaveText(/^3\s021,00\s€$/);
     expect(erreurs).toEqual([]);
   });
 });
