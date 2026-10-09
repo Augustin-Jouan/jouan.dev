@@ -14,3 +14,16 @@ describe("Champ", () => {
     expect(saisie).toHaveAccessibleDescription("Valeur invalide");
   });
 });
+
+describe("Champ : aide et erreur", () => {
+  it("référence les deux dans aria-describedby", () => {
+    render(<Champ libelle="Montant" aide="En euros" erreur="Valeur invalide" />);
+    const saisie = screen.getByLabelText("Montant");
+    expect(saisie.getAttribute("aria-describedby")!.split(" ")).toHaveLength(2);
+    expect(saisie).toHaveAccessibleDescription("Valeur invalide En euros");
+  });
+  it("applique className au conteneur", () => {
+    const { container } = render(<Champ libelle="M" className="col-span-2" />);
+    expect(container.firstChild).toHaveClass("col-span-2");
+  });
+});

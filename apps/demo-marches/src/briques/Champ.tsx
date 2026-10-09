@@ -1,26 +1,29 @@
 import { useId } from "react";
 import type { InputHTMLAttributes } from "react";
+import { cx } from "./cx";
 
 const SAISIE =
   "w-full rounded-sm border border-rule-strong bg-surface px-2.5 py-2 text-ink " +
   "transition-[border-color,background-color] duration-120 focus:border-accent focus:bg-raise focus:outline-none " +
   "aria-invalid:border-danger aria-invalid:bg-danger-soft";
 
-type Props = InputHTMLAttributes<HTMLInputElement> & {
+type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "className"> & {
+  /** Placement seulement (sur le conteneur). */
+  className?: string;
   libelle: string;
   erreur?: string;
   aide?: string;
 };
 
 /** Un champ de formulaire : libellé relié, aide, erreur annoncée par aria-describedby. */
-export function Champ({ libelle, erreur, aide, id, ...reste }: Props) {
+export function Champ({ libelle, erreur, aide, id, className, ...reste }: Props) {
   const auto = useId();
   const idChamp = id ?? auto;
   const idErreur = `${idChamp}-erreur`;
   const idAide = `${idChamp}-aide`;
   const decrit = [erreur && idErreur, aide && idAide].filter(Boolean).join(" ") || undefined;
   return (
-    <div className="flex min-w-0 flex-col gap-1">
+    <div className={cx("flex min-w-0 flex-col gap-1", className)}>
       <label htmlFor={idChamp} className="text-12 text-muted">
         {libelle}
       </label>

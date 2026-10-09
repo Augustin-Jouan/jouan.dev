@@ -23,3 +23,22 @@ describe("briques simples", () => {
     expect(screen.getByRole("table")).toBeInTheDocument();
   });
 });
+
+describe("variantes et attributs", () => {
+  it("chaque ton d'étiquette a sa variante", () => {
+    const tons = ["neutre", "accent", "alerte", "danger"] as const;
+    const classes = tons.map((t) => {
+      const { unmount, container } = render(<Etiquette ton={t}>x</Etiquette>);
+      const c = (container.firstChild as HTMLElement).className;
+      unmount();
+      return c;
+    });
+    expect(new Set(classes).size).toBe(4);
+  });
+  it("Tableau laisse passer les data-* des cellules", () => {
+    render(<Tableau variante="plain"><tbody><tr data-actif><td data-droite data-premiere>1</td></tr></tbody></Tableau>);
+    expect(screen.getByRole("cell")).toHaveAttribute("data-droite");
+    expect(screen.getByRole("cell")).toHaveAttribute("data-premiere");
+    expect(screen.getByRole("row")).toHaveAttribute("data-actif");
+  });
+});

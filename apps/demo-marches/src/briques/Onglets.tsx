@@ -3,11 +3,13 @@ import { cx } from "./cx";
 
 type Onglet = { id: string; titre: string };
 
-const idOnglet = (id: string) => `onglet-${id}`;
-const idPanneau = (id: string) => `panneau-${id}`;
+/* Le groupe (useId du parent quand deux jeux d'onglets coexistent) préfixe les identifiants DOM. */
+const idOnglet = (groupe: string, id: string) => `onglet-${groupe}-${id}`;
+const idPanneau = (groupe: string, id: string) => `panneau-${groupe}-${id}`;
 
 /** Une liste d'onglets : flèches, Début, Fin ; seul l'actif est dans l'ordre de tabulation. */
-export function Onglets({ libelle, onglets, actif, surChangement }: {
+export function Onglets({ libelle, onglets, actif, surChangement, groupe = "" }: {
+  groupe?: string;
   libelle: string;
   onglets: Onglet[];
   actif: string;
@@ -25,7 +27,7 @@ export function Onglets({ libelle, onglets, actif, surChangement }: {
     const o = onglets[cible];
     if (!o) return;
     surChangement(o.id);
-    document.getElementById(idOnglet(o.id))?.focus();
+    document.getElementById(idOnglet(groupe, o.id))?.focus();
   }
   return (
     <div role="tablist" aria-label={libelle} onKeyDown={touche} className="flex gap-0.5 overflow-x-auto border-b border-rule">
@@ -34,11 +36,11 @@ export function Onglets({ libelle, onglets, actif, surChangement }: {
         return (
           <button
             key={o.id}
-            id={idOnglet(o.id)}
+            id={idOnglet(groupe, o.id)}
             type="button"
             role="tab"
             aria-selected={courant}
-            aria-controls={idPanneau(o.id)}
+            aria-controls={idPanneau(groupe, o.id)}
             tabIndex={courant ? 0 : -1}
             onClick={() => surChangement(o.id)}
             className={cx(
@@ -54,9 +56,9 @@ export function Onglets({ libelle, onglets, actif, surChangement }: {
   );
 }
 
-export function PanneauOnglet({ id, actif, children }: { id: string; actif: string; children: ReactNode }) {
+export function PanneauOnglet({ id, actif, groupe = "", children }: { id: string; groupe?: string; actif: string; children: ReactNode }) {
   return (
-    <div role="tabpanel" id={idPanneau(id)} aria-labelledby={idOnglet(id)} hidden={id !== actif}>
+    <div role="tabpanel" id={idPanneau(groupe, id)} aria-labelledby={idOnglet(groupe, id)} hidden={id !== actif}>
       {children}
     </div>
   );
