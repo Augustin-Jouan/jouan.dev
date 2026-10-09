@@ -52,6 +52,21 @@ describe("Aperçu du certificat", () => {
     expect(espaces(screen.getByRole("status").textContent)).toContain("3 180,00 €");
   });
 
+  it("effacer le cumul après une saisie valide affiche l'erreur et garde le dernier certificat", async () => {
+    const apercu = await ouvrirCertificat();
+    const champ = within(apercu).getByLabelText("Cumul des travaux réalisés HT");
+    await userEvent.type(champ, "9850");
+    await userEvent.clear(champ);
+    expect(champ).toHaveAttribute("aria-invalid", "true");
+    expect(champ).toHaveAccessibleDescription("Saisissez le montant des travaux réalisés.");
+    expect(mandate(apercu)).toBe("3 021,00 €");
+  });
+
+  it("n'affiche aucune erreur à l'ouverture, avant toute saisie", async () => {
+    const apercu = await ouvrirCertificat();
+    expect(within(apercu).getByLabelText("Cumul des travaux réalisés HT")).not.toHaveAttribute("aria-invalid", "true");
+  });
+
   it("affiche des tirets tant qu'aucun calcul n'est valide", async () => {
     const apercu = await ouvrirCertificat();
     expect(mandate(apercu)).toBe("—");

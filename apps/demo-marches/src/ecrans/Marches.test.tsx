@@ -37,6 +37,19 @@ describe("Écran Marchés", () => {
     expect(libelle).toHaveAccessibleDescription("Donnez un libellé à l'avenant.");
   });
 
+  it("refuse une moins-value qui passe sous le déjà payé", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Carrelage — faïence" }));
+    const panneau = screen.getByRole("dialog");
+    await userEvent.type(within(panneau).getByLabelText("Libellé"), "Retrait");
+    await userEvent.type(within(panneau).getByLabelText("Montant HT"), "-10 000");
+    await userEvent.click(within(panneau).getByRole("button", { name: "Ajouter" }));
+    const montant = within(panneau).getByLabelText("Montant HT");
+    expect(montant).toHaveAttribute("aria-invalid", "true");
+    expect(montant).toHaveAccessibleDescription(/La moins-value dépasse le montant restant du marché\./);
+    expect(espaces(ligne("Carrelage — faïence").textContent)).toContain("13 450,00 €");
+  });
+
   it("supprime un avenant sans réutiliser son numéro", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: "Carrelage — faïence" }));
@@ -109,9 +122,9 @@ describe("Écran Marchés", () => {
     expect(within(panneau).getByRole("button", { name: "Supprimer l'avenant n° 01" })).toHaveFocus();
   });
 
-  it("l'avancement du lot 07 est un indicateur à 54 %", () => {
+  it("la part payée du lot 07 est un indicateur à 54 %", () => {
     render(<App />);
-    const m = screen.getByRole("meter", { name: "Avancement du lot 07" });
+    const m = screen.getByRole("meter", { name: "Part payée du lot 07" });
     expect(m).toHaveAttribute("aria-valuenow", "54");
   });
 

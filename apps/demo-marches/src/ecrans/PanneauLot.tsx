@@ -57,7 +57,7 @@ export function PanneauLot({ lot, dispatch, surFermeture }: {
   function ajouter(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const v = validerAvenant(libelle, montant);
+    const v = validerAvenant(libelle, montant, { engageHT: engage, payeHT: paye });
     if (!v.ok) {
       setErreur({ champ: v.champ, message: v.message });
       const cible = form.elements.namedItem(v.champ);
@@ -125,7 +125,6 @@ export function PanneauLot({ lot, dispatch, surFermeture }: {
         <Champ
           libelle="Montant HT"
           name="montant"
-          inputMode="decimal"
           value={montant}
           onChange={(e) => {
             setMontant(e.target.value);

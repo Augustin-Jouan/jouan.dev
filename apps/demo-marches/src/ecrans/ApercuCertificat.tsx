@@ -42,7 +42,8 @@ export function ApercuCertificat({ lot, dispatch, surFermeture }: {
   if (calcul.ok && cumulValide !== cumul) setCumulValide(cumul);
   const affiche = calcul.ok ? calcul : cumulValide === null ? null : calculer(cumulValide);
   const l = affiche?.ok ? affiche.lignes : undefined;
-  const erreur = !calcul.ok && cumul.trim() ? calcul.message : undefined;
+  // Pas de message à l'ouverture, mais dès qu'on vide un champ déjà rempli.
+  const erreur = !calcul.ok && (cumul.trim() || cumulValide !== null) ? calcul.message : undefined;
 
   const annonce = useRef<number | null>(null);
   const mandate = l?.mandate;
