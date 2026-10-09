@@ -14,7 +14,7 @@
 
 - Tout le texte visible, les commentaires, les noms de fichiers et les messages de commit sont en français.
 - Anonymat : aucun nom réel de client, de projet, d'employeur, de ville, de téléphone ou d'adresse dans le dépôt ni dans les commits.
-- Caractères invisibles : U+00A0 et U+202F s'écrivent uniquement en échappements ` ` / ` ` dans le code et les tests.
+- Caractères invisibles : U+00A0 et U+202F s'écrivent uniquement en échappements `\u00a0` / `\u202f` dans le code et les tests.
 - Next 16 a des ruptures : lire le guide concerné dans `apps/web/node_modules/next/dist/docs/` avant d'utiliser une API Next.
 - Versions : `hono` `^4.13.13`, `@hono/node-server` `^2.1.4`, `ws` `^8.22.0`, `@types/ws` `^8.18.2`, `esbuild` `^0.28.2`, `tsx` `^4.23.15` ; outils alignés sur `apps/demo-marches` (`typescript` `^5.9.3`, `vitest` `^4.1.11`, `eslint` `^9.39.5`, `typescript-eslint` `^8.71.1`, `globals` `^17.13.0`, `@types/node` `^22.20.5`).
 - `/` reste statique (`○ /` au build, `pnpm --filter web verifier-accueil-statique`).
