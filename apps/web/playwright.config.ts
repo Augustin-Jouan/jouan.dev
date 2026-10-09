@@ -32,7 +32,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }], ["json", { outputFile: ".mesures/playwright.json" }]] : "list",
   globalSetup: "./e2e/smtp-factice.ts",
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,

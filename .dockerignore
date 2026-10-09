@@ -12,6 +12,7 @@ docs
 **/test-results
 **/playwright-report
 **/.lighthouseci
+**/.mesures
 **/*.tsbuildinfo
 **/next-env.d.ts
 # Les secrets viennent de l'hébergeur, jamais du dépôt.

@@ -1,0 +1,56 @@
+/**
+ * Assemble `build-info.json` pour les coulisses, dans le job « image » de la CI,
+ * avant le build Docker : mesures des jobs précédents (artefacts), commit et
+ * date. Une donnée manquante ou invalide fait échouer le job.
+ *
+ * Le titre du commit devient public : un titre qui contient une adresse e-mail
+ * ou IP fait échouer le job (le corriger par un nouveau commit).
+ *
+ * Usage (CI) :
+ *   node apps/web/scripts/assembler-build-info.mjs --verifier mesures-verifier.json \
+ *     --tests-e2e mesures-e2e-tests.json --lighthouse mesures-lighthouse.json > apps/web/build-info.json
+ */
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
+import { TITRE_MAX, validerInfosBuild } from "../lib/coulisses/infos-build.mjs";
+
+const SENSIBLE = /@|\b\d{1,3}(\.\d{1,3}){3}\b/;
+
+export function assembler({ unitaires, boutEnBout, lighthouse, poidsJsAccueil, sha, titre, date }) {
+  const propre = titre.trim().slice(0, TITRE_MAX);
+  if (SENSIBLE.test(propre)) throw new Error("Titre de commit refusé : il contient une adresse e-mail ou IP.");
+  const infos = validerInfosBuild({
+    sha,
+    titre: propre,
+    date,
+    tests: { unitaires, boutEnBout },
+    lighthouse,
+    poidsJsAccueil,
+  });
+  if (!infos) throw new Error("Infos de build invalides ou incomplètes.");
+  return infos;
+}
+
+const lanceDirectement = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (lanceDirectement) {
+  const { values } = parseArgs({
+    options: { verifier: { type: "string" }, "tests-e2e": { type: "string" }, lighthouse: { type: "string" } },
+  });
+  const lire = (f) => JSON.parse(readFileSync(f, "utf8"));
+  const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
+  const { unitaires } = lire(values.verifier);
+  const { boutEnBout } = lire(values["tests-e2e"]);
+  const { lighthouse, poidsJsAccueil } = lire(values.lighthouse);
+  const infos = assembler({
+    unitaires,
+    boutEnBout,
+    lighthouse,
+    poidsJsAccueil,
+    sha: process.env.GITHUB_SHA ?? git("rev-parse", "HEAD"),
+    titre: git("log", "-1", "--format=%s"),
+    date: new Date().toISOString(),
+  });
+  console.log(JSON.stringify(infos, null, 2));
+}
