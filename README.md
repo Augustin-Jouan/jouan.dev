@@ -12,10 +12,15 @@ Conception : `docs/superpowers/specs/` · Plans : `docs/superpowers/plans/`.
 Monorepo pnpm :
 
 - `apps/web` — le site (Next.js 16, React 19, TypeScript, Tailwind 4).
-  - `data/` — tout le contenu (accueil, identité, mentions légales).
+  - `data/` — tout le contenu (accueil, études de cas, identité, mentions
+    légales).
   - `lib/encre/` — l'intro : décision et chronologie (pures, testées),
     shader et moteur WebGL2.
   - `e2e/` — tests Playwright.
+- `apps/demo-marches` — la démo « Suivi de marchés » des études de cas (Vite, React,
+  Tailwind) : règles de calcul pures dans `src/domaine/`, chantier fictif dans
+  `src/donnees/`. Construite dans `apps/web/public/demo/suivi-de-marches/` par
+  `pnpm build` ; `pnpm dev:demo` pour la développer seule.
 
 ## Commandes
 
@@ -28,6 +33,8 @@ pnpm lint && pnpm typecheck && pnpm test
 pnpm build && pnpm e2e                # tests de bout en bout (serveur de production)
 pnpm --filter web lighthouse          # budgets de performance
 pnpm --filter web verifier-taille-encre
+pnpm --filter web verifier-taille-demo
+pnpm --filter web capturer-apercu-demo   # après un changement visible de la démo
 ```
 
 Les tests de bout en bout démarrent un faux serveur SMTP local (port 2525).
