@@ -12,7 +12,10 @@ const signal = (corps: string, enTetes: Record<string, string> = { "user-agent":
   POST(new Request("http://localhost/api/visites", { method: "POST", body: corps, headers: enTetes }));
 
 describe("POST /api/visites", () => {
-  beforeEach(() => traiterVisite.mockReset());
+  beforeEach(() => {
+    traiterVisite.mockReset();
+    after.mockClear();
+  });
 
   it("répond 204 et traite un signal valide en arrière-plan", async () => {
     const r = await signal("boulangerie-martin-k7f3");
@@ -28,5 +31,31 @@ describe("POST /api/visites", () => {
     const r = await signal(corps, enTetes);
     expect(r.status).toBe(204);
     expect(traiterVisite).not.toHaveBeenCalled();
+  });
+
+  it("répond 204 sans rien traiter pour un flux de plus de 256 octets sans content-length", async () => {
+    const flux = new ReadableStream<Uint8Array>({
+      start(c) {
+        c.enqueue(new TextEncoder().encode("a".repeat(200)));
+        c.enqueue(new TextEncoder().encode("a".repeat(200)));
+        c.close();
+      },
+    });
+    const r = await POST(
+      new Request("http://localhost/api/visites", {
+        method: "POST",
+        body: flux,
+        headers: { "user-agent": NAVIGATEUR },
+        duplex: "half",
+      } as RequestInit),
+    );
+    expect(r.status).toBe(204);
+    expect(after).not.toHaveBeenCalled();
+    expect(traiterVisite).not.toHaveBeenCalled();
+  });
+  it("traite un signal valide malgré un content-length non numérique", async () => {
+    const r = await signal("boulangerie-martin-k7f3", { "user-agent": NAVIGATEUR, "content-length": "abc" });
+    expect(r.status).toBe(204);
+    expect(traiterVisite).toHaveBeenCalledWith("boulangerie-martin-k7f3", "mobile");
   });
 });

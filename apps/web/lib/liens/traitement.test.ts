@@ -67,4 +67,26 @@ describe("traiterVisite", () => {
     for (let i = 0; i < 12; i++) await traiterVisite("x-0000", "mobile", le);
     expect(depot.enregistrerVisite).toHaveBeenCalledTimes(10);
   });
+
+  it("isole les quotas par jeton", async () => {
+    depot.enregistrerVisite.mockResolvedValue(null);
+    for (let i = 0; i < 10; i++) await traiterVisite("a-0000", "mobile", le);
+    await traiterVisite("b-0000", "mobile", le);
+    expect(depot.enregistrerVisite).toHaveBeenCalledTimes(11);
+  });
+
+  it("ne lève pas si le marquage échoue, et purge quand même", async () => {
+    depot.enregistrerVisite.mockResolvedValue({ id: "v1", nom: "X", numero: 1, precedente: null });
+    envoyerMail.mockResolvedValue(undefined);
+    depot.marquerMailEnvoye.mockRejectedValue(new Error("ECONNRESET"));
+    await expect(traiterVisite("x-0000", "mobile", le)).resolves.toBeUndefined();
+    expect(depot.purgerVisites).toHaveBeenCalled();
+  });
+
+  it("ne lève pas si la purge échoue", async () => {
+    depot.enregistrerVisite.mockResolvedValue({ id: "v1", nom: "X", numero: 1, precedente: null });
+    envoyerMail.mockResolvedValue(undefined);
+    depot.purgerVisites.mockRejectedValue(new Error("ECONNRESET"));
+    await expect(traiterVisite("x-0000", "mobile", le)).resolves.toBeUndefined();
+  });
 });

@@ -22,6 +22,7 @@ export async function traiterVisite(jeton: string, appareil: Appareil, maintenan
   }
   if (!visite) return;
 
+  let envoye = false;
   try {
     await envoyerMail(
       contenuMailVisite({
@@ -33,9 +34,17 @@ export async function traiterVisite(jeton: string, appareil: Appareil, maintenan
         urlAdmin: `${siteUrl}/admin`,
       }),
     );
-    await marquerMailEnvoye(visite.id);
+    envoye = true;
   } catch (err) {
     console.error("[visites] Mail de visite non envoyé :", err);
+  }
+
+  if (envoye) {
+    try {
+      await marquerMailEnvoye(visite.id);
+    } catch (err) {
+      console.error("[visites] Mail envoyé mais visite non marquée :", err);
+    }
   }
 
   try {
