@@ -59,10 +59,20 @@ COPY --from=build --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
+# Migrations : la CLI Prisma (absente du standalone) dans un dossier à part,
+# avec le schéma, les migrations et la configuration.
+WORKDIR /app/migrateur
+RUN npm init -y >/dev/null && npm install --omit=dev --no-audit --no-fund prisma@7.10.0
+COPY --from=build --chown=nextjs:nodejs /app/apps/web/prisma ./prisma
+COPY --from=build --chown=nextjs:nodejs /app/apps/web/prisma.config.ts ./prisma.config.ts
+WORKDIR /app
+COPY --chown=nextjs:nodejs docker/demarrer.sh ./demarrer.sh
+RUN chmod +x ./demarrer.sh
+
 USER nextjs
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO /dev/null http://127.0.0.1:3000/ || exit 1
 
-CMD ["node", "apps/web/server.js"]
+CMD ["./demarrer.sh"]

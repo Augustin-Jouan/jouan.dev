@@ -66,3 +66,22 @@ l'image `ghcr.io/augustin-jouan/jouan.dev`, Coolify la tire.
 - Avant la bascule sur `jouan.dev` : compléter les mentions légales
   (`apps/web/data/legal.ts`), décommenter `pnpm verifier-placeholders` dans
   la CI, puis domaine nu + redirection `www` → domaine nu dans Coolify.
+
+Liens personnalisés (accueil `/?pour=<jeton>`) : ils demandent une base.
+
+- Créer une ressource Postgres dans Coolify, puis définir sur le site :
+  - `DATABASE_URL` : l'URL de connexion de cette base ;
+  - `ADMIN_EMPREINTE` : l'empreinte du mot de passe d'administration,
+    générée par `pnpm --filter web empreinte-mot-de-passe` ;
+  - `ADMIN_SECRET` : le secret de signature de session, généré par
+    `openssl rand -base64 48`.
+- Les migrations Prisma sont appliquées au démarrage du conteneur
+  (`docker/demarrer.sh`) quand `DATABASE_URL` est défini ; sans elle, le site
+  démarre quand même, sans migration. Une migration en échec arrête le conteneur.
+- Limite de connexion admin : après 5 échecs en 15 minutes, l'administration
+  est bloquée pour tout le monde. Un redémarrage du conteneur remet le
+  compteur à zéro.
+- `pnpm --filter web semer-lien-exemple` crée le lien `/?pour=exemple-0000`
+  mesuré par Lighthouse en CI (base migrée et `DATABASE_URL` requises).
+- `pnpm --filter web verifier-accueil-statique`, après `pnpm build`, vérifie
+  que l'accueil `/` reste prérendu (statique).
