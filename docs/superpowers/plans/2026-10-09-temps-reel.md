@@ -4,7 +4,7 @@
 
 **Goal:** Afficher sur l'accueil un compteur « N personnes regardent cette page » et les curseurs des autres visiteurs, servis par un nouveau service WebSocket `apps/realtime`.
 
-**Architecture:** Un service Hono sur Node (`apps/realtime`) tient en mémoire une salle unique (présents, couleurs, positions) et diffuse compteur et lots de positions sur `/direct`, avec origines autorisées, plafonds de connexions et limite de débit ; il a sa propre image Docker et sa propre ressource Coolify. Le site ouvre une connexion depuis le navigateur après l'affichage de l'accueil (`PresenceDirecte`), convertit la souris en repères relatifs aux sections, et dessine les curseurs reçus dans un calque ; `/` reste statique.
+**Architecture:** Un service Hono sur Node (`apps/realtime`) tient en mémoire une salle unique (présents, couleurs, positions) et diffuse compteur et lots de positions sur `/direct`, avec origines autorisées, plafonds de connexions et limite de débit ; il a sa propre image Docker et sa propre ressource Coolify. Le site charge à part, après l'affichage de l'accueil, le code de connexion (`PresenceDirecte`, import différé), convertit la souris en repères relatifs aux sections, et dessine les curseurs reçus dans un calque ; `/` reste statique.
 
 **Tech Stack:** Node 22, Hono 4, `@hono/node-server` 2 (WebSocket intégré sur `ws`), esbuild, tsx, Vitest ; côté site Next.js 16.4, React 19.2.4, Tailwind 4, Playwright, Lighthouse CI.
 
@@ -20,16 +20,16 @@
 - `/` reste statique (`○ /` au build, `pnpm --filter web verifier-accueil-statique`).
 - Budgets inchangés : performance ≥ 0,95, LCP ≤ 2 800 ms, CLS ≤ 0,05, scripts ≤ 160 Ko (163 840 octets) ; client temps réel ≤ 4 Ko compressés.
 - Aucune adresse IP ni position n'est journalisée ou stockée ; l'IP ne vit qu'en mémoire le temps de la connexion.
-- Protocole (spec §3) : messages `position` (`s`, `x`, `y`) et `masque` du navigateur ; `bienvenue`, `presents`, `positions`, `depart` du serveur ; 128 octets et 40 messages/s au plus par connexion ; 300 connexions au total, 5 par IP ; lots toutes les 50 ms ; ping toutes les 30 s.
+- Protocole (spec §3) : messages `position` (`s`, `x`, `y`) et `masque` du navigateur ; `bienvenue`, `presents`, `positions`, `depart` du serveur ; messages reçus du navigateur de 128 octets UTF-8 au plus, 40 messages/s au plus par connexion ; lots et liste de `bienvenue` plafonnés à 30 curseurs ; 300 connexions au total, 5 par IP ; lots toutes les 50 ms ; ping toutes les 30 s.
 - Commits ciblés (fichiers nommés un par un), jamais de `git add -A` ; ne pas toucher `apps/web/.env.example` ni `apps/web/scripts/empreinte-mot-de-passe.mjs` (modifications locales d'Augustin, non commitées). Jamais de push.
 
 ## Review Focus
 
-1. **`upgrade-insecure-requests` et `ws://` en CI** — la CSP de production contient `upgrade-insecure-requests` ; en e2e et sous Lighthouse le site est servi en `http://127.0.0.1` et le service en `ws://127.0.0.1:3201`. Si Chrome passe la connexion en `wss://`, elle échoue : la tâche 7 le vérifie en e2e (le test « deux visiteurs se voient » échouerait), et le correctif prévu est de ne pas émettre cette directive quand `NEXT_PUBLIC_DIRECT_URL` commence par `ws://`.
+1. **`upgrade-insecure-requests` et `ws://` en CI** — la CSP de production contient `upgrade-insecure-requests` ; en e2e et sous Lighthouse le site est servi en `http://127.0.0.1` et le service en `ws://127.0.0.1:3201`, que Chrome réécrirait en `wss://`. Exigence (spec §4) : la directive n'est pas émise quand `NEXT_PUBLIC_DIRECT_URL` commence par `ws://` (tâche 6, step 7) ; le test e2e « deux visiteurs se voient » (tâche 7) échoue sinon.
 2. **IP derrière le proxy** — Traefik ajoute l'adresse réelle en **dernier** dans `X-Forwarded-For` ; prendre la première valeur laisserait un client contourner la limite par IP. Test dans la tâche 2 (`ipDuClient`).
 3. **Tempête de reconnexions** — service arrêté : le client ne doit jamais boucler sans délai (1 s, 2 s, 4 s… plafonné à 30 s). Test dans la tâche 5.
 4. **Onglet caché** — aucune connexion fantôme : fermeture après 30 s caché, pas de reconnexion tant que caché, réouverture au retour. Test dans la tâche 5.
-5. **Décalage de mise en page** — la ligne du compteur est réservée même sans service ; son apparition ne décale rien. Test dans la tâche 6 (ligne rendue à hauteur fixe sans `NEXT_PUBLIC_DIRECT_URL`) et Lighthouse (tâche 7).
+5. **Décalage de mise en page et poids** — la ligne du compteur est réservée même sans service ; son apparition ne décale rien. Test dans la tâche 6 (ligne rendue à hauteur fixe sans `NEXT_PUBLIC_DIRECT_URL`) et Lighthouse (tâche 7). Le code de connexion, chargé après l'affichage, reste sous 4 Ko compressés (`verifier-taille-direct`, tâches 6 et 7).
 
 ---
 
@@ -53,7 +53,8 @@
 - `components/direct/PresenceDirecte.tsx` — fournisseur (connexion, souris, partage)
 - `components/direct/CompteurPresents.tsx` — ligne du compteur et bouton
 - `components/direct/CalqueCurseurs.tsx` — curseurs des autres
-- Modifiés : `components/accueil/Accueil.tsx`, `Accroche.tsx`, `Section.tsx`, `next.config.ts`, `app/politique-de-confidentialite/page.tsx`, `playwright.config.ts`, `e2e/direct.spec.ts` (nouveau)
+- `scripts/verifier-taille-direct.mjs` — budget de 4 Ko compressés du code de connexion
+- Modifiés : `components/accueil/Accueil.tsx`, `Accroche.tsx`, `Section.tsx`, `next.config.ts`, `app/politique-de-confidentialite/page.tsx`, `package.json`, `playwright.config.ts`, `e2e/direct.spec.ts` (nouveau)
 
 **Racine** : `Dockerfile`, `.dockerignore`, `.github/workflows/ci.yml`, `package.json`, `pnpm-workspace.yaml` (si esbuild l'exige), `README.md`.
 
@@ -351,7 +352,8 @@ git commit -m "Temps réel : paquet apps/realtime, protocole des messages et pal
 **Interfaces:**
 - Consumes: `Curseur` (t1), `choisirCouleur` (t1).
 - Produces:
-  - `class Salle` : `constructor(tirerId?: () => string, tirerCouleur?: () => number)`, `rejoindre(): { id: string; couleur: string }`, `quitter(id: string): boolean` (vrai si un curseur visible disparaît), `deplacer(id: string, s: number, x: number, y: number): void`, `masquer(id: string): boolean`, `get nombre(): number`, `curseurs(sauf?: string): Curseur[]`, `extraireLot(): Curseur[]`
+  - `PLAFOND_CURSEURS = 30`
+  - `class Salle` : `constructor(tirerId?: () => string, tirerCouleur?: () => number)`, `rejoindre(): { id: string; couleur: string }`, `quitter(id: string): boolean` (vrai si un curseur visible disparaît), `deplacer(id: string, s: number, x: number, y: number): void`, `masquer(id: string): boolean`, `get nombre(): number`, `curseurs(sauf?: string): Curseur[]` (30 au plus, les plus récemment bougés), `extraireLot(): Curseur[]` (30 au plus)
   - `CONNEXIONS_MAX = 300`, `CONNEXIONS_PAR_IP = 5`, `MESSAGES_PAR_SECONDE = 40`
   - `class Gardien` : `constructor(max?: number, parIp?: number)`, `peutAdmettre(ip: string): boolean`, `admettre(ip: string): boolean`, `liberer(ip: string): void`, `get connexions(): number`
   - `class Debit` : `constructor(max?: number)`, `accepter(maintenant: number): boolean`
@@ -361,7 +363,7 @@ git commit -m "Temps réel : paquet apps/realtime, protocole des messages et pal
 
 ```ts
 import { describe, expect, it } from "vitest";
-import { Salle } from "./salle.js";
+import { PLAFOND_CURSEURS, Salle } from "./salle.js";
 
 function salleDeTest() {
   let n = 0;
@@ -426,6 +428,29 @@ describe("Salle", () => {
     expect(salle.quitter("inconnu")).toBe(false);
     expect(salle.extraireLot()).toEqual([]);
   });
+  it("un identifiant parti n'entre plus dans le lot en cours", () => {
+    const salle = salleDeTest();
+    const a = salle.rejoindre();
+    const b = salle.rejoindre();
+    salle.deplacer(a.id, 0, 0.1, 0.1);
+    salle.deplacer(b.id, 0, 0.2, 0.2);
+    salle.quitter(a.id);
+    expect(salle.extraireLot().map((c) => c[0])).toEqual([b.id]);
+  });
+  it("plafonne lots et listes à 30 curseurs, les plus récemment bougés", () => {
+    const salle = salleDeTest();
+    const ids = Array.from({ length: 35 }, () => salle.rejoindre().id);
+    ids.forEach((id, i) => salle.deplacer(id, 0, i / 100, 0));
+    salle.deplacer(ids[0]!, 1, 0.5, 0.5);
+    const lot = salle.extraireLot();
+    expect(lot).toHaveLength(PLAFOND_CURSEURS);
+    expect(lot.at(-1)![0]).toBe(ids[0]);
+    expect(lot.map((c) => c[0])).not.toContain(ids[1]);
+    const liste = salle.curseurs(ids[34]);
+    expect(liste).toHaveLength(PLAFOND_CURSEURS);
+    expect(liste.map((c) => c[0])).not.toContain(ids[34]);
+    expect(liste.map((c) => c[0])).toContain(ids[0]);
+  });
 });
 ```
 
@@ -440,13 +465,20 @@ import type { Curseur } from "./protocole.js";
 
 type Present = { couleur: string; position: { s: number; x: number; y: number } | null };
 
+/** Curseurs envoyés au plus par lot et dans `bienvenue` : le fan-out reste borné. */
+export const PLAFOND_CURSEURS = 30;
+
 /**
  * L'état partagé de l'accueil : qui est là, de quelle couleur, et où est son
  * curseur. Aucune entrée-sortie ici : le serveur diffuse ce que la salle lui
  * rend. L'identifiant est opaque et ne vit que le temps de la connexion.
+ *
+ * `visibles` et `bouges` gardent l'ordre des mouvements (le plus récent en
+ * dernier) : au-delà de 30, ce sont les curseurs les plus récents qui partent.
  */
 export class Salle {
   private readonly presents = new Map<string, Present>();
+  private readonly visibles = new Set<string>();
   private readonly bouges = new Set<string>();
 
   constructor(
@@ -467,6 +499,7 @@ export class Salle {
   quitter(id: string): boolean {
     const present = this.presents.get(id);
     this.presents.delete(id);
+    this.visibles.delete(id);
     this.bouges.delete(id);
     return present?.position != null;
   }
@@ -475,6 +508,10 @@ export class Salle {
     const present = this.presents.get(id);
     if (!present) return;
     present.position = { s, x, y };
+    // Retirer puis remettre : l'identifiant passe en dernier (le plus récent).
+    this.visibles.delete(id);
+    this.visibles.add(id);
+    this.bouges.delete(id);
     this.bouges.add(id);
   }
 
@@ -483,6 +520,7 @@ export class Salle {
     const present = this.presents.get(id);
     if (!present?.position) return false;
     present.position = null;
+    this.visibles.delete(id);
     this.bouges.delete(id);
     return true;
   }
@@ -491,23 +529,25 @@ export class Salle {
     return this.presents.size;
   }
 
+  /** Curseurs visibles (30 au plus, les plus récents), sauf celui de `sauf`. */
   curseurs(sauf?: string): Curseur[] {
-    const liste: Curseur[] = [];
-    for (const [id, p] of this.presents) {
-      if (id !== sauf && p.position) liste.push([id, p.couleur, p.position.s, p.position.x, p.position.y]);
-    }
-    return liste;
+    return this.versCurseurs([...this.visibles].filter((id) => id !== sauf));
   }
 
-  /** Curseurs qui ont bougé depuis le dernier appel. */
+  /** Curseurs qui ont bougé depuis le dernier appel (30 au plus, les plus récents). */
   extraireLot(): Curseur[] {
-    const lot: Curseur[] = [];
-    for (const id of this.bouges) {
-      const p = this.presents.get(id);
-      if (p?.position) lot.push([id, p.couleur, p.position.s, p.position.x, p.position.y]);
-    }
+    const lot = this.versCurseurs([...this.bouges]);
     this.bouges.clear();
     return lot;
+  }
+
+  private versCurseurs(ids: string[]): Curseur[] {
+    const liste: Curseur[] = [];
+    for (const id of ids.slice(-PLAFOND_CURSEURS)) {
+      const p = this.presents.get(id);
+      if (p?.position) liste.push([id, p.couleur, p.position.s, p.position.x, p.position.y]);
+    }
+    return liste;
   }
 }
 ```
@@ -787,6 +827,11 @@ describe("serveur temps réel", () => {
     for (let i = 0; i < 5; i++) await connecter({ ip: "1.2.3.4" });
     await expect(connecter({ ip: "1.2.3.4" })).rejects.toThrow("HTTP 429");
     await connecter({ ip: "5.6.7.8" });
+  });
+
+  it("une adresse forgée en tête de X-Forwarded-For ne contourne pas la limite", async () => {
+    for (let i = 0; i < 5; i++) await connecter({ ip: `6.6.6.${i}, 1.2.3.4` });
+    await expect(connecter({ ip: "7.7.7.7, 1.2.3.4" })).rejects.toThrow("HTTP 429");
   });
 
   it("accueille avec un identifiant, une couleur et le nombre de présents", async () => {
@@ -1230,9 +1275,9 @@ git commit -m "Temps réel : image Docker du service, adresse figée au build du
 - Consumes: la forme des messages (t1) — recopiée côté navigateur (paquets séparés, pas d'import entre apps).
 - Produces:
   - `lib/direct/protocole.ts` : `type Curseur`, `type MessageClient`, `type MessageServeur` (identiques à t1), `lireMessageServeur(brut: unknown): MessageServeur | null`
-  - `lib/direct/coordonnees.ts` : `type Boite = { gauche: number; haut: number; largeur: number; hauteur: number }`, `type Repere = { s: number; x: number; y: number }`, `versRepere(px: number, py: number, sections: Boite[]): Repere | null`, `versPage(r: Repere, sections: Boite[]): { x: number; y: number } | null`, `boitesDesSections(racine?: ParentNode): Boite[]`
-  - `lib/direct/connexion.ts` : `DELAIS_RECONNEXION_MS`, `FERMETURE_ONGLET_CACHE_MS = 30_000`, `INTERVALLE_ENVOI_MS = 50`, `type Horloge`, `type Rappels = { surMessage(m: MessageServeur): void; surFermeture(): void }`, `class ConnexionDirecte` : `constructor(url: string, rappels: Rappels, creerSocket?: (url: string) => WebSocket, horloge?: Horloge)`, `ouvrir()`, `envoyer(m: MessageClient)`, `surVisibilite(visible: boolean)`, `arreter()`
-  - `lib/direct/magasin.ts` : `type CurseurAffiche = { id: string; couleur: string; s: number; x: number; y: number; vuLe: number }`, `type EtatDirect = { presents: number; curseurs: CurseurAffiche[] }`, `class MagasinDirect` : `etat(): EtatDirect`, `abonner(fn: () => void): () => void`, `appliquer(m: MessageServeur, maintenant: number): void`, `vider(): void`
+  - `lib/direct/coordonnees.ts` : `type Boite = { gauche: number; haut: number; largeur: number; hauteur: number }`, `type Repere = { s: number; x: number; y: number }`, `versRepere(px: number, py: number, sections: Boite[]): Repere | null`, `versPage(r: Repere, sections: Boite[]): { x: number; y: number } | null` (`null` si la section est absente ou vide ici), `REPERES = ["accroche", "offre", "realisations", "methode", "parcours", "contact"] as const` (l'indice `s` est la position dans cette table), `boitesDesSections(racine?: ParentNode): Boite[]` (une boîte par repère, dans l'ordre de la table ; boîte vide si absente)
+  - `lib/direct/connexion.ts` : `DELAIS_RECONNEXION_MS`, `FERMETURE_ONGLET_CACHE_MS = 30_000`, `INTERVALLE_ENVOI_MS = 50`, `type Horloge`, `type Rappels = { surMessage(m: MessageServeur): void; surFermeture(): void }`, `MARQUEUR_DIRECT = "connexion-direct:v1"`, `class ConnexionDirecte` : `constructor(url: string, rappels: Rappels, creerSocket?: (url: string) => WebSocket, horloge?: Horloge, aleatoire?: () => number)`, `ouvrir()`, `envoyer(m: MessageClient)`, `surVisibilite(visible: boolean)`, `arreter()`
+  - `lib/direct/magasin.ts` : `type CurseurAffiche = { id: string; couleur: string; s: number; x: number; y: number; vuLe: number }`, `type EtatDirect = { connecte: boolean; presents: number; curseurs: CurseurAffiche[] }` (`connecte` : vrai dès `bienvenue`, faux après `vider`), `class MagasinDirect` : `etat(): EtatDirect`, `abonner(fn: () => void): () => void`, `appliquer(m: MessageServeur, maintenant: number): void`, `vider(): void`
 
 - [ ] **Step 1: Tests** — `apps/web/lib/direct/protocole.test.ts` :
 
@@ -1256,8 +1301,8 @@ describe("lireMessageServeur", () => {
 `apps/web/lib/direct/coordonnees.test.ts` :
 
 ```ts
-import { describe, expect, it } from "vitest";
-import { versPage, versRepere, type Boite } from "./coordonnees";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { boitesDesSections, REPERES, versPage, versRepere, type Boite } from "./coordonnees";
 
 const etroit: Boite[] = [
   { gauche: 20, haut: 0, largeur: 400, hauteur: 600 },
@@ -1287,8 +1332,30 @@ describe("coordonnées relatives aux sections", () => {
   it("ignore une section vide", () => {
     expect(versRepere(0, 0, [{ gauche: 0, haut: 0, largeur: 0, hauteur: 0 }])).toBeNull();
   });
-  it("section inconnue chez le destinataire : null", () => {
+  it("section inconnue ou vide chez le destinataire : null", () => {
     expect(versPage({ s: 5, x: 0.5, y: 0.5 }, etroit)).toBeNull();
+    expect(versPage({ s: 0, x: 0.5, y: 0.5 }, [{ gauche: 0, haut: 0, largeur: 0, hauteur: 0 }])).toBeNull();
+  });
+});
+
+describe("boitesDesSections", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+    vi.restoreAllMocks();
+  });
+
+  it("suit la table des repères, pas l'ordre du document", () => {
+    expect(REPERES).toEqual(["accroche", "offre", "realisations", "methode", "parcours", "contact"]);
+    document.body.innerHTML = '<section data-direct-section="contact"></section><section data-direct-section="accroche"></section>';
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const haut = this.dataset.directSection === "accroche" ? 0 : 900;
+      return { left: 10, top: haut, width: 800, height: 600 } as DOMRect;
+    });
+    const boites = boitesDesSections();
+    expect(boites).toHaveLength(6);
+    expect(boites[0]).toEqual({ gauche: 10, haut: 0, largeur: 800, hauteur: 600 });
+    expect(boites[5]).toEqual({ gauche: 10, haut: 900, largeur: 800, hauteur: 600 });
+    expect(boites[1]).toEqual({ gauche: 0, haut: 0, largeur: 0, hauteur: 0 });
   });
 });
 ```
@@ -1302,9 +1369,9 @@ import { MagasinDirect } from "./magasin";
 describe("MagasinDirect", () => {
   it("part de rien, puis applique la bienvenue", () => {
     const m = new MagasinDirect();
-    expect(m.etat()).toEqual({ presents: 0, curseurs: [] });
+    expect(m.etat()).toEqual({ connecte: false, presents: 0, curseurs: [] });
     m.appliquer({ type: "bienvenue", id: "moi", couleur: "#c84a1f", presents: 3, curseurs: [["a", "#2f6f6a", 1, 0.5, 0.5]] }, 100);
-    expect(m.etat()).toEqual({ presents: 3, curseurs: [{ id: "a", couleur: "#2f6f6a", s: 1, x: 0.5, y: 0.5, vuLe: 100 }] });
+    expect(m.etat()).toEqual({ connecte: true, presents: 3, curseurs: [{ id: "a", couleur: "#2f6f6a", s: 1, x: 0.5, y: 0.5, vuLe: 100 }] });
   });
   it("met à jour le compteur, les positions et les départs", () => {
     const m = new MagasinDirect();
@@ -1312,7 +1379,7 @@ describe("MagasinDirect", () => {
     m.appliquer({ type: "positions", curseurs: [["a", "#2f6f6a", 0, 0.3, 0.3]] }, 2);
     m.appliquer({ type: "presents", nombre: 4 }, 3);
     m.appliquer({ type: "depart", id: "b" }, 4);
-    expect(m.etat()).toEqual({ presents: 4, curseurs: [{ id: "a", couleur: "#2f6f6a", s: 0, x: 0.3, y: 0.3, vuLe: 2 }] });
+    expect(m.etat()).toEqual({ connecte: false, presents: 4, curseurs: [{ id: "a", couleur: "#2f6f6a", s: 0, x: 0.3, y: 0.3, vuLe: 2 }] });
   });
   it("prévient les abonnés et garde un état stable entre deux changements", () => {
     const m = new MagasinDirect();
@@ -1325,7 +1392,14 @@ describe("MagasinDirect", () => {
     desabonner();
     m.vider();
     expect(abonne).toHaveBeenCalledTimes(1);
-    expect(m.etat()).toEqual({ presents: 0, curseurs: [] });
+    expect(m.etat()).toEqual({ connecte: false, presents: 0, curseurs: [] });
+  });
+  it("un curseur masqué qui bouge de nouveau réapparaît", () => {
+    const m = new MagasinDirect();
+    m.appliquer({ type: "positions", curseurs: [["a", "#2f6f6a", 0, 0.1, 0.1]] }, 1);
+    m.appliquer({ type: "depart", id: "a" }, 2);
+    m.appliquer({ type: "positions", curseurs: [["a", "#2f6f6a", 0, 0.2, 0.2]] }, 3);
+    expect(m.etat().curseurs.map((c) => c.id)).toEqual(["a"]);
   });
 });
 ```
@@ -1391,7 +1465,9 @@ function horlogeFactice() {
 
 let h: ReturnType<typeof horlogeFactice>;
 const rappels = { surMessage: vi.fn(), surFermeture: vi.fn() };
-const nouvelle = () => new ConnexionDirecte("ws://test/direct", rappels, () => new FausseSocket() as unknown as WebSocket, h.horloge);
+// Aléa neutre (0,5 → délai exact) : les délais variés ont leur propre test.
+const nouvelle = (aleatoire = () => 0.5) =>
+  new ConnexionDirecte("ws://test/direct", rappels, () => new FausseSocket() as unknown as WebSocket, h.horloge, aleatoire);
 const derniere = () => FausseSocket.instances.at(-1)!;
 
 beforeEach(() => {
@@ -1501,11 +1577,25 @@ describe("ConnexionDirecte", () => {
     const c = new ConnexionDirecte("ws://test/direct", rappels, () => {
       essais++;
       throw new Error("refus");
-    }, h.horloge);
+    }, h.horloge, () => 0.5);
     c.ouvrir();
     expect(essais).toBe(1);
     h.avancer(DELAIS_RECONNEXION_MS[0]!);
     expect(essais).toBe(2);
+  });
+
+  it("varie chaque délai de ±20 % pour étaler les reconnexions", () => {
+    for (const [alea, attendu] of [[0, 800], [1, 1_200]] as const) {
+      FausseSocket.instances = [];
+      const c = nouvelle(() => alea);
+      c.ouvrir();
+      derniere().close();
+      h.avancer(attendu - 1);
+      expect(FausseSocket.instances).toHaveLength(1);
+      h.avancer(1);
+      expect(FausseSocket.instances).toHaveLength(2);
+      c.arreter();
+    }
   });
 });
 ```
@@ -1551,8 +1641,10 @@ export function lireMessageServeur(brut: unknown): MessageServeur | null {
 /**
  * Coordonnées partagées : la section de l'accueil sous la souris et la position
  * relative dans cette section (0 à 1). Chaque visiteur reconvertit dans sa
- * propre mise en page : un curseur pointé sur un mot retombe sur ce mot, quelle
- * que soit la largeur d'écran. Les sections portent `data-direct-section`.
+ * propre mise en page : un curseur retombe dans la même zone de la même section
+ * (même bande de lecture), quelle que soit la largeur d'écran — pas forcément
+ * sur le même mot, le texte se recomposant. Les sections portent
+ * `data-direct-section="<repère>"` ; l'intro « goutte d'encre » n'en est pas une.
  */
 export type Boite = { gauche: number; haut: number; largeur: number; hauteur: number };
 export type Repere = { s: number; x: number; y: number };
@@ -1571,16 +1663,26 @@ export function versRepere(px: number, py: number, sections: Boite[]): Repere | 
   return null;
 }
 
-/** Repère → point de la page ; `null` si la section n'existe pas ici. */
+/** Repère → point de la page ; `null` si la section est absente ou vide ici. */
 export function versPage(r: Repere, sections: Boite[]): { x: number; y: number } | null {
   const b = sections[r.s];
-  if (!b) return null;
+  if (!b || b.largeur <= 0 || b.hauteur <= 0) return null;
   return { x: b.gauche + r.x * b.largeur, y: b.haut + r.y * b.hauteur };
 }
 
-/** Boîtes des sections marquées, en coordonnées de page, dans l'ordre du document. */
+/**
+ * Table des repères : l'indice `s` échangé avec le service est la position dans
+ * cette table, indépendante de l'ordre du document (spec du sous-projet 4, §4).
+ */
+export const REPERES = ["accroche", "offre", "realisations", "methode", "parcours", "contact"] as const;
+
+const BOITE_VIDE: Boite = { gauche: 0, haut: 0, largeur: 0, hauteur: 0 };
+
+/** Une boîte par repère, en coordonnées de page ; vide si la section manque. */
 export function boitesDesSections(racine: ParentNode = document): Boite[] {
-  return [...racine.querySelectorAll<HTMLElement>("[data-direct-section]")].map((el) => {
+  return REPERES.map((repere) => {
+    const el = racine.querySelector<HTMLElement>(`[data-direct-section="${repere}"]`);
+    if (!el) return BOITE_VIDE;
     const r = el.getBoundingClientRect();
     return { gauche: r.left + window.scrollX, haut: r.top + window.scrollY, largeur: r.width, hauteur: r.height };
   });
@@ -1593,9 +1695,9 @@ export function boitesDesSections(racine: ParentNode = document): Boite[] {
 import type { Curseur, MessageServeur } from "./protocole";
 
 export type CurseurAffiche = { id: string; couleur: string; s: number; x: number; y: number; vuLe: number };
-export type EtatDirect = { presents: number; curseurs: CurseurAffiche[] };
+export type EtatDirect = { connecte: boolean; presents: number; curseurs: CurseurAffiche[] };
 
-const VIDE: EtatDirect = { presents: 0, curseurs: [] };
+const VIDE: EtatDirect = { connecte: false, presents: 0, curseurs: [] };
 const versAffiche = ([id, couleur, s, x, y]: Curseur, vuLe: number): CurseurAffiche => ({ id, couleur, s, x, y, vuLe });
 
 /**
@@ -1619,7 +1721,7 @@ export class MagasinDirect {
     const e = this.courant;
     switch (m.type) {
       case "bienvenue":
-        return this.publier({ presents: m.presents, curseurs: m.curseurs.map((c) => versAffiche(c, maintenant)) });
+        return this.publier({ connecte: true, presents: m.presents, curseurs: m.curseurs.map((c) => versAffiche(c, maintenant)) });
       case "presents":
         return this.publier({ ...e, presents: m.nombre });
       case "positions": {
@@ -1632,7 +1734,7 @@ export class MagasinDirect {
     }
   }
 
-  /** Connexion perdue : plus personne d'affiché. */
+  /** Connexion perdue : plus de compteur ni de curseur (pas de nombre périmé) jusqu'au prochain `bienvenue`. */
   vider(): void {
     this.publier(VIDE);
   }
@@ -1650,7 +1752,9 @@ export class MagasinDirect {
 /**
  * Connexion au service temps réel, côté navigateur : WebSocket natif, envois
  * espacés de 50 ms (seule la dernière position part), reconnexion de plus en
- * plus espacée (jusqu'à 30 s), fermeture après 30 s d'onglet caché. Les échecs
+ * plus espacée (jusqu'à 30 s, chaque délai varié de ±20 % pour que les
+ * visiteurs ne reviennent pas tous à la même seconde après un redéploiement),
+ * fermeture après 30 s d'onglet caché. Les échecs
  * sont silencieux : sans service, l'accueil reste celui d'avant.
  */
 import { lireMessageServeur, type MessageClient, type MessageServeur } from "./protocole";
@@ -1658,6 +1762,10 @@ import { lireMessageServeur, type MessageClient, type MessageServeur } from "./p
 export const DELAIS_RECONNEXION_MS = [1_000, 2_000, 4_000, 8_000, 16_000, 30_000];
 export const FERMETURE_ONGLET_CACHE_MS = 30_000;
 export const INTERVALLE_ENVOI_MS = 50;
+/** Variation des délais de reconnexion : ±20 %. */
+const VARIATION = 0.2;
+/** Repère ce morceau de JS dans le build (scripts/verifier-taille-direct.mjs). */
+export const MARQUEUR_DIRECT = "connexion-direct:v1";
 const OUVERTE = 1;
 
 export type Horloge = {
@@ -1690,7 +1798,11 @@ export class ConnexionDirecte {
     private readonly rappels: Rappels,
     private readonly creerSocket: (url: string) => WebSocket = (u) => new WebSocket(u),
     private readonly horloge: Horloge = horlogeNavigateur,
+    private readonly aleatoire: () => number = Math.random,
   ) {}
+
+  /** Lu par le script de taille : garde le marqueur dans le morceau. */
+  readonly marqueur = MARQUEUR_DIRECT;
 
   ouvrir(): void {
     if (this.arretee || this.cache || this.socket) return;
@@ -1769,7 +1881,8 @@ export class ConnexionDirecte {
 
   private planifierReconnexion(): void {
     if (this.arretee || this.cache || this.reconnexion !== null) return;
-    const delai = DELAIS_RECONNEXION_MS[Math.min(this.essais, DELAIS_RECONNEXION_MS.length - 1)]!;
+    const base = DELAIS_RECONNEXION_MS[Math.min(this.essais, DELAIS_RECONNEXION_MS.length - 1)]!;
+    const delai = Math.round(base * (1 - VARIATION + 2 * VARIATION * this.aleatoire()));
     this.essais++;
     this.reconnexion = this.horloge.programmer(() => {
       this.reconnexion = null;
@@ -1812,18 +1925,21 @@ git commit -m "Temps réel : client du site (coordonnées par section, connexion
 **Files:**
 - Create: `apps/web/components/direct/PresenceDirecte.tsx`, `apps/web/components/direct/PresenceDirecte.test.tsx`
 - Create: `apps/web/components/direct/CompteurPresents.tsx`, `apps/web/components/direct/CalqueCurseurs.tsx`
+- Create: `apps/web/scripts/verifier-taille-direct.mjs`
+- Modify: `apps/web/package.json` (script `verifier-taille-direct`)
 - Modify: `apps/web/components/accueil/Accueil.tsx`, `apps/web/components/accueil/Accroche.tsx`, `apps/web/components/accueil/Section.tsx`
 - Modify: `apps/web/next.config.ts` (CSP), `apps/web/app/politique-de-confidentialite/page.tsx` (+ son test)
 
 **Interfaces:**
-- Consumes: `ConnexionDirecte`, `MagasinDirect`, `versRepere`, `versPage`, `boitesDesSections` (t5).
+- Consumes: `ConnexionDirecte`, `MARQUEUR_DIRECT` (chargés par `import()`), `MagasinDirect`, `EtatDirect` (avec `connecte`), `versRepere`, `versPage`, `boitesDesSections`, `REPERES` (t5).
 - Produces:
   - `<PresenceDirecte>{children}</PresenceDirecte>` (fournisseur, monté dans `Accueil`), `useDirect(): { etat: EtatDirect; pointeurFin: boolean; partage: boolean; basculerPartage(): void }`
-  - `<CompteurPresents />` (dans `Accroche`, au-dessus de la salutation), `<CalqueCurseurs curseurs={...} />`
-  - attribut `data-direct-section` sur la section de l'accroche et sur `Section`
+  - `<CompteurPresents />` (dans `Accroche`, avant la salutation), `<CalqueCurseurs curseurs={...} />`
+  - attributs `data-direct-section="accroche"` sur la section de l'accroche, `data-direct-section={id}` sur `Section` (les `id` valent `offre`, `realisations`, `methode`, `parcours`, `contact` : les repères de la table)
   - clé `localStorage` `direct:partage` (`"non"` quand le partage est coupé)
+  - `pnpm --filter web verifier-taille-direct` (après un build avec `NEXT_PUBLIC_DIRECT_URL`)
 
-Lire avant : la doc Next sur les composants client (`'use client'`) et sur les variables `NEXT_PUBLIC_` (inlinées au build) dans `node_modules/next/dist/docs/`.
+Lire avant : la doc Next sur les composants client (`'use client'`), le chargement différé (`import()`) et les variables `NEXT_PUBLIC_` (inlinées au build) dans `node_modules/next/dist/docs/`. Modèle de chargement différé : `components/accueil/IntroEncre.tsx` (`import("@/lib/encre/moteur")`) et `scripts/verifier-taille-encre.mjs`.
 
 - [ ] **Step 1: Tests** — `apps/web/components/direct/PresenceDirecte.test.tsx` :
 
@@ -1838,6 +1954,7 @@ const fausse = vi.hoisted(() => ({
   construite: 0,
 }));
 vi.mock("@/lib/direct/connexion", () => ({
+  MARQUEUR_DIRECT: "connexion-direct:v1",
   ConnexionDirecte: class {
     constructor(_url: string, rappels: typeof fausse.rappels) {
       fausse.rappels = rappels;
@@ -1865,7 +1982,7 @@ function pointeur(fin: boolean) {
 function rendre() {
   render(
     <PresenceDirecte>
-      <section data-direct-section="">
+      <section data-direct-section="accroche">
         <CompteurPresents />
         <p>Accroche</p>
       </section>
@@ -1873,9 +1990,11 @@ function rendre() {
   );
 }
 
+/** Temps libre écoulé, puis module de connexion chargé (import différé). */
 async function demarrer() {
   await act(async () => {
     vi.advanceTimersByTime(1_500);
+    await vi.dynamicImportSettled();
   });
 }
 
@@ -1884,6 +2003,8 @@ const recevoir = (m: MessageServeur) =>
     fausse.rappels!.surMessage(m);
   });
 
+const bienvenue = (presents: number): MessageServeur => ({ type: "bienvenue", id: "moi", couleur: "#c84a1f", presents, curseurs: [] });
+
 beforeEach(() => {
   vi.useFakeTimers();
   fausse.rappels = null;
@@ -1891,15 +2012,17 @@ beforeEach(() => {
   fausse.envoyer.mockReset();
   window.localStorage.clear();
   pointeur(true);
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 800, height: 600 } as DOMRect);
 });
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe("PresenceDirecte", () => {
-  it("sans adresse de service : aucune connexion, ligne du compteur réservée et vide", async () => {
+  it("sans adresse de service : aucune connexion, place du compteur réservée et vide", async () => {
     vi.stubEnv("NEXT_PUBLIC_DIRECT_URL", "");
     rendre();
     await demarrer();
@@ -1914,30 +2037,53 @@ describe("PresenceDirecte", () => {
       vi.stubEnv("NEXT_PUBLIC_DIRECT_URL", "ws://127.0.0.1:3201/direct");
     });
 
+    it("ne charge la connexion qu'après le temps libre", async () => {
+      rendre();
+      expect(fausse.construite).toBe(0);
+      await demarrer();
+      expect(fausse.construite).toBe(1);
+    });
+
     it("masque le compteur quand on est seul, l'affiche à partir de deux", async () => {
       rendre();
       await demarrer();
-      recevoir({ type: "bienvenue", id: "moi", couleur: "#c84a1f", presents: 1, curseurs: [] });
+      recevoir(bienvenue(1));
       expect(screen.queryByText(/regardent cette page/)).toBeNull();
       recevoir({ type: "presents", nombre: 3 });
       expect(screen.getByText("3 personnes regardent cette page")).toBeInTheDocument();
     });
 
+    it("bouton visible dès la connexion, même seul, et absent avant", async () => {
+      rendre();
+      await demarrer();
+      expect(screen.queryByRole("button", { name: /mon curseur/ })).toBeNull();
+      recevoir(bienvenue(1));
+      expect(screen.getByRole("button", { name: "Masquer mon curseur" })).toBeInTheDocument();
+    });
+
     it("le bouton coupe le partage, envoie un masque et retient le choix", async () => {
       rendre();
       await demarrer();
-      recevoir({ type: "presents", nombre: 2 });
+      recevoir(bienvenue(1));
       fireEvent.click(screen.getByRole("button", { name: "Masquer mon curseur" }));
       expect(fausse.envoyer).toHaveBeenCalledWith({ type: "masque" });
       expect(window.localStorage.getItem("direct:partage")).toBe("non");
       expect(screen.getByRole("button", { name: "Montrer mon curseur" })).toBeInTheDocument();
     });
 
+    it("partage actif : la souris dans une section envoie une position", async () => {
+      rendre();
+      await demarrer();
+      recevoir(bienvenue(1));
+      fireEvent.mouseMove(document, { pageX: 400, pageY: 150 });
+      expect(fausse.envoyer).toHaveBeenCalledWith({ type: "position", s: 0, x: 0.5, y: 0.25 });
+    });
+
     it("partage coupé : la souris n'envoie plus de position", async () => {
       window.localStorage.setItem("direct:partage", "non");
       rendre();
       await demarrer();
-      fireEvent.mouseMove(document, { clientX: 10, clientY: 10 });
+      fireEvent.mouseMove(document, { pageX: 400, pageY: 150 });
       expect(fausse.envoyer).not.toHaveBeenCalledWith(expect.objectContaining({ type: "position" }));
     });
 
@@ -1945,10 +2091,10 @@ describe("PresenceDirecte", () => {
       pointeur(false);
       rendre();
       await demarrer();
-      recevoir({ type: "presents", nombre: 2 });
+      recevoir(bienvenue(2));
       expect(screen.getByText("2 personnes regardent cette page")).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /mon curseur/ })).toBeNull();
-      fireEvent.mouseMove(document, { clientX: 10, clientY: 10 });
+      fireEvent.mouseMove(document, { pageX: 400, pageY: 150 });
       expect(fausse.envoyer).not.toHaveBeenCalled();
     });
 
@@ -1961,20 +2107,23 @@ describe("PresenceDirecte", () => {
       expect(curseur!.closest("[aria-hidden='true']")).not.toBeNull();
     });
 
-    it("connexion perdue : plus de compteur ni de curseurs", async () => {
+    it("connexion perdue : plus de compteur, de bouton ni de curseurs", async () => {
       rendre();
       await demarrer();
+      recevoir(bienvenue(2));
       recevoir({ type: "positions", curseurs: [["a", "#2f6f6a", 0, 0.5, 0.5]] });
-      recevoir({ type: "presents", nombre: 2 });
       act(() => fausse.rappels!.surFermeture());
       expect(screen.queryByText(/regardent cette page/)).toBeNull();
+      expect(screen.queryByRole("button", { name: /mon curseur/ })).toBeNull();
       expect(document.body.querySelector("[data-curseur]")).toBeNull();
     });
   });
 });
 ```
 
-Et dans `apps/web/app/politique-de-confidentialite/page.test.tsx`, un test : la page affiche le titre « Présence en direct » et le texte « Masquer mon curseur ».
+(`fireEvent.mouseMove` de testing-library ne remplit pas toujours `pageX` dans jsdom : si l'assertion de position échoue pour cette raison, créer l'événement avec `new MouseEvent("mousemove", { clientX: 400, clientY: 150 })` et lire `clientX + window.scrollX` dans le composant — équivalent à `pageX` — en le signalant.)
+
+Et dans `apps/web/app/politique-de-confidentialite/page.test.tsx`, un test : la page affiche le titre « Présence en direct », « article 6.1.f » au moins une fois de plus qu'avant (ou une assertion sur la phrase « les autres visiteurs présents au même moment ») et « Masquer mon curseur ».
 
 - [ ] **Step 2: Lancer** → FAIL.
 
@@ -1984,7 +2133,7 @@ Et dans `apps/web/app/politique-de-confidentialite/page.test.tsx`, un test : la 
 "use client";
 
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
-import { ConnexionDirecte } from "@/lib/direct/connexion";
+import type { ConnexionDirecte } from "@/lib/direct/connexion";
 import { boitesDesSections, versRepere } from "@/lib/direct/coordonnees";
 import { MagasinDirect, type EtatDirect } from "@/lib/direct/magasin";
 import { CalqueCurseurs } from "./CalqueCurseurs";
@@ -1994,7 +2143,7 @@ const CLE_PARTAGE = "direct:partage";
 type ValeurDirect = { etat: EtatDirect; pointeurFin: boolean; partage: boolean; basculerPartage(): void };
 
 const ContexteDirect = createContext<ValeurDirect>({
-  etat: { presents: 0, curseurs: [] },
+  etat: { connecte: false, presents: 0, curseurs: [] },
   pointeurFin: false,
   partage: true,
   basculerPartage: () => {},
@@ -2045,8 +2194,10 @@ function quandLibre(fn: () => void): () => void {
 
 /**
  * Présence en direct sur l'accueil (sous-projet 4) : compteur des personnes
- * présentes et curseurs des autres visiteurs. Sans `NEXT_PUBLIC_DIRECT_URL`
- * (figée au build), rien ne se connecte et l'accueil reste celui d'avant.
+ * présentes et curseurs des autres visiteurs. Le code de connexion est un
+ * morceau à part, chargé après l'affichage (comme le moteur de l'intro). Sans
+ * `NEXT_PUBLIC_DIRECT_URL` (figée au build), rien n'est chargé ni connecté et
+ * l'accueil reste celui d'avant.
  */
 export function PresenceDirecte({ children }: { children: ReactNode }) {
   const url = process.env.NEXT_PUBLIC_DIRECT_URL;
@@ -2058,20 +2209,30 @@ export function PresenceDirecte({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!url) return;
-    const c = new ConnexionDirecte(url, {
-      surMessage: (m) => magasin.appliquer(m, Date.now()),
-      surFermeture: () => magasin.vider(),
-    });
+    let annule = false;
+    let courante: ConnexionDirecte | null = null;
+    const surVisibilite = () => courante?.surVisibilite(document.visibilityState === "visible");
     const annulerDemarrage = quandLibre(() => {
-      c.ouvrir();
-      setConnexion(c);
+      import("@/lib/direct/connexion")
+        .then(({ ConnexionDirecte }) => {
+          if (annule) return;
+          courante = new ConnexionDirecte(url, {
+            surMessage: (m) => magasin.appliquer(m, Date.now()),
+            surFermeture: () => magasin.vider(),
+          });
+          courante.ouvrir();
+          document.addEventListener("visibilitychange", surVisibilite);
+          setConnexion(courante);
+        })
+        .catch(() => {
+          // Morceau introuvable (déploiement en cours) : l'accueil reste sans présence.
+        });
     });
-    const surVisibilite = () => c.surVisibilite(document.visibilityState === "visible");
-    document.addEventListener("visibilitychange", surVisibilite);
     return () => {
+      annule = true;
       annulerDemarrage();
       document.removeEventListener("visibilitychange", surVisibilite);
-      c.arreter();
+      courante?.arreter();
       magasin.vider();
     };
   }, [url, magasin]);
@@ -2110,7 +2271,7 @@ export function PresenceDirecte({ children }: { children: ReactNode }) {
 }
 ```
 
-(Dans le test « le bouton coupe le partage », la connexion factice reçoit `{ type: "masque" }` via l'effet qui suit le changement de `partage`. Si la règle `react-hooks` du lint signale l'initialisation de `partage` depuis `localStorage`, garder la lecture paresseuse dans `useState` — le rendu serveur et le premier rendu client restent identiques, le bouton n'apparaissant qu'après connexion — et le signaler.)
+(`import type` en tête : seul le type est importé statiquement, le code de connexion reste dans son morceau. Si la règle `react-hooks` du lint signale l'initialisation de `partage` depuis `localStorage`, garder la lecture paresseuse dans `useState` — le rendu serveur et le premier rendu client restent identiques, le bouton n'apparaissant qu'après connexion — et le signaler.)
 
 - [ ] **Step 4: `apps/web/components/direct/CompteurPresents.tsx`**
 
@@ -2120,24 +2281,25 @@ export function PresenceDirecte({ children }: { children: ReactNode }) {
 import { useDirect } from "./PresenceDirecte";
 
 /**
- * Ligne du compteur, au-dessus du surtitre de l'accroche : réservée en
- * permanence (hauteur fixe) pour que son apparition ne décale rien ; remplie à
- * partir de deux présents. Le bouton n'existe que sur un pointeur fin.
+ * Ligne du compteur, en tête de l'accroche (avant la salutation) : une place à
+ * hauteur fixe rendue par le serveur, vide sans service ou quand on est seul,
+ * pour que son apparition ne décale rien. Le bouton apparaît dès la connexion,
+ * sur pointeur fin seulement : on peut refuser avant que quiconque arrive.
  */
 export function CompteurPresents() {
   const { etat, pointeurFin, partage, basculerPartage } = useDirect();
-  const visible = etat.presents >= 2;
+  const plusieurs = etat.presents >= 2;
   return (
     <div data-testid="compteur-presents" className="mb-3 flex h-7 items-center gap-4 text-sm text-encre-douce">
       <p aria-live="polite" className="flex items-center gap-2">
-        {visible && (
+        {plusieurs && (
           <>
             <span aria-hidden="true" className="size-2 rounded-full bg-emerald-600 motion-safe:animate-pulse" />
             {`${etat.presents} personnes regardent cette page`}
           </>
         )}
       </p>
-      {visible && pointeurFin && (
+      {etat.connecte && pointeurFin && (
         <button
           type="button"
           onClick={basculerPartage}
@@ -2161,7 +2323,7 @@ import { createPortal } from "react-dom";
 import { boitesDesSections, versPage } from "@/lib/direct/coordonnees";
 import type { CurseurAffiche } from "@/lib/direct/magasin";
 
-/** Un curseur immobile depuis 10 s s'estompe. */
+/** Un curseur immobile depuis 10 s s'estompe (affichage seulement). */
 const ESTOMPE_APRES_MS = 10_000;
 
 const jamais = () => () => {};
@@ -2172,8 +2334,10 @@ const abonnerRedimensionnement = (fn: () => void) => {
 const largeurFenetre = () => window.innerWidth;
 
 /**
- * Curseurs des autres visiteurs, dessinés dans `body` (coordonnées de page),
- * transparents aux clics et ignorés des lecteurs d'écran.
+ * Curseurs des autres visiteurs, dans `body`, en coordonnées de document : le
+ * calque défile avec la page, sans écouteur de défilement ; les positions sont
+ * recalculées à chaque lot et au redimensionnement. Transparent aux clics et
+ * ignoré des lecteurs d'écran.
  */
 export function CalqueCurseurs({ curseurs }: { curseurs: CurseurAffiche[] }) {
   const monte = useSyncExternalStore(jamais, () => true, () => false);
@@ -2220,29 +2384,39 @@ export function CalqueCurseurs({ curseurs }: { curseurs: CurseurAffiche[] }) {
 }
 ```
 
-(Le calque est en `position: absolute` dans `body` : vérifier dans `app/layout.tsx` que `body` n'est pas positionné ; s'il l'est, le calque reste juste car `body` commence en haut à gauche du document — le noter dans le rapport.)
+(Le calque est en `position: absolute` dans `body` : vérifier dans `app/layout.tsx` que `body` n'est pas positionné (`relative`…) ; s'il l'est, le calque reste juste car `body` commence en haut à gauche du document — le noter dans le rapport.)
 
 - [ ] **Step 6: Câblage** —
   - `apps/web/components/accueil/Accueil.tsx` : envelopper tout le fragment dans `<PresenceDirecte>…</PresenceDirecte>` (import `@/components/direct/PresenceDirecte`) et compléter le commentaire : « avec la présence en direct (sous-projet 4) ».
-  - `apps/web/components/accueil/Accroche.tsx` : ajouter `data-direct-section=""` sur la `<section>` ; remplacer le commentaire `{/* Le compteur de visiteurs (sous-projet 4) se placera aussi au-dessus du surtitre. */}` par `<CompteurPresents />` (import `@/components/direct/CompteurPresents`), placé **avant** la salutation.
-  - `apps/web/components/accueil/Section.tsx` : ajouter `data-direct-section=""` sur la `<section>`, avec le commentaire « Repère des curseurs en direct (lib/direct/coordonnees.ts). »
+  - `apps/web/components/accueil/Accroche.tsx` : ajouter `data-direct-section="accroche"` sur la `<section>` ; remplacer le commentaire `{/* Le compteur de visiteurs (sous-projet 4) se placera aussi au-dessus du surtitre. */}` par `<CompteurPresents />` (import `@/components/direct/CompteurPresents`), **avant** la salutation. Ordre figé : compteur → salutation → surtitre → titre.
+  - `apps/web/components/accueil/Section.tsx` : ajouter `data-direct-section={id}` sur la `<section>`, avec le commentaire « Repère des curseurs en direct (table REPERES de lib/direct/coordonnees.ts). »
+  - Test dans `apps/web/components/accueil/Accueil.test.tsx` : l'accueil rendu contient les six repères `accroche`, `offre`, `realisations`, `methode`, `parcours`, `contact` (sélecteur `[data-direct-section]`), et la ligne `compteur-presents` précède la salutation sur une page personnalisée.
 
 - [ ] **Step 7: CSP** — `apps/web/next.config.ts`, après `umamiApi` :
 
 ```ts
 // Service temps réel (apps/realtime) : son adresse est figée au build ; seule
-// son origine (`wss://…`) est ajoutée à `connect-src`.
+// son origine (`wss://…` en production) est ajoutée à `connect-src`.
 const urlDirect = process.env.NEXT_PUBLIC_DIRECT_URL;
 const origineDirect = urlDirect ? new URL(urlDirect).origin : "";
+// En e2e et sous Lighthouse, le service est en `ws://` (site servi en http) :
+// `upgrade-insecure-requests` réécrirait la connexion en `wss://`.
+const serviceNonChiffre = urlDirect?.startsWith("ws://") ?? false;
 ```
 
-et la ligne `connect-src` devient :
+la ligne `connect-src` devient :
 
 ```ts
   `connect-src 'self' ${umamiApi}${origineDirect ? ` ${origineDirect}` : ""}${enDeveloppement ? " ws: wss:" : ""}`,
 ```
 
-Compléter le commentaire de tête de la CSP : « et le service temps réel, autorisé dans `connect-src` quand `NEXT_PUBLIC_DIRECT_URL` est définie. »
+et la dernière ligne de la CSP :
+
+```ts
+  ...(enDeveloppement || serviceNonChiffre ? [] : ["upgrade-insecure-requests"]),
+```
+
+Compléter le commentaire de tête de la CSP : « et le service temps réel, autorisé dans `connect-src` quand `NEXT_PUBLIC_DIRECT_URL` est définie ».
 
 - [ ] **Step 8: Politique de confidentialité** — `apps/web/app/politique-de-confidentialite/page.tsx`, après la section « Liens personnalisés », sur le même modèle :
 
@@ -2251,27 +2425,41 @@ Compléter le commentaire de tête de la CSP : « et le service temps réel, aut
   <h2 className="text-xl font-semibold">Présence en direct</h2>
   <p>
     Sur la page d&apos;accueil, la position de votre souris, relative à la section affichée, est
-    partagée en direct avec les autres visiteurs présents, sous la forme d&apos;une flèche colorée
-    anonyme ; un compteur indique combien de personnes regardent la page. Rien n&apos;est
-    enregistré. Votre adresse IP sert uniquement, en mémoire et le temps de la connexion, à limiter
-    le nombre de connexions. Vous pouvez couper ce partage avec le bouton « Masquer mon curseur » ;
-    ce choix est retenu dans votre navigateur, sans cookie.
+    partagée en direct sous la forme d&apos;une flèche colorée anonyme, et un compteur indique combien
+    de personnes regardent la page. Rien n&apos;est enregistré.
+  </p>
+  <p>
+    Ce partage sert à animer la page d&apos;accueil et à montrer un savoir-faire technique. Sa base
+    légale est mon intérêt légitime (article 6.1.f du RGPD). Ses destinataires sont les autres
+    visiteurs présents au même moment, qui ne voient que la flèche, et l&apos;hébergeur du service, qui
+    achemine la connexion. Il dure le temps de votre visite : votre adresse IP sert uniquement, en
+    mémoire et le temps de la connexion, à limiter le nombre de connexions ; les journaux techniques de
+    l&apos;hébergeur relèvent de la mention ci-dessus.
+  </p>
+  <p>
+    Vous pouvez vous y opposer à tout moment avec le bouton « Masquer mon curseur ». Ce choix est gardé
+    dans le stockage local de votre navigateur, comme le repère de l&apos;introduction déjà vue ; aucun
+    cookie supplémentaire n&apos;est déposé.
   </p>
 </div>
 ```
 
-- [ ] **Step 9: Lancer** —
-  - `pnpm --filter web exec vitest run components/direct app/politique-de-confidentialite` → PASS ;
-  - `pnpm lint && pnpm typecheck && pnpm test` → PASS (les tests existants de l'accueil passent sans être affaiblis) ;
-  - `pnpm build` (sans `NEXT_PUBLIC_DIRECT_URL`) → `○ /`, puis `pnpm --filter web verifier-accueil-statique` → OK ;
-  - `NEXT_PUBLIC_DIRECT_URL=ws://127.0.0.1:3201/direct pnpm build` → `○ /` ; noter la taille compressée (gzip) du ou des fragments JS qui contiennent `ConnexionDirecte` (objectif ≤ 4 Ko) ;
-  - `grep -rnP "[\x{00a0}\x{202f}]" apps/web/components/direct apps/web/lib/direct` → vide.
+(Vérifier que « la mention ci-dessus » renvoie bien à la phrase existante sur les journaux techniques de l'hébergeur ; sinon, reformuler en « relèvent de la section sur l'hébergement ».)
 
-- [ ] **Step 10: Commit**
+- [ ] **Step 9: Contrôle de taille** — `apps/web/scripts/verifier-taille-direct.mjs`, sur le modèle exact de `scripts/verifier-taille-encre.mjs` : `LIMITE = 4 * 1024`, `MARQUEUR = "connexion-direct:v1"`, en-tête « Vérifie que le code de connexion temps réel, chargé après l'affichage, reste sous 4 Ko compressés. Son morceau de JS est repéré par `MARQUEUR_DIRECT` de lib/direct/connexion.ts. Usage : pnpm --filter web verifier-taille-direct (après un build avec NEXT_PUBLIC_DIRECT_URL) », messages « Code de connexion temps réel (…) : X Ko compressés, limite 4 Ko. ». `apps/web/package.json` : `"verifier-taille-direct": "node scripts/verifier-taille-direct.mjs"`.
+
+- [ ] **Step 10: Lancer** —
+  - `pnpm --filter web exec vitest run components/direct components/accueil lib/direct app/politique-de-confidentialite` → PASS ;
+  - `pnpm lint && pnpm typecheck && pnpm test` → PASS (les tests existants de l'accueil passent sans être affaiblis) ;
+  - `pnpm build` (sans `NEXT_PUBLIC_DIRECT_URL`) → `○ /`, puis `pnpm --filter web verifier-accueil-statique` → OK ; `pnpm --filter web verifier-taille-direct` échoue (« introuvable ») : normal, aucun morceau de connexion sans adresse — à confirmer dans le rapport ;
+  - `NEXT_PUBLIC_DIRECT_URL=ws://127.0.0.1:3201/direct pnpm build` → `○ /`, puis `pnpm --filter web verifier-taille-direct` → sous 4 Ko ;
+  - `grep -rnP "[\x{00a0}\x{202f}]" apps/web/components/direct apps/web/lib/direct apps/web/scripts/verifier-taille-direct.mjs` → vide.
+
+- [ ] **Step 11: Commit**
 
 ```bash
-git add apps/web/components/direct/PresenceDirecte.tsx apps/web/components/direct/PresenceDirecte.test.tsx apps/web/components/direct/CompteurPresents.tsx apps/web/components/direct/CalqueCurseurs.tsx apps/web/components/accueil/Accueil.tsx apps/web/components/accueil/Accroche.tsx apps/web/components/accueil/Section.tsx apps/web/next.config.ts apps/web/app/politique-de-confidentialite/page.tsx apps/web/app/politique-de-confidentialite/page.test.tsx
-git commit -m "Temps réel : compteur des présents, curseurs des autres visiteurs et politique de confidentialité"
+git add apps/web/components/direct/PresenceDirecte.tsx apps/web/components/direct/PresenceDirecte.test.tsx apps/web/components/direct/CompteurPresents.tsx apps/web/components/direct/CalqueCurseurs.tsx apps/web/scripts/verifier-taille-direct.mjs apps/web/package.json apps/web/components/accueil/Accueil.tsx apps/web/components/accueil/Accueil.test.tsx apps/web/components/accueil/Accroche.tsx apps/web/components/accueil/Section.tsx apps/web/next.config.ts apps/web/app/politique-de-confidentialite/page.tsx apps/web/app/politique-de-confidentialite/page.test.tsx
+git commit -m "Temps réel : compteur des présents, curseurs des autres visiteurs, CSP et politique de confidentialité"
 ```
 
 ---
@@ -2390,7 +2578,7 @@ test("la page personnalisée rejoint la même salle", async ({ browser }) => {
 });
 ```
 
-(Si le compteur n'apparaît jamais, vérifier d'abord la console du navigateur : une connexion `ws://` réécrite en `wss://` par `upgrade-insecure-requests` (Review Focus n° 1) se reconnaît à une erreur de connexion vers `wss://127.0.0.1:3201`. Correctif : dans `next.config.ts`, n'émettre `upgrade-insecure-requests` que si `NEXT_PUBLIC_DIRECT_URL` ne commence pas par `ws://` — avec un commentaire —, et le signaler.)
+(Si le compteur n'apparaît jamais, vérifier d'abord la console du navigateur : une erreur de connexion vers `wss://127.0.0.1:3201` signale que la règle CSP de la tâche 6 (step 7, pas d'`upgrade-insecure-requests` pour un service en `ws://`) ne s'applique pas ; la corriger dans `next.config.ts` et le signaler.)
 
 - [ ] **Step 3: Lancer en local** —
 
@@ -2417,6 +2605,7 @@ Attendu : les quatre URL passent, seuils inchangés.
 - [ ] **Step 5: CI** — `.github/workflows/ci.yml`, job `e2e` :
   - dans son bloc `env`, ajouter : `NEXT_PUBLIC_DIRECT_URL: ws://127.0.0.1:3201/direct` (commentaire : « Service temps réel lancé par Playwright puis pour Lighthouse ; l'adresse est figée au build. ») ;
   - après `- run: pnpm build` : `- run: pnpm --filter realtime build` ;
+  - après `- run: pnpm --filter web verifier-taille-encre` : `- run: pnpm --filter web verifier-taille-direct` (le build de ce job a `NEXT_PUBLIC_DIRECT_URL`, donc le morceau de connexion existe) ;
   - avant `- run: pnpm --filter web lighthouse` :
 
 ```yaml
@@ -2434,13 +2623,20 @@ Attendu : les quatre URL passent, seuils inchangés.
 ```markdown
 Temps réel (compteur et curseurs de l'accueil) : service `apps/realtime` (Hono, WebSocket).
 
-- En local : `pnpm dev:direct` (port 3001, `ORIGINES_AUTORISEES=http://localhost:3000` à définir), puis le site construit ou lancé avec `NEXT_PUBLIC_DIRECT_URL=ws://localhost:3001/direct`. Sans cette variable, l'accueil ne se connecte à rien.
+- En local : `pnpm dev:direct` (port 3001, `ORIGINES_AUTORISEES=http://localhost:3000` à définir), puis le site construit ou lancé avec `NEXT_PUBLIC_DIRECT_URL=ws://localhost:3001/direct`. Sans cette variable, l'accueil ne charge ni ne connecte rien.
 - Image : `ghcr.io/augustin-jouan/jouan.dev-realtime`, construite par la CI comme celle du site.
-- Déploiement :
-  - entrée DNS `direct.portfolio.jouan.dev` vers le VPS ;
-  - ressource Coolify depuis l'image du service, port 3001, domaine `https://direct.portfolio.jouan.dev`, variable `ORIGINES_AUTORISEES=https://portfolio.jouan.dev` ;
-  - variable de dépôt GitHub `DIRECT_URL=wss://direct.portfolio.jouan.dev/direct` (figée au build du site) ;
-  - secret GitHub `COOLIFY_WEBHOOK_URL_DIRECT` (webhook de la ressource du service).
+- Origines autorisées (`ORIGINES_AUTORISEES`, séparées par des virgules) :
+  - prévisualisation : `https://portfolio.jouan.dev` ;
+  - production, à la bascule sur le domaine nu : ajouter `https://jouan.dev` ;
+  - local : `http://localhost:3000` ; e2e et Lighthouse : posées par la CI.
+
+  Toute origine HTTPS servant le site doit figurer dans la liste de la ressource Coolify.
+- Exposition : uniquement par le proxy de Coolify, en HTTPS ; le port 3001 n'est pas publié sur l'hôte (sinon la dernière entrée de `X-Forwarded-For` ne serait plus fiable). Une seule réplique : un redéploiement déconnecte les visiteurs quelques secondes.
+- Mise en service, dans cet ordre :
+  1. entrée DNS `direct.portfolio.jouan.dev` vers le VPS ;
+  2. ressource Coolify depuis l'image du service, port 3001, domaine `https://direct.portfolio.jouan.dev`, variable `ORIGINES_AUTORISEES` ; attendre qu'elle soit en ligne et saine (`/sante`) ;
+  3. variable de dépôt GitHub `DIRECT_URL=wss://direct.portfolio.jouan.dev/direct` (figée au build du site : tant qu'elle est vide, le site ne tente aucune connexion) ;
+  4. secret GitHub `COOLIFY_WEBHOOK_URL_DIRECT` (webhook de la ressource du service).
 - Limites : 300 connexions au total, 5 par adresse IP (`CONNEXIONS_PAR_IP`), messages de 128 octets et 40 par seconde au plus. Aucune IP ni position n'est journalisée.
 ```
 
@@ -2453,7 +2649,7 @@ git add apps/web/e2e/direct.spec.ts apps/web/playwright.config.ts .github/workfl
 git commit -m "Temps réel : tests de bout en bout à deux visiteurs, Lighthouse avec le service, documentation"
 ```
 
-(Ajouter `apps/web/next.config.ts` si le correctif du Review Focus n° 1 a été nécessaire.)
+(Ajouter `apps/web/next.config.ts` si la règle CSP a dû être corrigée.)
 
 ---
 
@@ -2481,7 +2677,7 @@ DATABASE_URL_TEST=postgresql://jouan:jouan@127.0.0.1:5433/jouan_test pnpm test
 pnpm --filter realtime build
 NEXT_PUBLIC_DIRECT_URL=ws://127.0.0.1:3201/direct pnpm build && pnpm --filter web verifier-accueil-statique
 NEXT_PUBLIC_DIRECT_URL=ws://127.0.0.1:3201/direct DATABASE_URL=postgresql://jouan:jouan@127.0.0.1:5433/jouan_test pnpm e2e
-pnpm --filter web verifier-taille-encre && pnpm --filter web verifier-taille-demo
+pnpm --filter web verifier-taille-encre && pnpm --filter web verifier-taille-demo && pnpm --filter web verifier-taille-direct
 ```
 
 puis le Step 4 de la tâche 7 (Lighthouse avec le service), puis :
