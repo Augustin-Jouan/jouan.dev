@@ -4,7 +4,7 @@
  * date. Une donnée manquante ou invalide fait échouer le job.
  *
  * Le titre du commit devient public : un titre qui contient une adresse e-mail
- * ou IP fait échouer le job (le corriger par un nouveau commit).
+ * ou IP est remplacé par un titre neutre (sans bloquer le déploiement).
  *
  * Usage (CI) :
  *   node apps/web/scripts/assembler-build-info.mjs --verifier mesures-verifier.json \
@@ -16,11 +16,14 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { TITRE_MAX, validerInfosBuild } from "../lib/coulisses/infos-build.mjs";
 
-const SENSIBLE = /@|\b\d{1,3}(\.\d{1,3}){3}\b/;
+/** Adresse e-mail ou IPv4 ; un `@` seul (paquet `@types/…`) n'en est pas une. */
+const SENSIBLE = /[^\s@]+@[^\s@]+\.[^\s@]+|\b\d{1,3}(\.\d{1,3}){3}\b/;
+export const TITRE_NEUTRE = "Mise à jour du site";
 
 export function assembler({ unitaires, boutEnBout, lighthouse, poidsJsAccueil, sha, titre, date }) {
-  const propre = titre.trim().slice(0, TITRE_MAX);
-  if (SENSIBLE.test(propre)) throw new Error("Titre de commit refusé : il contient une adresse e-mail ou IP.");
+  const coupe = titre.trim().slice(0, TITRE_MAX);
+  // Testé sur le titre entier : une adresse coupée à la limite ne doit pas passer.
+  const propre = SENSIBLE.test(titre) ? TITRE_NEUTRE : coupe;
   const infos = validerInfosBuild({
     sha,
     titre: propre,

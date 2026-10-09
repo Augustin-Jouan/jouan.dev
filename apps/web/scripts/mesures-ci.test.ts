@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { INFOS_EXEMPLE } from "@/lib/coulisses/outils-test";
-import { assembler } from "./assembler-build-info.mjs";
+import { assembler, TITRE_NEUTRE } from "./assembler-build-info.mjs";
 import { testsPlaywright, testsVitest } from "./compter-tests.mjs";
 import { extraireLighthouse } from "./extraire-lighthouse.mjs";
 
@@ -80,9 +80,15 @@ describe("assembler", () => {
   });
 
   it.each(["Contact : réponse à quelqu'un@exemple.fr", "Proxy : 10.1.2.3 en dur"])(
-    "refuse un titre qui deviendrait public avec une adresse : %s",
+    "remplace par un titre neutre un titre qui publierait une adresse, sans bloquer le déploiement : %s",
     (titre) => {
-      expect(() => assembler({ ...base, titre })).toThrow("Titre de commit refusé");
+      expect(assembler({ ...base, titre }).titre).toBe(TITRE_NEUTRE);
     },
   );
+
+  it("garde un titre avec un @ qui n'est pas une adresse (paquet npm)", () => {
+    expect(assembler({ ...base, titre: "Bump @types/node from 24.1.0 to 24.2.0" }).titre).toBe(
+      "Bump @types/node from 24.1.0 to 24.2.0",
+    );
+  });
 });

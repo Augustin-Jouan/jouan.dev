@@ -12,6 +12,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Droits minimaux par défaut : les jobs qui exécutent le code d'une PR ne
+# peuvent rien écrire. Le job « image » déclare les siens (publication GHCR).
+permissions:
+  contents: read
+
 env:
   # URL finale du site, figée dans les pages au build (canonical, sitemap…).
   # La prévisualisation (portfolio.jouan.dev) sert déjà ces pages.

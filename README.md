@@ -108,8 +108,8 @@ Temps réel (compteur et curseurs de l'accueil) : service `apps/realtime` (Hono,
 
 Coulisses (`/coulisses`) : architecture du site mesurée en direct, vue 3D à la demande, preuves de qualité du build.
 
-- Mesures : `GET /api/coulisses/mesure` (temps d'un `SELECT 1`, 60 requêtes par minute et par IP, appels d'un autre site refusés) et WebSocket d'écho `/sonde` du service temps réel (hors de la salle de l'accueil, 2 connexions par IP). Rien n'est stocké. Pour les tests de bout en bout seulement : `MESURE_MAX_PAR_IP` (site) et `SONDE_CONNEXIONS_PAR_IP` (service).
+- Mesures : `GET /api/coulisses/mesure` (temps d'un `SELECT 1`, 60 requêtes par minute et par IP, appels d'un autre site refusés) et WebSocket d'écho `/sonde` du service temps réel (hors de la salle de l'accueil, 2 connexions par IP ; en IPv6, une « IP » est un préfixe /64). Rien n'est stocké. Pour les tests de bout en bout seulement : `MESURE_MAX_PAR_IP` (site) et `SONDE_CONNEXIONS_PAR_IP` (service).
 - Dernier déploiement : la CI écrit `apps/web/build-info.json` (commit, date, nombre de tests, notes Lighthouse, poids JS de l'accueil) dans le job `image`, avant le build Docker. En local, sans ce fichier, la section affiche « Build local : pas de mesures CI ». La page reste statique (`pnpm --filter web verifier-accueil-statique`).
-- Le titre du commit déployé devient public : la règle d'anonymat des messages de commit s'applique pleinement, et la CI refuse un titre qui contient une adresse e-mail ou IP.
+- Le titre du commit déployé devient public : la règle d'anonymat des messages de commit s'applique pleinement, et la CI remplace par « Mise à jour du site » un titre qui contient une adresse e-mail ou IP.
 - Budgets : `/coulisses` est mesurée par Lighthouse comme les autres pages ; la vue 3D (Three.js, chargée au clic) reste sous 180 Ko compressés (`pnpm --filter web verifier-taille-3d`).
 - Rien de nouveau à configurer dans Coolify.
