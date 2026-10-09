@@ -37,6 +37,8 @@ pnpm --filter web verifier-taille-demo
 pnpm --filter web capturer-apercu-demo   # après un changement visible de la démo
 ```
 
+Lighthouse (`apps/web/lighthouserc.json`) : accessibilité, CLS et poids des scripts bloquent la CI ; score de performance et LCP ne font qu'avertir, car ils dépendent trop de la vitesse du runner GitHub (un runner lent les fait échouer sans changement du code). À surveiller dans le journal de la CI.
+
 Pour voir la démo dans la page des études de cas avec `pnpm dev`, construire d'abord la démo : `pnpm --filter demo-marches build` (sinon l'iframe affiche une 404).
 
 Les tests de bout en bout démarrent un faux serveur SMTP local (port 2525).
