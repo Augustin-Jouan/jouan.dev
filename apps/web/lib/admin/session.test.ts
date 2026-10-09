@@ -28,6 +28,18 @@ describe("empreinte du mot de passe", () => {
       expect(await verifierMotDePasse("x", empreinte)).toBe(false);
     },
   );
+  describe("empreintes atteignant l'analyse et la dérivation", () => {
+    const sel = Buffer.from("0123456789abcdef").toString("base64url");
+    const cle = Buffer.alloc(32, 1).toString("base64url");
+    it.each([
+      ["paramètre NaN", `scrypt$abc$8$1$${sel}$${cle}`],
+      ["N invalide", `scrypt$3$8$1$${sel}$${cle}`],
+      ["coût excessif", `scrypt$16384$8$99999999$${sel}$${cle}`],
+      ["clé trop courte", "scrypt$16384$8$1$c2Fs$AAAA"],
+    ])("refuse : %s", async (_nom, empreinte) => {
+      expect(await verifierMotDePasse("x", empreinte)).toBe(false);
+    });
+  });
   it("accepte une empreinte au format du script", async () => {
     const sel = Buffer.from("0123456789abcdef");
     const cle = scryptSync("mot-de-passe-e2e", sel, 32, { N: 16384, r: 8, p: 1 });
@@ -43,6 +55,15 @@ describe("session signée", () => {
   });
   it("refuse une session expirée", () => {
     expect(verifierSession(signerSession(maintenant - 1, SECRET), SECRET, maintenant)).toBe(false);
+  });
+  it("refuse une session qui expire exactement maintenant", () => {
+    expect(verifierSession(signerSession(maintenant, SECRET), SECRET, maintenant)).toBe(false);
+  });
+  it("refuse une signature forgée de même longueur", () => {
+    const [expireLe, signature] = signerSession(maintenant + 1000, SECRET).split(".");
+    const forgee = (signature[0] === "A" ? "B" : "A") + signature.slice(1);
+    expect(forgee).toHaveLength(signature.length);
+    expect(verifierSession(`${expireLe}.${forgee}`, SECRET, maintenant)).toBe(false);
   });
   it("refuse une session signée avec un autre secret (secret changé)", () => {
     expect(verifierSession(signerSession(maintenant + 1000, "a".repeat(32)), SECRET, maintenant)).toBe(false);

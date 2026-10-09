@@ -11,26 +11,53 @@ import { stdin, stdout } from "node:process";
 function lireMasque(question) {
   return new Promise((resoudre) => {
     stdout.write(question);
-    stdin.setRawMode?.(true);
+    stdin.setRawMode(true);
     stdin.resume();
     stdin.setEncoding("utf8");
     let saisie = "";
-    stdin.on("data", function surTouche(touche) {
-      if (touche === "\r" || touche === "\n" || touche === "\u0004") {
-        stdin.setRawMode?.(false);
-        stdin.pause();
-        stdin.off("data", surTouche);
-        stdout.write("\n");
-        resoudre(saisie);
-      } else if (touche === "\u0003") {
-        process.exit(130);
-      } else if (touche === "\u007f") {
-        saisie = saisie.slice(0, -1);
-      } else {
-        saisie += touche;
+    // 0 : texte ; 1 : après ESC ; 2 : dans une séquence CSI/SS3 (flèches…)
+    let echappement = 0;
+    function terminer() {
+      stdin.setRawMode(false);
+      stdin.pause();
+      stdin.off("data", surDonnees);
+      stdin.off("end", surFin);
+      stdout.write("\n");
+      resoudre(saisie);
+    }
+    function surFin() {
+      console.error("\nFin de l'entrée avant la fin de la saisie.");
+      process.exit(1);
+    }
+    // Un collage arrive en un seul bloc : on traite caractère par caractère.
+    function surDonnees(bloc) {
+      for (const c of bloc) {
+        if (echappement === 1) {
+          echappement = c === "[" || c === "O" ? 2 : 0;
+        } else if (echappement === 2) {
+          if (c >= "@" && c <= "~") echappement = 0;
+        } else if (c === "\u001b") {
+          echappement = 1;
+        } else if (c === "\r" || c === "\n" || c === "\u0004") {
+          // Tout ce qui suit dans le bloc est ignoré.
+          return terminer();
+        } else if (c === "\u0003") {
+          process.exit(130);
+        } else if (c === "\u007f" || c === "\b") {
+          saisie = Array.from(saisie).slice(0, -1).join("");
+        } else {
+          saisie += c;
+        }
       }
-    });
+    }
+    stdin.on("data", surDonnees);
+    stdin.on("end", surFin);
   });
+}
+
+if (!stdin.isTTY) {
+  console.error("Ce script doit être lancé dans un terminal interactif (le mot de passe serait affiché).");
+  process.exit(1);
 }
 
 const motDePasse = await lireMasque("Mot de passe : ");
