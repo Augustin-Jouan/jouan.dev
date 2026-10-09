@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore, type ComponentType } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ComponentType } from "react";
 import { NOEUD_PAR_DEFAUT, noeudDe, type IdNoeud } from "@/data/architecture";
 import { mesurerHttp } from "@/lib/coulisses/http";
 import { MagasinMesures, type EtatMesures } from "@/lib/coulisses/magasin";
@@ -40,7 +40,13 @@ export function ArchitectureVivante() {
 
   const webgl = useSyncExternalStore(jamais, webglDisponible, () => false);
   const [vue, setVue] = useState<Vue>("2d");
-  const surPerte3d = useCallback(() => setVue("echec"), []);
+  const boutonRef = useRef<HTMLButtonElement>(null);
+  const figureRef = useRef<HTMLElement>(null);
+  const surPerte3d = useCallback(() => {
+    // La rangée « Nœuds » va disparaître : le focus qu'elle avait revient sur le bouton 3D.
+    if (figureRef.current?.contains(document.activeElement)) boutonRef.current?.focus();
+    setVue("echec");
+  }, []);
 
   const basculer3d = () => {
     if (vue === "chargement") return;
@@ -85,6 +91,7 @@ export function ArchitectureVivante() {
           Pendant le chargement, aria-disabled plutôt que disabled : le focus reste dessus.
         */}
         <button
+          ref={boutonRef}
           type="button"
           onClick={basculer3d}
           aria-disabled={vue === "chargement" || undefined}
@@ -97,7 +104,7 @@ export function ArchitectureVivante() {
       </div>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="flex flex-col gap-6">
-          <figure className="flex flex-col gap-2">
+          <figure ref={figureRef} className="flex flex-col gap-2">
             {vue === "3d" && Cadre ? (
               <Cadre choisi={choisi} choisir={setChoisi} mesures={mesures} surPerte={surPerte3d} />
             ) : (
@@ -105,7 +112,10 @@ export function ArchitectureVivante() {
                 <Schema choisi={choisi} choisir={setChoisi} mesures={mesures} />
               </div>
             )}
-            {vue === "echec" && <p role="status" className="text-sm text-encre-douce">3D indisponible sur cet appareil.</p>}
+            {/* Toujours présente, vide hors échec : une zone d'état qui apparaît déjà remplie n'est souvent pas annoncée. */}
+            <p role="status" data-testid="etat-3d" className={vue === "echec" ? "text-sm text-encre-douce" : "sr-only"}>
+              {vue === "echec" ? "3D indisponible sur cet appareil." : ""}
+            </p>
             <figcaption className="text-sm text-encre-douce">
               Choisissez un élément pour voir son rôle. Les temps sont mesurés depuis votre navigateur.
             </figcaption>

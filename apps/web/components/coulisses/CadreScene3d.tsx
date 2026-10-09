@@ -29,10 +29,12 @@ type Props = {
 export function Cadre({ choisi, choisir, mesures, surPerte }: Props) {
   const mouvementReduit = useSyncExternalStore(abonnerMouvement, lireMouvement, () => false);
   const mesuresRef = useRef(mesures);
+  const choisiRef = useRef(choisi);
   const sceneRef = useRef<Scene3D | null>(null);
 
   useEffect(() => {
     mesuresRef.current = mesures;
+    choisiRef.current = choisi;
   });
   useEffect(() => {
     sceneRef.current?.choisir(choisi);
@@ -49,6 +51,7 @@ export function Cadre({ choisi, choisir, mesures, surPerte }: Props) {
           liaisons: LIAISONS,
           latences: () => dernieres(mesuresRef.current),
           mouvementReduit,
+          choisi: choisiRef.current,
           surChoix: choisir,
           surPerte,
         });

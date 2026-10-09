@@ -4,7 +4,9 @@
  * chargé sans clic. Blocs = nœuds, étiquettes HTML nettes (CSS2DRenderer),
  * paquets lumineux au rythme des latences mesurées ; orbite à la souris ou au
  * doigt, zoom borné. Rendu en pause quand l'onglet est caché ou la scène hors
- * de l'écran ; tout est libéré par `arreter()`.
+ * de l'écran ; tout est libéré par `arreter()`, contexte WebGL compris. La
+ * caméra recule sur un cadre étroit (mobile) pour garder toute la scène dans le
+ * champ ; rendu au processeur : résolution réduite.
  */
 import {
   AmbientLight,
@@ -27,7 +29,7 @@ import {
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DObject, CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
 import type { IdNoeud, Liaison, Noeud } from "@/data/architecture";
-import { periodePaquet, position3d } from "./geometrie3d";
+import { CHAMP_VERTICAL, distanceCamera, periodePaquet, position3d } from "./geometrie3d";
 import type { Serie } from "./magasin";
 
 /** Repère ce morceau de JS dans le build (scripts/verifier-taille-3d.mjs). */
@@ -42,6 +44,8 @@ export type OptionsScene = {
   /** Dernières latences, lues à chaque image. */
   latences(): Record<Serie, number | null>;
   mouvementReduit: boolean;
+  /** Nœud surligné dès la création (la scène est recréée si le mouvement réduit change). */
+  choisi: IdNoeud;
   surChoix(id: IdNoeud): void;
   /** Contexte WebGL perdu une fois la scène montée : l'appelant revient en 2D. */
   surPerte(): void;
@@ -49,16 +53,47 @@ export type OptionsScene = {
 
 export type Scene3D = { readonly marqueur: string; choisir(id: IdNoeud): void; arreter(): void };
 
+/**
+ * Rendu au processeur (SwiftShader, llvmpipe, softpipe, pilote de base de Windows) ?
+ * Même liste que `estRenduLogiciel` de lib/encre/moteur.ts, recopiée : un module
+ * partagé avec l'intro deviendrait un morceau à part, hors du budget 3D.
+ */
+function renduLogiciel(gl: WebGL2RenderingContext): boolean {
+  const brut = gl.getParameter(gl.RENDERER);
+  let nom = typeof brut === "string" && brut !== "WebKit WebGL" ? brut : "";
+  // Extension demandée seulement si besoin (Chrome) : Firefox avertit dans la console sinon.
+  if (!nom) {
+    const extension = gl.getExtension("WEBGL_debug_renderer_info");
+    nom = extension ? String(gl.getParameter(extension.UNMASKED_RENDERER_WEBGL)) : "";
+  }
+  return /swiftshader|llvmpipe|softpipe|software|basic render driver/i.test(nom);
+}
+
 type Paquet = { mesh: Mesh; de: Vector3; vers: Vector3; serie?: Serie; phase: number };
 
+/** Lève une erreur si WebGL est indisponible ou si la construction échoue : l'appelant revient en 2D. */
 export function creerScene(o: OptionsScene): Scene3D {
+  const rendu = new WebGLRenderer({ antialias: true, alpha: true });
+  try {
+    return construire(o, rendu);
+  } catch (erreur) {
+    // Rien ne doit rester derrière une construction interrompue : canevas, étiquettes, contexte.
+    rendu.setAnimationLoop(null);
+    rendu.forceContextLoss();
+    rendu.dispose();
+    o.conteneur.replaceChildren();
+    throw erreur;
+  }
+}
+
+function construire(o: OptionsScene, rendu: WebGLRenderer): Scene3D {
   const { conteneur } = o;
   const largeur = () => Math.max(1, conteneur.clientWidth);
   const hauteur = () => Math.max(1, conteneur.clientHeight);
 
-  // Lève une erreur si WebGL est indisponible : l'appelant revient en 2D.
-  const rendu = new WebGLRenderer({ antialias: true, alpha: true });
-  rendu.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // Au processeur (SwiftShader, llvmpipe…), une pleine résolution ralentirait toute la page.
+  const logiciel = renduLogiciel(rendu.getContext() as WebGL2RenderingContext);
+  rendu.setPixelRatio(logiciel ? 1 : Math.min(window.devicePixelRatio, 2));
   rendu.setSize(largeur(), hauteur());
   conteneur.appendChild(rendu.domElement);
 
@@ -68,8 +103,9 @@ export function creerScene(o: OptionsScene): Scene3D {
   conteneur.appendChild(etiquettes.domElement);
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(45, largeur() / hauteur(), 0.1, 100);
-  camera.position.set(0, 2, 14);
+  const camera = new PerspectiveCamera(CHAMP_VERTICAL, largeur() / hauteur(), 0.1, 100);
+  let distance = distanceCamera(o.noeuds, camera.aspect);
+  camera.position.set(0, distance / 7, distance);
   scene.add(new AmbientLight(0xffffff, 1.6));
   const soleil = new DirectionalLight(0xffffff, 1.2);
   soleil.position.set(4, 8, 6);
@@ -79,7 +115,7 @@ export function creerScene(o: OptionsScene): Scene3D {
   controles.enableDamping = true;
   controles.enablePan = false;
   controles.minDistance = 6;
-  controles.maxDistance = 24;
+  controles.maxDistance = Math.max(24, distance * 1.4);
   controles.autoRotate = !o.mouvementReduit;
   controles.autoRotateSpeed = 0.6;
 
@@ -117,6 +153,7 @@ export function creerScene(o: OptionsScene): Scene3D {
   const choisir = (id: IdNoeud) => {
     for (const [cle, bloc] of blocs) bloc.material.color.set(cle === id ? COULEURS.brique : COULEURS.papier);
   };
+  choisir(o.choisi);
 
   // Un clic sans glisser sur un bloc le choisit (le glisser fait tourner la scène).
   const rayon = new Raycaster();
@@ -142,6 +179,11 @@ export function creerScene(o: OptionsScene): Scene3D {
   const redimensionner = () => {
     camera.aspect = largeur() / hauteur();
     camera.updateProjectionMatrix();
+    // Cadre plus étroit (rotation du téléphone) : recul dans la même proportion, zoom de l'utilisateur gardé.
+    const nouvelle = distanceCamera(o.noeuds, camera.aspect);
+    camera.position.multiplyScalar(nouvelle / distance);
+    distance = nouvelle;
+    controles.maxDistance = Math.max(24, distance * 1.4);
     rendu.setSize(largeur(), hauteur());
     etiquettes.setSize(largeur(), hauteur());
   };
@@ -198,6 +240,9 @@ export function creerScene(o: OptionsScene): Scene3D {
       materielLigne.dispose();
       for (const g of lignes) g.dispose();
       for (const b of blocs.values()) b.material.dispose();
+      // `dispose()` ne rend pas le contexte : sans cela, chaque aller-retour 2D/3D en laisserait un
+      // ouvert, jusqu'à la limite du navigateur. L'écouteur de perte est déjà retiré.
+      rendu.forceContextLoss();
       rendu.dispose();
       rendu.domElement.remove();
       etiquettes.domElement.remove();

@@ -122,4 +122,51 @@ describe("ArchitectureVivante, vue 3D", () => {
     await waitFor(() => expect(scene.creerScene).toHaveBeenCalled());
     expect((scene.creerScene.mock.calls[0]![0] as { mouvementReduit: boolean }).mouvementReduit).toBe(true);
   });
+
+  it("la zone d'état existe avant l'échec : le message y est écrit, donc annoncé", async () => {
+    webgl(true);
+    scene.creerScene.mockImplementation(() => {
+      throw new Error("contexte WebGL perdu");
+    });
+    render(<ArchitectureVivante />);
+    const zone = screen.getByTestId("etat-3d");
+    expect(zone).toHaveAttribute("role", "status");
+    expect(zone).toBeEmptyDOMElement();
+    fireEvent.click(screen.getByRole("button", { name: "Voir en 3D" }));
+    await waitFor(() => expect(zone).toHaveTextContent("3D indisponible sur cet appareil."));
+    expect(screen.getByTestId("etat-3d")).toBe(zone);
+  });
+
+  it("contexte perdu, le focus dans la rangée « Nœuds » : il revient sur le bouton 3D", async () => {
+    webgl(true);
+    render(<ArchitectureVivante />);
+    fireEvent.click(screen.getByRole("button", { name: "Voir en 3D" }));
+    await waitFor(() => expect(scene.creerScene).toHaveBeenCalled());
+    within(screen.getByRole("group", { name: "Nœuds" })).getByRole("button", { name: "Base" }).focus();
+    const { surPerte } = scene.creerScene.mock.calls[0]![0] as { surPerte(): void };
+    act(() => surPerte());
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Voir en 3D" }));
+  });
+
+  it("scène recréée (mouvement réduit changé) : le nœud choisi reste surligné", async () => {
+    webgl(true);
+    let reduit = false;
+    const ecouteurs: (() => void)[] = [];
+    vi.stubGlobal("matchMedia", (q: string) => ({
+      get matches() {
+        return q === "(prefers-reduced-motion: reduce)" && reduit;
+      },
+      media: q,
+      addEventListener: (_t: string, fn: () => void) => ecouteurs.push(fn),
+      removeEventListener: () => {},
+    }));
+    render(<ArchitectureVivante />);
+    fireEvent.click(screen.getByRole("button", { name: "Voir en 3D" }));
+    await waitFor(() => expect(scene.creerScene).toHaveBeenCalledTimes(1));
+    fireEvent.click(within(screen.getByRole("group", { name: "Nœuds" })).getByRole("button", { name: "Base" }));
+    reduit = true;
+    act(() => ecouteurs.forEach((fn) => fn()));
+    await waitFor(() => expect(scene.creerScene).toHaveBeenCalledTimes(2));
+    expect(scene.creerScene.mock.calls[1]![0]).toMatchObject({ mouvementReduit: true, choisi: "base" });
+  });
 });

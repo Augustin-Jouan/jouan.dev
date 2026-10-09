@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NOEUDS, noeudDe } from "@/data/architecture";
-import { periodePaquet, position3d } from "./geometrie3d";
+import { DISTANCE_MIN, distanceCamera, periodePaquet, position3d } from "./geometrie3d";
 
 describe("geometrie3d", () => {
   it("reprend la disposition large, centrée, le déploiement en retrait", () => {
@@ -21,5 +21,17 @@ describe("geometrie3d", () => {
     expect(periodePaquet(5)).toBe(0.6);
     expect(periodePaquet(100)).toBe(2);
     expect(periodePaquet(10_000)).toBe(4);
+  });
+
+  it("cadre étroit (mobile) : la caméra recule assez pour que chaque bloc soit dans le champ", () => {
+    const aspect = 360 / 820;
+    const d = distanceCamera(NOEUDS, aspect);
+    const demiChamp = d * Math.tan((45 * Math.PI) / 360) * aspect;
+    for (const n of NOEUDS) expect(Math.abs(position3d(n)[0]) + 1.2).toBeLessThanOrEqual(demiChamp);
+  });
+
+  it("cadre large : la distance d'origine, sans zoom arrière", () => {
+    expect(distanceCamera(NOEUDS, 960 / 420)).toBe(DISTANCE_MIN);
+    expect(distanceCamera(NOEUDS, 360 / 820)).toBeGreaterThan(DISTANCE_MIN);
   });
 });
