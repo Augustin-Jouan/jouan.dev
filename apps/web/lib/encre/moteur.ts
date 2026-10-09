@@ -1,10 +1,10 @@
 import {
   BRAISE_CLAIRE,
-  HALO,
   cibleHalo,
   etatEncre,
   etatHalo,
   rayonCouverture,
+  reposHalo,
   suivre,
   type EtatEncre,
   type Point,
@@ -102,7 +102,8 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
   let horloge = 0;
   let precedent: number | null = null;
   let introFinie = !options.intro;
-  let halo: Point = { x: HALO.x, y: HALO.y };
+  let repos = reposHalo(canvas.clientWidth || 1, canvas.clientHeight || 1);
+  let halo: Point = repos.centre;
   let souris: Point | null = null;
   let image = 0;
   let pret = false;
@@ -117,6 +118,7 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
       canvas.height = hauteur;
     }
     gl!.viewport(0, 0, canvas.width, canvas.height);
+    repos = reposHalo(canvas.clientWidth || 1, canvas.clientHeight || 1);
   }
 
   function dessiner(etat: EtatEncre, maintenant: number) {
@@ -150,7 +152,7 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     redimensionner();
 
     if (!introFinie) {
-      const etat = etatEncre(maintenant - (debut ??= maintenant), rayonCouverture(canvas.width, canvas.height));
+      const etat = etatEncre(maintenant - (debut ??= maintenant), rayonCouverture(canvas.width, canvas.height), repos);
       if (options.nom) options.nom.style.opacity = String(etat.opaciteNom);
       dessiner(etat, maintenant);
       if (etat.terminee) terminerIntro();
@@ -158,9 +160,9 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
       return;
     }
 
-    const cible = cibleHalo(souris, maintenant, options.tactile);
+    const cible = cibleHalo(souris, maintenant, options.tactile, repos.centre);
     halo = suivre(halo, cible);
-    dessiner(etatHalo(halo), maintenant);
+    dessiner(etatHalo(halo, repos), maintenant);
     // Au repos, plus rien ne bouge : la prochaine image viendra d'un mouvement
     // de souris, d'un redimensionnement ou du retour sur l'onglet.
     const auRepos = !options.tactile && Math.hypot(cible.x - halo.x, cible.y - halo.y) < REPOS;

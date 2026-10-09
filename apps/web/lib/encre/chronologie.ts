@@ -16,8 +16,33 @@ export const ENCRE = rvb(0x1b1a17);
 export const BRAISE = rvb(0xe0582b);
 export const BRAISE_CLAIRE = rvb(0xef9c62);
 
-/** État final de l'intro, partagé avec le halo CSS (`.halo-css` dans app/globals.css). */
+/**
+ * État final de l'intro, partagé avec le halo CSS (`.halo-css` dans
+ * app/globals.css). Le halo est posé dans un cadre de référence : la colonne
+ * de contenu (au plus `COLONNE_MAX` px de large, centrée) sur le premier
+ * écran (au plus `HAUTEUR_MAX` px de haut). `x` est une fraction de la
+ * colonne ; `y`, `rayon` et `flou` sont des fractions de cette hauteur. Sur un
+ * écran plus petit que le cadre, ce sont simplement des fractions de l'écran.
+ */
 export const HALO = { x: 0.8, y: 0.24, rayon: 0.32, flou: 0.2 } as const;
+/** `--container-page` (90rem) de app/globals.css. */
+export const COLONNE_MAX = 1440;
+/** Hauteur maximale de l'accroche et de l'en-tête (56rem + 5rem, components/accueil/Accroche.tsx). */
+export const HAUTEUR_MAX = 976;
+
+/** Halo au repos, dans les unités du shader. */
+export type Repos = { centre: Point; rayon: number; flou: number };
+
+/** Position et taille du halo au repos sur un écran de `largeur` × `hauteur` px (CSS). */
+export function reposHalo(largeur: number, hauteur: number): Repos {
+  const colonne = Math.min(largeur, COLONNE_MAX);
+  const reference = Math.min(hauteur, HAUTEUR_MAX) / hauteur;
+  return {
+    centre: { x: ((largeur - colonne) / 2 + HALO.x * colonne) / largeur, y: HALO.y * reference },
+    rayon: HALO.rayon * reference,
+    flou: HALO.flou * reference,
+  };
+}
 
 const FIN_ETALEMENT = 450;
 const FIN_NOM = 800;
@@ -46,8 +71,8 @@ const mix = (a: number, b: number, k: number) => a + (b - a) * k;
  * État de l'encre `t` ms après le début de l'intro. `couverture` est le rayon
  * qui couvre tout l'écran depuis son centre (voir `rayonCouverture`).
  */
-export function etatEncre(t: number, couverture: number): EtatEncre {
-  if (t >= DUREE_INTRO) return etatHalo({ x: HALO.x, y: HALO.y });
+export function etatEncre(t: number, couverture: number, repos: Repos): EtatEncre {
+  if (t >= DUREE_INTRO) return etatHalo(repos.centre, repos);
 
   if (t < FIN_ETALEMENT) {
     return {
@@ -75,9 +100,9 @@ export function etatEncre(t: number, couverture: number): EtatEncre {
 
   const k = lisser(borner((t - FIN_NOM) / (DUREE_INTRO - FIN_NOM)));
   return {
-    centre: { x: mix(CENTRE.x, HALO.x, k), y: mix(CENTRE.y, HALO.y, k) },
-    rayon: mix(couverture, HALO.rayon, k),
-    flou: mix(FLOU_NET, HALO.flou, k),
+    centre: { x: mix(CENTRE.x, repos.centre.x, k), y: mix(CENTRE.y, repos.centre.y, k) },
+    rayon: mix(couverture, repos.rayon, k),
+    flou: mix(FLOU_NET, repos.flou, k),
     couleur: [mix(ENCRE[0], BRAISE[0], k), mix(ENCRE[1], BRAISE[1], k), mix(ENCRE[2], BRAISE[2], k)],
     melange: k,
     opaciteNom: 1 - borner((t - FIN_NOM) / 200),
@@ -85,12 +110,12 @@ export function etatEncre(t: number, couverture: number): EtatEncre {
   };
 }
 
-/** Le halo au repos, centré sur `centre`. */
-export function etatHalo(centre: Point): EtatEncre {
+/** Le halo au repos, centré sur `centre` (il peut s'écarter de sa place, attiré par la souris). */
+export function etatHalo(centre: Point, repos: Repos): EtatEncre {
   return {
     centre: { x: centre.x, y: centre.y },
-    rayon: HALO.rayon,
-    flou: HALO.flou,
+    rayon: repos.rayon,
+    flou: repos.flou,
     couleur: BRAISE,
     melange: 1,
     opaciteNom: 0,
@@ -104,17 +129,17 @@ export function rayonCouverture(largeur: number, hauteur: number): number {
 }
 
 /** Cible du halo : sa position de repos, attirée d'un quart vers la souris ; dérive lente au doigt. */
-export function cibleHalo(souris: Point | null, temps: number, tactile: boolean): Point {
+export function cibleHalo(souris: Point | null, temps: number, tactile: boolean, repos: Point): Point {
   if (tactile) {
     return {
-      x: HALO.x + 0.03 * Math.sin(temps / 3200),
-      y: HALO.y + 0.03 * Math.cos(temps / 4100),
+      x: repos.x + 0.03 * Math.sin(temps / 3200),
+      y: repos.y + 0.03 * Math.cos(temps / 4100),
     };
   }
-  if (!souris) return { x: HALO.x, y: HALO.y };
+  if (!souris) return { x: repos.x, y: repos.y };
   return {
-    x: HALO.x + (souris.x - HALO.x) * 0.25,
-    y: HALO.y + (souris.y - HALO.y) * 0.25,
+    x: repos.x + (souris.x - repos.x) * 0.25,
+    y: repos.y + (souris.y - repos.y) * 0.25,
   };
 }
 

@@ -1,21 +1,26 @@
 import { describe, it, expect } from "vitest";
 import {
   BRAISE,
+  COLONNE_MAX,
   DUREE_INTRO,
   ENCRE,
   HALO,
+  HAUTEUR_MAX,
   cibleHalo,
   etatEncre,
   etatHalo,
   rayonCouverture,
+  reposHalo,
   suivre,
 } from "./chronologie";
 
 const COUVERTURE = 1.2;
+/** Écran d'ordinateur portable : plus petit que le cadre de référence. */
+const REPOS = reposHalo(1280, 800);
 
 describe("etatEncre", () => {
   it("part d'une goutte invisible au centre, sans nom", () => {
-    const etat = etatEncre(0, COUVERTURE);
+    const etat = etatEncre(0, COUVERTURE, REPOS);
     expect(etat.centre).toEqual({ x: 0.5, y: 0.5 });
     expect(etat.rayon).toBe(0);
     expect(etat.couleur).toEqual(ENCRE);
@@ -24,14 +29,14 @@ describe("etatEncre", () => {
   });
 
   it("couvre l'écran à 450 ms puis affiche le nom", () => {
-    expect(etatEncre(450, COUVERTURE).rayon).toBeCloseTo(COUVERTURE);
-    expect(etatEncre(650, COUVERTURE).opaciteNom).toBe(1);
+    expect(etatEncre(450, COUVERTURE, REPOS).rayon).toBeCloseTo(COUVERTURE);
+    expect(etatEncre(650, COUVERTURE, REPOS).opaciteNom).toBe(1);
   });
 
   it("se rétracte vers le halo entre 800 et 1500 ms en se réchauffant", () => {
-    const milieu = etatEncre(1150, COUVERTURE);
+    const milieu = etatEncre(1150, COUVERTURE, REPOS);
     expect(milieu.rayon).toBeLessThan(COUVERTURE);
-    expect(milieu.rayon).toBeGreaterThan(HALO.rayon);
+    expect(milieu.rayon).toBeGreaterThan(REPOS.rayon);
     expect(milieu.centre.x).toBeGreaterThan(0.5);
     expect(milieu.centre.y).toBeLessThan(0.5);
     expect(milieu.melange).toBeGreaterThan(0);
@@ -42,22 +47,22 @@ describe("etatEncre", () => {
   it("a un rayon qui ne fait que décroître pendant le retrait", () => {
     let precedent = Infinity;
     for (let t = 800; t <= 1500; t += 50) {
-      const { rayon } = etatEncre(t, COUVERTURE);
+      const { rayon } = etatEncre(t, COUVERTURE, REPOS);
       expect(rayon).toBeLessThanOrEqual(precedent);
       precedent = rayon;
     }
   });
 
   it("se termine en halo à 1500 ms et au-delà", () => {
-    const fin = etatEncre(DUREE_INTRO, COUVERTURE);
-    expect(fin).toEqual(etatHalo({ x: HALO.x, y: HALO.y }));
+    const fin = etatEncre(DUREE_INTRO, COUVERTURE, REPOS);
+    expect(fin).toEqual(etatHalo(REPOS.centre, REPOS));
     expect(fin.terminee).toBe(true);
     expect(fin.couleur).toEqual(BRAISE);
-    expect(etatEncre(60_000, COUVERTURE).terminee).toBe(true);
+    expect(etatEncre(60_000, COUVERTURE, REPOS).terminee).toBe(true);
   });
 
   it("traite un temps négatif comme le début", () => {
-    expect(etatEncre(-20, COUVERTURE).rayon).toBe(0);
+    expect(etatEncre(-20, COUVERTURE, REPOS).rayon).toBe(0);
   });
 });
 
@@ -74,23 +79,42 @@ describe("rayonCouverture", () => {
   });
 });
 
+describe("reposHalo", () => {
+  it("reprend les fractions de l'écran quand l'écran tient dans le cadre", () => {
+    expect(REPOS).toEqual({ centre: { x: HALO.x, y: HALO.y }, rayon: HALO.rayon, flou: HALO.flou });
+    expect(reposHalo(390, 844).centre.x).toBeCloseTo(HALO.x);
+  });
+
+  it("reste au-dessus de la colonne de contenu sur un très grand écran", () => {
+    const repos = reposHalo(2560, 1300);
+    const marge = (2560 - COLONNE_MAX) / 2;
+    expect(repos.centre.x * 2560).toBeCloseTo(marge + HALO.x * COLONNE_MAX);
+    // Taille et hauteur figées à celles d'un écran de HAUTEUR_MAX px.
+    expect(repos.rayon * 1300).toBeCloseTo(HALO.rayon * HAUTEUR_MAX);
+    expect(repos.centre.y * 1300).toBeCloseTo(HALO.y * HAUTEUR_MAX);
+    expect(repos.flou * 1300).toBeCloseTo(HALO.flou * HAUTEUR_MAX);
+  });
+});
+
 describe("halo", () => {
+  const place = { x: 0.7, y: 0.2 };
+
   it("reste à sa place sans souris", () => {
-    expect(cibleHalo(null, 0, false)).toEqual({ x: HALO.x, y: HALO.y });
+    expect(cibleHalo(null, 0, false, place)).toEqual(place);
   });
 
   it("est attiré d'un quart vers la souris", () => {
-    const cible = cibleHalo({ x: 0, y: 0.24 }, 0, false);
-    expect(cible.x).toBeCloseTo(HALO.x * 0.75);
-    expect(cible.y).toBeCloseTo(HALO.y);
+    const cible = cibleHalo({ x: 0, y: 0.2 }, 0, false, place);
+    expect(cible.x).toBeCloseTo(0.7 * 0.75);
+    expect(cible.y).toBeCloseTo(0.2);
   });
 
   it("dérive seul, faiblement, sur écran tactile", () => {
-    const a = cibleHalo(null, 0, true);
-    const b = cibleHalo(null, 5000, true);
+    const a = cibleHalo(null, 0, true, place);
+    const b = cibleHalo(null, 5000, true, place);
     expect(a).not.toEqual(b);
-    expect(Math.abs(b.x - HALO.x)).toBeLessThanOrEqual(0.03);
-    expect(Math.abs(b.y - HALO.y)).toBeLessThanOrEqual(0.03);
+    expect(Math.abs(b.x - place.x)).toBeLessThanOrEqual(0.03);
+    expect(Math.abs(b.y - place.y)).toBeLessThanOrEqual(0.03);
   });
 
   it("rejoint sa cible avec inertie", () => {

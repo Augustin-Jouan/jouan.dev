@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const classeSection = "mx-auto w-full max-w-6xl px-5 py-14 sm:px-8 sm:py-20";
+const classeSection = "mx-auto w-full max-w-6xl 2xl:max-w-page px-5 py-14 sm:px-8 sm:py-20";
 const classeTitreSection = "mb-8 font-serif text-3xl sm:text-4xl";
 
 export default async function EtudeDeCasPage({ params }: Props) {
@@ -47,7 +47,7 @@ export default async function EtudeDeCasPage({ params }: Props) {
 
   return (
     <article>
-      <header className="mx-auto w-full max-w-6xl px-5 pb-6 pt-16 sm:px-8 sm:pt-24">
+      <header className="mx-auto w-full max-w-6xl 2xl:max-w-page px-5 pb-6 pt-16 sm:px-8 sm:pt-24">
         <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-terre">{etude.surtitre}</p>
         <h1 className="max-w-4xl font-serif text-4xl leading-[1.05] sm:text-6xl">{etude.titre}</h1>
         <p className="mt-6 max-w-3xl text-lg text-encre-douce">{etude.sousTitre}</p>
