@@ -60,8 +60,8 @@ export const etudesDeCas: EtudeDeCas[] = [
     sousTitre:
       "La refonte complète du site d'un électricien-plombier : design sur mesure, formulaire de contact fiable, mesure d'audience sans cookie et hébergement maîtrisé.",
     chiffres: [
-      { valeur: "[À mesurer]", libelle: "score de performance Lighthouse sur mobile" },
-      { valeur: "[À mesurer]", libelle: "score de référencement Lighthouse" },
+      { valeur: "89", libelle: "sur 100, performance Lighthouse sur mobile" },
+      { valeur: "100", libelle: "sur 100, référencement Lighthouse" },
       { valeur: "0", libelle: "cookie déposé : pas de bandeau de consentement" },
     ],
     besoin: [
