@@ -44,4 +44,18 @@ describe("proxy", () => {
       proxy(requete("/admin", signerSession(Date.now() + 60_000, "a".repeat(32)))).headers.get("location"),
     ).toBe("http://localhost:3000/admin/connexion");
   });
+  it.each(["/admin/connexion/x", "/admin/connexion/"])("protège %s (seule /admin/connexion est publique)", (chemin) => {
+    expect(proxy(requete(chemin)).headers.get("location")).toBe("http://localhost:3000/admin/connexion");
+  });
+  it("redirige un cookie mal formé ou expiré, même avec un secret configuré", () => {
+    process.env.ADMIN_SECRET = SECRET;
+    const lieu = "http://localhost:3000/admin/connexion";
+    expect(proxy(requete("/admin", "abc")).headers.get("location")).toBe(lieu);
+    expect(proxy(requete("/admin", signerSession(Date.now() - 1000, SECRET))).headers.get("location")).toBe(lieu);
+  });
+  it("réécrit un jeton de 45 caractères, pas un de 46", () => {
+    const jeton45 = `${"a".repeat(40)}-k7f3`;
+    expect(reecriture(proxy(requete(`/?pour=${jeton45}`)))).not.toBeNull();
+    expect(reecriture(proxy(requete(`/?pour=${jeton45}x`)))).toBeNull();
+  });
 });

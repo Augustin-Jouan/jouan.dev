@@ -21,7 +21,7 @@ export function SignalVisite({ jeton }: { jeton: string }) {
       }
     }
     function demarrer() {
-      if (envoye) return;
+      if (envoye || depuis !== null) return;
       depuis = Date.now();
       minuterie = window.setTimeout(envoyer, DUREE_VISIBLE_MS - cumul);
     }

@@ -41,4 +41,16 @@ describe("SignalVisite", () => {
     act(() => vi.advanceTimersByTime(1));
     expect(sendBeacon).toHaveBeenCalledTimes(1);
   });
+
+  it("ignore un second événement visible : un seul envoi, après 3 s cumulées", () => {
+    render(<SignalVisite jeton="boulangerie-k7f3" />);
+    act(() => vi.advanceTimersByTime(1000));
+    act(() => definirVisibilite("visible"));
+    act(() => vi.advanceTimersByTime(1999));
+    expect(sendBeacon).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
+  });
 });

@@ -16,7 +16,9 @@ export function proxy(request: NextRequest) {
     if (pathname === "/admin/connexion") return NextResponse.next();
     const secret = secretSession();
     if (secret && verifierSession(request.cookies.get(NOM_COOKIE)?.value, secret)) return NextResponse.next();
-    return NextResponse.redirect(new URL("/admin/connexion", request.url));
+    // Hôte de la requête telle que Next la reconstruit (pas `request.url`, interne derrière le reverse proxy) ;
+    // construit à neuf pour éviter de boucler sur un `/` final.
+    return NextResponse.redirect(new URL("/admin/connexion", request.nextUrl));
   }
 
   const jeton = searchParams.get("pour") ?? "";
