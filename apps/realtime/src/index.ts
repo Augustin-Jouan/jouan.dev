@@ -10,6 +10,8 @@ async function principal() {
     port: Number(process.env.PORT ?? 3001),
     hote: process.env.HOTE ?? "0.0.0.0",
     connexionsParIp: process.env.CONNEXIONS_PAR_IP ? Number(process.env.CONNEXIONS_PAR_IP) : undefined,
+    // Tests de bout en bout : tous les navigateurs partagent 127.0.0.1.
+    sondeParIp: process.env.SONDE_CONNEXIONS_PAR_IP ? Number(process.env.SONDE_CONNEXIONS_PAR_IP) : undefined,
   });
   console.log(`[direct] Prêt sur le port ${serveur.port}.`);
   for (const signal of ["SIGTERM", "SIGINT"] as const) {

@@ -57,3 +57,13 @@ export class Debit {
     return true;
   }
 }
+
+/**
+ * Plafonds de la sonde des coulisses (spec du sous-projet 5, §4.2) : un
+ * `Gardien` à part, pour qu'une sonde saturée ne prive jamais l'accueil de places.
+ */
+export const SONDE_CONNEXIONS_MAX = 100;
+export const SONDE_CONNEXIONS_PAR_IP = 2;
+export const SONDE_MESSAGES_PAR_SECONDE = 5;
+/** Octets UTF-8 au plus par message (un horodatage en texte). */
+export const SONDE_TAILLE_MAX = 32;
