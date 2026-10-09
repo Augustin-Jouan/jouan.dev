@@ -97,7 +97,7 @@ export function ArchitectureVivante() {
           aria-disabled={vue === "chargement" || undefined}
           aria-hidden={!webgl || undefined}
           tabIndex={webgl ? undefined : -1}
-          className={`rounded-full border border-trait-fort px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent hover:text-sur-accent aria-disabled:opacity-60 ${webgl ? "" : "invisible"}`}
+          className={`rounded-full border border-trait-fort px-4 py-2 text-sm font-semibold transition-[color,background-color] hover:bg-accent hover:text-sur-accent aria-disabled:opacity-60 ${webgl ? "" : "invisible"}`}
         >
           {vue === "3d" ? "Revenir en 2D" : vue === "chargement" ? "Chargement…" : "Voir en 3D"}
         </button>
