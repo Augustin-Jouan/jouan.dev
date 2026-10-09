@@ -33,7 +33,7 @@ export function Marches({ lots, dispatch }: {
               <th data-droite>Avenants</th>
               <th data-droite>Engagé HT</th>
               <th data-droite>Payé HT</th>
-              <th>Avancement</th>
+              <th>Part payée</th>
             </tr>
           </thead>
           <tbody>
@@ -69,7 +69,7 @@ export function Marches({ lots, dispatch }: {
                   <td data-droite data-fort>{formaterEuros(engage)}</td>
                   <td data-droite>{formaterEuros(paye)}</td>
                   <td>
-                    <Jauge libelle={`Avancement du ${nomLot(lot).toLowerCase()}`} valeur={pourcentage(paye, engage)} />
+                    <Jauge libelle={`Part payée du ${nomLot(lot).toLowerCase()}`} valeur={pourcentage(paye, engage)} />
                   </td>
                 </tr>
               );
@@ -84,7 +84,7 @@ export function Marches({ lots, dispatch }: {
               <td data-droite>{formaterEuros(totaux.engageHT)}</td>
               <td data-droite>{formaterEuros(totaux.payeHT)}</td>
               <td>
-                <Jauge libelle="Avancement du chantier" valeur={pourcentage(totaux.payeHT, totaux.engageHT)} />
+                <Jauge libelle="Part payée du chantier" valeur={pourcentage(totaux.payeHT, totaux.engageHT)} />
               </td>
             </tr>
           </tfoot>

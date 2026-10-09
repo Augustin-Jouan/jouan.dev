@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Carte } from "../briques/Carte";
 import { CleValeur } from "../briques/CleValeur";
@@ -34,7 +35,7 @@ export function Planning({ lots }: { lots: readonly Lot[] }) {
   return (
     <div ref={racine} className="flex flex-col gap-4">
       <div className="gantt">
-        <table className="g-table">
+        <table className="g-table" style={{ "--nb-sem": SEMAINES.length } as CSSProperties}>
           <caption className="sr-only">Planning des lots, par semaine</caption>
           <thead>
             <tr>

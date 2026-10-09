@@ -32,7 +32,7 @@ const VARIANTE = {
   panneau:
     "fixed inset-y-0 right-0 flex w-[min(31rem,100vw)] flex-col overflow-hidden rounded-l-lg border-l border-rule-strong bg-paper shadow-ombre-h max-etroit:w-screen max-etroit:rounded-none",
   apercu:
-    "fixed top-1/2 left-1/2 flex max-h-[90vh] w-[min(48rem,100vw)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-rule-strong bg-paper shadow-ombre-h max-etroit:h-screen max-etroit:max-h-none max-etroit:w-screen max-etroit:rounded-none",
+    "fixed top-1/2 left-1/2 flex max-h-[90vh] w-[min(48rem,100vw)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-rule-strong bg-paper shadow-ombre-h max-etroit:h-dvh max-etroit:max-h-none max-etroit:w-screen max-etroit:rounded-none",
 } as const;
 
 /** Une boîte de dialogue modale : tiroir à droite (panneau) ou feuille centrée (apercu). */

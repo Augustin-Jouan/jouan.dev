@@ -3,6 +3,8 @@
  * Une grille de semaines et des barres à cheval sur elles se disent mieux en CSS qu'en utilitaires.
  * Couleurs, rondeurs et ombres : uniquement les jetons du thème.
  */
+@reference "../styles/theme.css";
+
 .gantt {
 	--sem-w: 52px;
 	--col-lot: 15rem;
@@ -13,12 +15,14 @@
 	/* seul l'axe horizontal défile ici : la page, elle, ne défile jamais de côté */
 	overflow-x: auto;
 	max-width: 100%;
+	/* une barre atteinte au clavier ne finit pas sous la colonne figée */
+	scroll-padding-left: var(--col-lot);
 }
 .g-table {
 	border-collapse: separate;
 	border-spacing: 0;
 	table-layout: fixed;
-	width: calc(var(--col-lot) + 21 * var(--sem-w));
+	width: calc(var(--col-lot) + var(--nb-sem) * var(--sem-w));
 }
 .g-table th, .g-table td { padding: 0; }
 
@@ -27,7 +31,7 @@
 	background: var(--surface);
 	border-bottom: 2px solid var(--rule-strong);
 	border-left: 1px solid var(--rule);
-	font-family: 'Spline Sans Mono', monospace;
+	@apply font-mono;
 	font-size: 0.625rem;
 	font-weight: 500;
 	color: var(--muted);
@@ -39,7 +43,7 @@
 .g-table thead th.g-angle {
 	text-align: left;
 	padding-left: 1rem;
-	font-family: 'Outfit', sans-serif;
+	@apply font-titre;
 	font-weight: 600;
 	letter-spacing: 0.07em;
 	text-transform: uppercase;
