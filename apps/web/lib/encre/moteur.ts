@@ -25,7 +25,8 @@ const ECHELLE_RENDU = 0.5;
 /** Écart au-dessous duquel le halo est considéré arrivé : on cesse de dessiner. */
 const REPOS = 0.0005;
 
-export type RaisonEchec = "webgl2-indisponible" | "shader" | "contexte-perdu";
+/** `rendu-logiciel` : WebGL dessiné par le processeur, faute de carte graphique. */
+export type RaisonEchec = "webgl2-indisponible" | "rendu-logiciel" | "shader" | "contexte-perdu";
 
 export type OptionsMoteur = {
   canvas: HTMLCanvasElement;
@@ -58,11 +59,39 @@ export function tailleRendu(largeurCss: number, hauteurCss: number) {
   };
 }
 
+/** Pilotes qui dessinent WebGL au processeur : SwiftShader (Chrome), llvmpipe et softpipe (Mesa), pilote de base de Windows. */
+const RENDU_LOGICIEL = /swiftshader|llvmpipe|softpipe|software|basic render driver/i;
+
+export function estRenduLogiciel(nom: string): boolean {
+  return RENDU_LOGICIEL.test(nom);
+}
+
+/**
+ * Nom du moteur de rendu. Firefox le donne dans `RENDERER` (et avertit dans la
+ * console si l'on demande l'extension) ; Chrome y met « WebKit WebGL » et le
+ * donne par `WEBGL_debug_renderer_info`.
+ */
+export function nomDuRendu(gl: WebGL2RenderingContext): string {
+  const brut = gl.getParameter(gl.RENDERER);
+  if (typeof brut === "string" && brut !== "WebKit WebGL") return brut;
+  const extension = gl.getExtension("WEBGL_debug_renderer_info");
+  const detaille = extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) : null;
+  return typeof detaille === "string" ? detaille : "";
+}
+
 export function creerMoteur(options: OptionsMoteur): Moteur | null {
   const { canvas } = options;
   const gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: false });
   if (!gl) {
     options.surEchec?.("webgl2-indisponible");
+    return null;
+  }
+  // Sans carte graphique, l'animation occuperait le fil principal pendant des
+  // secondes (et la batterie) : on garde le halo CSS. Les navigateurs sans tête
+  // de la CI, sans GPU, passent eux aussi par ce chemin.
+  if (estRenduLogiciel(nomDuRendu(gl))) {
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    options.surEchec?.("rendu-logiciel");
     return null;
   }
 

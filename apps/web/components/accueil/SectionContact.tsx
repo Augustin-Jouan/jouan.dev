@@ -4,11 +4,11 @@ import { ANCRES, sections } from "@/data/accueil";
 import { contact } from "@/data/contact";
 
 /** Formulaire de contact du châssis, et l'e-mail pour qui préfère écrire. */
-export function SectionContact() {
+export function SectionContact({ jeton }: { jeton?: string }) {
   return (
     <Section id={ANCRES.contact} {...sections.contact}>
       <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr]">
-        <ContactForm />
+        <ContactForm jeton={jeton} />
         <div className="flex flex-col gap-3 text-encre-douce">
           <p>Vous préférez l&apos;e-mail ? Écrivez-moi directement :</p>
           <p>

@@ -5,5 +5,7 @@ packages:
 # autorisation explicite. Ajouter ici un paquet signalé par « Ignored build
 # scripts » au `pnpm install` seulement s'il compile du code natif.
 onlyBuiltDependencies:
+  - "@prisma/engines"
+  - prisma
   - sharp
   - unrs-resolver

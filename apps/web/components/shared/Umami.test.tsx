@@ -26,4 +26,10 @@ describe("Umami", () => {
     expect(script).toHaveAttribute("src", "https://cloud.umami.is/script.js");
     expect(script).toHaveAttribute("data-website-id", "abc-123");
   });
+
+  it("exclut la recherche de l'URL envoyée (le jeton d'un lien personnalisé)", () => {
+    vi.stubEnv("UMAMI_WEBSITE_ID", "abc-123");
+    const { container } = render(<Umami />);
+    expect(container.querySelector("script")).toHaveAttribute("data-exclude-search", "true");
+  });
 });

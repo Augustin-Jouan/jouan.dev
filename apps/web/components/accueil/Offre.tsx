@@ -1,12 +1,12 @@
 import { Section } from "./Section";
-import { ANCRES, offres, sections, type Offre as OffreType } from "@/data/accueil";
+import { ANCRES, offresPour, sections, type Angle, type Offre as OffreType } from "@/data/accueil";
 
 /** Les deux paliers de l'offre ; l'offre mise en avant est plus large et sombre. */
-export function Offre() {
+export function Offre({ angle = "application" }: { angle?: Angle }) {
   return (
     <Section id={ANCRES.offre} {...sections.offre}>
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        {offres.map((offre) => (
+        {offresPour(angle).map((offre) => (
           <CarteOffre key={offre.id} offre={offre} />
         ))}
       </div>

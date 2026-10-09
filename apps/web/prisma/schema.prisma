@@ -1,0 +1,44 @@
+// Liens personnalisés (sous-projet 3). Voir docs/superpowers/specs/2026-10-09-accueil-personnalise-design.md
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Lien {
+  id      String   @id @default(cuid())
+  /// « boulangerie-martin-k7f3 »
+  jeton   String   @unique
+  /// Nom affiché au prospect, 1 à 60 caractères
+  nom     String
+  angle   Angle
+  actif   Boolean  @default(true)
+  creeLe  DateTime @default(now())
+  visites Visite[]
+}
+
+model Visite {
+  id         String   @id @default(cuid())
+  lienId     String
+  lien       Lien     @relation(fields: [lienId], references: [id], onDelete: Cascade)
+  le         DateTime @default(now())
+  appareil   Appareil
+  /// 1re, 2e… visite de ce lien
+  numero     Int
+  mailEnvoye Boolean  @default(false)
+
+  @@index([lienId, le])
+}
+
+enum Angle {
+  application
+  vitrine
+}
+
+enum Appareil {
+  mobile
+  ordinateur
+}

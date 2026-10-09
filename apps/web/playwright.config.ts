@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { EMPREINTE_E2E, SECRET_E2E } from "./e2e/admin-test";
 import { PORT_SMTP } from "./e2e/smtp-factice";
 
 const PORT = 3100;
@@ -35,6 +36,9 @@ export default defineConfig({
       SMTP_PASS: "test",
       CONTACT_FROM: "Test <test@jouan.dev>",
       CONTACT_TO: "boite@jouan.dev",
+      DATABASE_URL: process.env.DATABASE_URL ?? "",
+      ADMIN_EMPREINTE: EMPREINTE_E2E,
+      ADMIN_SECRET: SECRET_E2E,
     },
   },
 });

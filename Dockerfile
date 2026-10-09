@@ -52,6 +52,12 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 --ingroup nodejs nextjs
 
+# Migrations : la CLI Prisma (absente du standalone) dans un dossier à part. Placée
+# avant les COPY du build, l'installation reste en cache d'un build à l'autre.
+WORKDIR /app/migrateur
+RUN npm init -y >/dev/null && npm install --omit=dev --no-audit --no-fund prisma@7.10.0
+WORKDIR /app
+
 # En monorepo, le standalone range le serveur sous le chemin de l'app
 # (apps/web/server.js) et ne copie ni `public` ni `.next/static` : on les
 # ajoute à côté, comme le demande la doc Next.
@@ -59,10 +65,17 @@ COPY --from=build --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
+# Le schéma, les migrations et la configuration vont avec la CLI.
+COPY --from=build --chown=nextjs:nodejs /app/apps/web/prisma ./migrateur/prisma
+COPY --from=build --chown=nextjs:nodejs /app/apps/web/prisma.config.ts ./migrateur/prisma.config.ts
+COPY --chown=nextjs:nodejs docker/demarrer.sh ./demarrer.sh
+RUN chmod +x ./demarrer.sh
+
 USER nextjs
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+# Délai de grâce de 60 s : les migrations au démarrage précèdent le serveur.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD wget -qO /dev/null http://127.0.0.1:3000/ || exit 1
 
-CMD ["node", "apps/web/server.js"]
+CMD ["./demarrer.sh"]

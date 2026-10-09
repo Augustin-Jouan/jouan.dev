@@ -1,5 +1,17 @@
 import { describe, it, expect } from "vitest";
-import { ANCRES, accroche, etapes, offres, parcours, realisations, sections } from "./accueil";
+import {
+  ANCRES,
+  accroche,
+  accrochesParAngle,
+  etapes,
+  offres,
+  offresPour,
+  parcours,
+  realisations,
+  realisationsPour,
+  salutation,
+  sections,
+} from "./accueil";
 import { navLinks } from "./navigation";
 
 /** Toutes les chaînes d'une valeur, en profondeur. */
@@ -52,5 +64,32 @@ describe("contenu de l'accueil", () => {
   it("ne laisse aucun placeholder entre crochets", () => {
     const tout = textes({ sections, accroche, offres, realisations, etapes, parcours });
     expect(tout.filter((texte) => /\[[^\]]*\]/.test(texte))).toEqual([]);
+  });
+});
+
+describe("angles de l'accueil", () => {
+  it("garde l'accroche actuelle pour l'angle application", () => {
+    expect(accrochesParAngle.application).toEqual(accroche);
+  });
+  it("oriente l'accroche vitrine vers le site", () => {
+    const a = accrochesParAngle.vitrine;
+    expect(`${a.titreAvant}${a.titreAccent}${a.titreApres}`).toBe(
+      "Un site vitrine qui vous ressemble, rapide et bien référencé.",
+    );
+    expect(a.sousTitre).toBe("Je conçois, développe et héberge votre site, du premier échange à la mise en ligne.");
+  });
+  it("met l'offre de l'angle en premier et en avant", () => {
+    for (const angle of ["application", "vitrine"] as const) {
+      const [premiere, seconde] = offresPour(angle);
+      expect(premiere).toMatchObject({ id: angle, miseEnAvant: true });
+      expect(seconde.miseEnAvant).toBe(false);
+    }
+  });
+  it("met l'étude de l'angle en premier", () => {
+    expect(realisationsPour("application")[0].slug).toBe("suivi-de-marches");
+    expect(realisationsPour("vitrine")[0].slug).toBe("site-artisan");
+  });
+  it("salue le prospect", () => {
+    expect(salutation("Boulangerie Martin")).toBe("Bonjour Boulangerie Martin,");
   });
 });

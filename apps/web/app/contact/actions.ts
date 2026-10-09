@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { contact } from "@/data/contact";
 import { sendContactEmail } from "@/lib/email";
+import { lienPourAffichage } from "@/lib/liens/affichage";
 import { verifierLimite } from "@/lib/rate-limit";
 import { LIMITES } from "./limites";
 
@@ -22,7 +23,7 @@ export type ContactFormState = {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // placeholder-ok (classe de caractères, pas un placeholder)
 
 /** Cinq demandes par heure et par adresse : large pour un humain, étroit pour un bot. */
-const LIMITE_ENVOIS = { max: 5, dureeMs: 60 * 60 * 1000 };
+const LIMITE_ENVOIS = { nom: "contact", max: 5, dureeMs: 60 * 60 * 1000 };
 
 export async function submitContactForm(
   _prevState: ContactFormState,
@@ -60,12 +61,18 @@ export async function submitContactForm(
     };
   }
 
+  // Le jeton ne sert qu'à retrouver le nom du lien : absent, inconnu ou mal
+  // formé, il est ignoré (lienPourAffichage ne lève jamais d'erreur).
+  const jeton = String(formData.get("pour") ?? "");
+  const lien = jeton ? await lienPourAffichage(jeton) : null;
+
   try {
     await sendContactEmail({
       nom,
       email,
       telephone: telephone || undefined,
       message,
+      lienPersonnalise: lien?.nom,
     });
   } catch (err) {
     console.error("[contact] Échec envoi email :", err);

@@ -21,7 +21,8 @@ describe("PolitiqueConfidentialitePage", () => {
     render(<PolitiqueConfidentialitePage />);
     expect(screen.getByText(/mesures précontractuelles/i)).toBeInTheDocument();
     expect(screen.getByText(/portabilité/i)).toBeInTheDocument();
-    expect(screen.getByText(/adresse IP/i)).toBeInTheDocument();
+    expect(screen.getByText(/adresse IP est utilisée/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ni adresse IP/)).toBeInTheDocument();
   });
 
   it("indique l'hébergement en France sans transfert hors UE", () => {
@@ -37,5 +38,19 @@ describe("PolitiqueConfidentialitePage", () => {
       screen.getByRole("heading", { name: /cookies et mesure d'audience/i })
     ).toBeInTheDocument();
     expect(screen.getByText(/umami/i)).toBeInTheDocument();
+  });
+
+  it("décrit les liens personnalisés et leur durée de conservation", () => {
+    render(<PolitiqueConfidentialitePage />);
+    expect(screen.getByRole("heading", { name: /liens personnalisés/i })).toBeInTheDocument();
+    expect(screen.getByText(/douze mois/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/conservés tant que le lien existe, et les e-mails de notification restent dans ma boîte de réception/i)
+    ).toBeInTheDocument();
+  });
+
+  it("précise que le seul cookie est celui de la session d'administration", () => {
+    render(<PolitiqueConfidentialitePage />);
+    expect(screen.getByText(/session d'administration/i)).toBeInTheDocument();
   });
 });

@@ -25,8 +25,8 @@ Le portfolio est découpé en six sous-projets, chacun avec sa propre spec, son 
 |---|---|---|
 | **1** | **Socle et page d'accueil** | Ce document |
 | 2 | Études de cas | Deux pages de réalisation anonymisées, démo de l'application métier sur données fictives |
-| 3 | Accueil personnalisé | Liens `?pour=…`, accroche adaptée au prospect, notification à l'ouverture du lien, page de création des liens. Introduit le service `apps/realtime` |
-| 4 | Temps réel | Curseurs multijoueurs et compteur de visiteurs connectés (WebSocket) |
+| 3 | Accueil personnalisé | Liens `?pour=…`, accroche adaptée au prospect, mail à l'ouverture du lien, page d'administration des liens (Postgres) |
+| 4 | Temps réel | Curseurs multijoueurs et compteur de visiteurs connectés (WebSocket). Introduit le service `apps/realtime` |
 | 5 | Coulisses | Panneau : latence en direct, dernier déploiement, schéma d'architecture interactif (3D chargée à la demande) |
 | 6 | Easter eggs | `curl jouan.dev` (CV en ASCII), `/api/me` (JSON), palette de commandes Cmd+K |
 
@@ -48,7 +48,7 @@ Le portfolio est découpé en six sous-projets, chacun avec sa propre spec, son 
 - l'emplacement du compteur de visiteurs dans l'accroche (n° 4) ;
 - le lien « Coulisses » et l'indice Cmd+K dans le pied de page (n° 5 et 6).
 
-**Exclus :** service `apps/realtime` (créé au n° 3, premier à en avoir besoin), pages détaillées des réalisations (n° 2), bascule sur le domaine nu `jouan.dev` (quand le contenu sera définitif), version anglaise.
+**Exclus :** service `apps/realtime` (créé au n° 4, premier à en avoir besoin), pages détaillées des réalisations (n° 2), bascule sur le domaine nu `jouan.dev` (quand le contenu sera définitif), version anglaise.
 
 ## 5. Contenu de la page d'accueil
 
@@ -143,7 +143,7 @@ jouan.dev/
 ```
 
 - **pnpm workspaces** (remplace npm et `package-lock.json`).
-- `apps/realtime` (Hono, Node) sera ajouté au sous-projet 3 ; aucun service vide n'est créé maintenant.
+- `apps/realtime` (Hono, Node) sera ajouté au sous-projet 4 ; aucun service vide n'est créé maintenant.
 - Stack de `apps/web` : Next.js 16 (App Router), React 19, TypeScript, Tailwind 4, Vitest, Playwright. Avant d'écrire du code Next, lire les guides de `node_modules/next/dist/docs/` (cf. `AGENTS.md`).
 
 ### Reprise du châssis

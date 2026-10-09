@@ -41,6 +41,21 @@ Pour voir la démo dans la page des études de cas avec `pnpm dev`, construire d
 
 Les tests de bout en bout démarrent un faux serveur SMTP local (port 2525).
 
+## Base de données
+
+Les liens personnalisés et leurs visites sont dans Postgres (Prisma 7).
+
+```bash
+docker compose -f compose.dev.yml up -d              # Postgres sur le port 5433 (bases jouan et jouan_test)
+cp apps/web/.env.example apps/web/.env.local         # puis renseigner ADMIN_EMPREINTE et ADMIN_SECRET
+pnpm --filter web migrer                             # applique les migrations (DATABASE_URL)
+DATABASE_URL_TEST=postgresql://jouan:jouan@127.0.0.1:5433/jouan_test pnpm --filter web exec vitest run lib/liens/depot.integration.test.ts
+```
+
+Les tests d'intégration sont ignorés sans `DATABASE_URL_TEST` ; la base de test doit être migrée (`DATABASE_URL=…/jouan_test pnpm --filter web migrer`). Le client est généré par `pnpm --filter web generer-client` (lancé automatiquement par `dev`, `build`, `typecheck` et `test`, sans base).
+
+En production : ressource Postgres Coolify, `DATABASE_URL`, migrations appliquées au démarrage du conteneur.
+
 ## Déploiement
 
 Comme les sites vitrines (voir `docs/deploiement-site.md`) : la CI construit
@@ -51,3 +66,22 @@ l'image `ghcr.io/augustin-jouan/jouan.dev`, Coolify la tire.
 - Avant la bascule sur `jouan.dev` : compléter les mentions légales
   (`apps/web/data/legal.ts`), décommenter `pnpm verifier-placeholders` dans
   la CI, puis domaine nu + redirection `www` → domaine nu dans Coolify.
+
+Liens personnalisés (accueil `/?pour=<jeton>`) : ils demandent une base.
+
+- Créer une ressource Postgres dans Coolify, puis définir sur le site :
+  - `DATABASE_URL` : l'URL de connexion de cette base ;
+  - `ADMIN_EMPREINTE` : l'empreinte du mot de passe d'administration,
+    générée par `pnpm --filter web empreinte-mot-de-passe` ;
+  - `ADMIN_SECRET` : le secret de signature de session, généré par
+    `openssl rand -base64 48`.
+- Les migrations Prisma sont appliquées au démarrage du conteneur
+  (`docker/demarrer.sh`) quand `DATABASE_URL` est défini ; sans elle, le site
+  démarre quand même, sans migration. Une migration en échec arrête le conteneur.
+- Limite de connexion admin : après 5 échecs en 15 minutes, l'administration
+  est bloquée pour tout le monde. Un redémarrage du conteneur remet le
+  compteur à zéro.
+- `pnpm --filter web semer-lien-exemple` crée le lien `/?pour=exemple-0000`
+  mesuré par Lighthouse en CI (base migrée et `DATABASE_URL` requises).
+- `pnpm --filter web verifier-accueil-statique`, après `pnpm build`, vérifie
+  que l'accueil `/` reste prérendu (statique).

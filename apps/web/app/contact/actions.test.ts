@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const { sendContactEmail } = vi.hoisted(() => ({ sendContactEmail: vi.fn() }));
 vi.mock("@/lib/email", () => ({ sendContactEmail }));
 
+const { lienPourAffichage } = vi.hoisted(() => ({ lienPourAffichage: vi.fn() }));
+vi.mock("@/lib/liens/affichage", () => ({ lienPourAffichage }));
+
 // L'action lit l'adresse de l'appelant pour la limitation de débit ; hors
 // requête, on sert des en-têtes vides.
 vi.mock("next/headers", () => ({
@@ -28,6 +31,8 @@ describe("submitContactForm", () => {
   beforeEach(() => {
     sendContactEmail.mockReset();
     sendContactEmail.mockResolvedValue(undefined);
+    lienPourAffichage.mockReset();
+    lienPourAffichage.mockResolvedValue(null);
     reinitialiserLimites();
   });
 
@@ -158,6 +163,33 @@ describe("submitContactForm", () => {
       );
     for (let i = 0; i < 5; i += 1) await envoyer();
     expect((await envoyer()).message).toContain(contact.email);
+  });
+
+  describe("lien personnalisé d'origine", () => {
+    const base = { nom: "Jean", email: "jean@exemple.fr", message: "Bonjour" };
+
+    it("indique le lien personnalisé d'origine", async () => {
+      lienPourAffichage.mockResolvedValue({ nom: "Boulangerie Martin", angle: "vitrine" });
+      await submitContactForm(idle, buildFormData({ ...base, pour: "boulangerie-martin-k7f3" }));
+      expect(lienPourAffichage).toHaveBeenCalledWith("boulangerie-martin-k7f3");
+      expect(sendContactEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ lienPersonnalise: "Boulangerie Martin" })
+      );
+    });
+
+    it("ignore un lien inconnu ou une base indisponible, sans bloquer l'envoi", async () => {
+      lienPourAffichage.mockResolvedValue(null);
+      const state = await submitContactForm(idle, buildFormData({ ...base, pour: "inconnu-0000" }));
+      expect(sendContactEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ lienPersonnalise: undefined })
+      );
+      expect(state.status).toBe("success");
+    });
+
+    it("n'interroge pas la base sans jeton", async () => {
+      await submitContactForm(idle, buildFormData(base));
+      expect(lienPourAffichage).not.toHaveBeenCalled();
+    });
   });
 
   // Revue finale, Important 2 : React vide le formulaire avant chaque action ;

@@ -25,6 +25,24 @@ jobs:
     name: Lint, types, tests, build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Base de test : migrations appliquées puis tests d'intégration (verifier), e2e et Lighthouse (e2e).
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: jouan
+          POSTGRES_PASSWORD: jouan
+          POSTGRES_DB: jouan_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jouan"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://jouan:jouan@127.0.0.1:5432/jouan_test
+      DATABASE_URL_TEST: postgresql://jouan:jouan@127.0.0.1:5432/jouan_test
     steps:
       - uses: actions/checkout@v7
 
@@ -37,6 +55,8 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter web migrer
 
       - run: pnpm lint
 
@@ -54,6 +74,24 @@ jobs:
     name: Bout en bout et performances
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Base de test : migrations appliquées puis tests d'intégration (verifier), e2e et Lighthouse (e2e).
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: jouan
+          POSTGRES_PASSWORD: jouan
+          POSTGRES_DB: jouan_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jouan"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://jouan:jouan@127.0.0.1:5432/jouan_test
+      DATABASE_URL_TEST: postgresql://jouan:jouan@127.0.0.1:5432/jouan_test
     steps:
       - uses: actions/checkout@v7
 
@@ -66,7 +104,13 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm --filter web migrer
+
       - run: pnpm build
+
+      - run: pnpm --filter web verifier-accueil-statique
+
+      - run: pnpm --filter web semer-lien-exemple
 
       - run: pnpm --filter web exec playwright install --with-deps chromium
 
