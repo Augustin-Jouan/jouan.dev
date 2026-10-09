@@ -11,7 +11,7 @@ export function Accroche({ angle = "application", nom }: { angle?: Angle; nom?: 
     >
       {/* Le compteur de visiteurs (sous-projet 4) se placera aussi au-dessus du surtitre. */}
       {nom && (
-        <p className="mb-3 font-serif text-2xl text-encre sm:text-3xl 2xl:text-4xl">{salutation(nom)}</p>
+        <p className="mb-3 break-words font-serif text-2xl text-encre sm:text-3xl 2xl:text-4xl">{salutation(nom)}</p>
       )}
       <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-terre 2xl:text-sm">
         {accroche.surtitre}
