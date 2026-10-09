@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it } from "vitest";
-import { reinitialiserLimites, rendreLimite, verifierLimite } from "./rate-limit";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { clesEnMemoire, reinitialiserLimites, rendreLimite, verifierLimite } from "./rate-limit";
 
 const HEURE = 60 * 60 * 1000;
 const QUART_D_HEURE = 15 * 60 * 1000;
@@ -80,5 +80,17 @@ describe("rate-limit", () => {
     verifierLimite("contact", { nom: "contact", max: 1, dureeMs: QUART_D_HEURE }, 0);
     verifierLimite("autre", { nom: "t", max: 1, dureeMs: HEURE }, QUART_D_HEURE);
     expect(verifierLimite("contact", { nom: "contact", max: 1, dureeMs: QUART_D_HEURE }, QUART_D_HEURE).autorise).toBe(true);
+  });
+
+  it("efface d'elle-même, sans nouvel appel, les adresses dont la fenêtre est échue", () => {
+    vi.useFakeTimers({ now: 0 });
+    try {
+      verifierLimite("1.2.3.4", { nom: "mesure", max: 60, dureeMs: 60_000 });
+      expect(clesEnMemoire("mesure")).toBe(1);
+      vi.advanceTimersByTime(2 * 60_000);
+      expect(clesEnMemoire("mesure")).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

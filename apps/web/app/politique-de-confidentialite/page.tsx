@@ -108,8 +108,8 @@ export default function PolitiqueConfidentialitePage() {
           données et du service temps réel. Ces mesures ne sont ni enregistrées ni transmises à des tiers.
         </p>
         <p>
-          Votre adresse IP sert uniquement, en mémoire, à limiter le nombre de mesures : une minute pour
-          l&apos;aller-retour vers le site, le temps de la connexion pour l&apos;écho du service temps réel
+          Votre adresse IP sert uniquement, en mémoire, à limiter le nombre de mesures : deux minutes au
+          plus pour l&apos;aller-retour vers le site, le temps de la connexion pour l&apos;écho du service temps réel
           (elle est oubliée à la fermeture de la page). Elle n&apos;est jamais enregistrée ni journalisée.
           La base légale est mon intérêt légitime à protéger le site contre les abus (article 6.1.f du
           RGPD). Aucun cookie ni stockage local n&apos;est utilisé pour ces mesures.

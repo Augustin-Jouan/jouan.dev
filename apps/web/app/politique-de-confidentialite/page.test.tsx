@@ -61,6 +61,7 @@ describe("PolitiqueConfidentialitePage", () => {
     expect(screen.getByRole("heading", { name: "Coulisses" })).toBeInTheDocument();
     expect(within(coulisses!).getByText(/ne sont ni enregistrées ni transmises/)).toBeInTheDocument();
     expect(within(coulisses!).getByText(/le temps de la connexion/)).toBeInTheDocument();
+    expect(within(coulisses!).getByText(/deux minutes au\s+plus/)).toBeInTheDocument();
   });
 
   it("décrit la présence en direct, sa base légale et le bouton d'opposition", () => {
