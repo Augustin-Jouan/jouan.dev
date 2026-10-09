@@ -70,3 +70,13 @@ export function horlogeFactice() {
 
 /** Laisse s'exécuter les promesses en attente. */
 export const viderPromesses = () => new Promise<void>((ok) => setTimeout(ok, 0));
+
+/** Infos de build complètes et valides, pour les tests des coulisses. */
+export const INFOS_EXEMPLE = {
+  sha: "0123456789abcdef0123456789abcdef01234567",
+  titre: "Coulisses : page /coulisses",
+  date: "2026-10-09T14:00:00.000Z",
+  tests: { unitaires: 412, boutEnBout: 68 },
+  lighthouse: { performance: 0.97, accessibilite: 1, bonnesPratiques: 1, referencement: 1, pages: 5 },
+  poidsJsAccueil: 158_436,
+};

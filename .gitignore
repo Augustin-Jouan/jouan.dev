@@ -55,5 +55,9 @@ test-results/
 playwright-report/
 .lighthouseci/
 
+# Coulisses : écrit par la CI avant le build de l'image (jamais commité).
+apps/web/build-info.json
+
+
 # Client Prisma généré
 apps/web/lib/generated/

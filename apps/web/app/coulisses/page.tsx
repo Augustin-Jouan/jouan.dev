@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { ArchitectureVivante } from "@/components/coulisses/ArchitectureVivante";
+import { SectionDeploiement } from "@/components/coulisses/SectionDeploiement";
+import { lireBuildInfo } from "@/lib/coulisses/build-info";
 
 const PHRASE = "Comment ce site est construit, hébergé et mesuré, en direct depuis votre navigateur.";
 
@@ -18,6 +20,7 @@ export default function CoulissesPage() {
         <p className="max-w-2xl text-lg text-encre-douce">{PHRASE}</p>
       </header>
       <ArchitectureVivante />
+      <SectionDeploiement infos={lireBuildInfo()} />
     </div>
   );
 }
