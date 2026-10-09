@@ -68,7 +68,7 @@ gardant leurs anciens noms ; teintes brutes employées directement dans les comp
 | `accent` | pêche | mot en couleur des titres, liens, bouton principal, anneau de focus | 8,6 | 7,6 |
 | `sur-accent` | nuit | texte posé sur l'accent (bouton principal : 8,6) | — | — |
 | `alerte` | corail | erreurs du formulaire et de l'administration | 5,4 | 4,8 |
-| `vivant` | sauge | point « en direct », succès ; **texte sur `fond` seulement** | 4,9 | pastille seule (4,3) |
+| `vivant` | sauge | point « en direct », pastilles, contours ; **jamais de texte** (classe `text-vivant` refusée par le garde-fou : 4,3 seulement sur une carte) | 4,9 | pastille seule (4,3) |
 | `trait` | trait-nuit | séparateurs, bordures décoratives | décor | décor |
 | `trait-fort` | trait-mauve | contour des champs et des boutons secondaires (≥ 3:1) | 3,6 | 3,2 |
 | `lueur` | corail | centre du halo | décor | décor |
@@ -83,9 +83,14 @@ une ombre noire plus profonde (`0 30px 80px -40px rgb(0 0 0 / 0.6)`).
 **Socle CSS (`app/globals.css`) :**
 - deux étages : teintes brutes en `--teinte-<nom>` sur `:root`, puis rôles dans `@theme` en
   `--color-<rôle>: var(--teinte-<nom>)` ; les anciens jetons (`papier`, `encre`, `encre-douce`, `brique`,
-  `braise`, `braise-claire`, `terre`, `trait` ancienne valeur) sont supprimés ;
-- `html { color-scheme: dark }` ; `body` en `fond`/`texte` ;
+  `braise`, `braise-claire`, `terre`, `trait` ancienne valeur) sont supprimés, ainsi que la palette par
+  défaut de Tailwind (`--color-*: initial` en tête de `@theme`) : `bg-white` ou `bg-emerald-600` ne
+  produisent plus rien ;
+- `html` : `color-scheme: dark`, fond `fond`, couleur `texte` ; `body` garde sa classe de couleur, qui
+  devient `text-texte` (`app/layout.tsx`) ;
 - `::selection` : fond `accent`, texte `sur-accent` ; `:focus-visible` : anneau `accent` partout ;
+- champs remplis automatiquement par le navigateur (`:autofill`, `:-webkit-autofill`) : fond `surface` et
+  texte `texte` forcés (Chrome y pose sinon son fond clair, que `color-scheme` ne corrige pas) ;
 - `.halo-css` (repli sans WebGL) : dégradé `lueur` → `lueur-chaude` ;
 - `.fond-accueil__nom` : couleur `sur-accent` (nuit sur la goutte pêche).
 
@@ -98,14 +103,19 @@ moteur de l'intro, vignettes, curseurs du direct, scène 3D des Coulisses, coule
 (le shader ne contient aucune couleur ; alpha prémultiplié, valable sur fond sombre).
 
 **Composants :** les 84 classes de couleur de `apps/web` (20 fichiers à la date de la spec, plus les pages
-Coulisses du sous-projet 5) passent aux rôles. Correspondance par défaut : `bg-papier` → `bg-fond`,
-`text-encre` → `text-texte`, `text-encre-douce` → `text-texte-doux`, `text-brique` → `text-accent`,
-`bg-encre text-papier` (bouton principal) → `bg-accent text-sur-accent`, `border-trait` → `border-trait`
-(nouvelle valeur) ou `border-trait-fort` pour les champs, couleurs d'erreur → `text-alerte`, succès et
-point du compteur → `vivant`, `text-terre` → `text-texte-doux`. Chaque cas douteux suit le tableau des
-rôles (section 3), pas la teinte d'origine.
+Coulisses du sous-projet 5) passent aux rôles. Correspondance par défaut : `bg-papier` → `bg-surface`
+(champs, fenêtres, cadres : tous posés sur la page ; le fond de page vient de `html`), `text-encre` →
+`text-texte`, `text-encre-douce` → `text-texte-doux`, `text-brique` → `text-accent`, `bg-encre
+text-papier` (bouton principal) → `bg-accent text-sur-accent`, `border-trait` → `border-trait` (nouvelle
+valeur) ou `border-trait-fort` pour les champs et boutons secondaires, couleurs d'erreur → `alerte`,
+point du compteur → `bg-vivant`, `text-terre` → `text-texte-doux`. **Aucune opacité sur une couleur** :
+`text-papier/75` → `text-texte-doux`, `bg-trait/40` et `bg-encre/5` → `bg-surface`, `fill-brique/10` →
+`fill-surface`. Chaque cas douteux suit le tableau des rôles (section 3), pas la teinte d'origine.
 
-**Coulisses (sous-projet 5) :** schéma SVG par classes de rôles ; scène 3D par `lib/charte.ts`.
+**Coulisses (sous-projet 5) :** classes de rôles partout (schéma SVG, courbes, panneau en direct, section
+déploiement, boutons 2D/3D) ; `stroke="var(--color-papier)"` (détourage des étiquettes du schéma) →
+`var(--color-fond)` ; scène 3D (`scene3d.ts`) : couleurs lues dans `lib/charte.ts`, étiquettes en
+`bg-surface text-texte`.
 
 **Temps réel :**
 - `apps/realtime/src/couleurs.ts` : palette des curseurs `pêche, corail, sauge, mauve-clair, papier, rose`
@@ -116,13 +126,16 @@ rôles (section 3), pas la teinte d'origine.
 **Démo (`apps/demo-marches`) :** `?theme=sombre` dans l'adresse pose `color-scheme: dark` sur la racine
 avant le premier rendu (module `src/theme.ts` appelé en tête de `src/main.tsx`, sans script en ligne) ; sans paramètre, rien ne change (clair).
 `FenetreDemo` charge `SOURCE_DEMO + "?theme=sombre"`, pour l'iframe comme pour l'ouverture plein écran ;
-l'aperçu statique est régénéré en sombre (`capturer-apercu-demo`). Les captures du site d'artisan ne
-changent pas (copies d'écran d'un site client).
+l'iframe reste invisible (`opacity-0`, fond `surface`) jusqu'à son événement `load`, pour ne jamais
+montrer l'éclair clair de la démo avant son passage en sombre ; l'aperçu statique est régénéré en sombre
+(`capturer-apercu-demo`). Le jeton sombre `--faint` de la démo passe de `#748a9d` à `#8a9eb0` (4,64:1
+sur sa surface la plus claire `#223442`, contre 3,58). Les captures du site d'artisan ne changent pas
+(copies d'écran d'un site client).
 
 **Partage et navigateur :**
 - `lib/vignette.tsx` (images Open Graph) : fond nuit, texte papier, halo corail → rose, surtitre pêche,
   texte secondaire mauve-clair ;
-- `app/layout.tsx` : `export const viewport = { themeColor: "#2a2127" }` ;
+- `app/layout.tsx` : `export const viewport = { themeColor: "#2a2127", colorScheme: "dark" }` ;
 - `app/icon.svg` : carré nuit aux coins arrondis, goutte pêche au centre, léger halo corail.
 
 **Documentation :** README, section « Charte » (teintes, rôles, règle « les composants n'emploient que les
@@ -134,25 +147,33 @@ rôles », où changer une couleur : `globals.css` et `lib/charte.ts`, tenus d'a
 - concordance : chaque teinte (`--teinte-*`) et chaque rôle (`--color-*` de `@theme`) de `globals.css`
   correspond à `lib/charte.ts` (lecture du fichier) ;
 - contrastes : chaque paire du tableau de la section 3 respecte son seuil (4,5 texte ; 3 contours, grands
-  titres et curseurs) ;
+  titres et curseurs), plus le nom de l'intro sur la goutte (`sur-accent` sur `goutte`) ;
 - rôles seulement : aucun fichier de `app/`, `components/`, `lib/` ne contient de classe de couleur
   Tailwind (`bg-`, `text-`, `border-`, `ring-`, `fill-`, `stroke-`, `decoration-`, `divide-`, `outline-`…)
   dont la couleur est un ancien jeton, une teinte brute ou une couleur de la palette par défaut de
-  Tailwind (`white`, `emerald-600`…) — Tailwind 4 ignore en silence une classe inconnue ;
+  Tailwind (`white`, `emerald-600`…), ni de couleur avec opacité, ni `text-vivant`, ni
+  `var(--color-<ancien jeton>)` — Tailwind 4 ignore en silence une classe inconnue ;
 - chronologie de l'intro : couleurs de départ (pêche), de mélange et du halo ;
 - `apps/realtime` : six teintes distinctes, chacune ≥ 3:1 sur la nuit ;
 - démo : `?theme=sombre` → `color-scheme: dark` ; sans paramètre → clair.
 
 **Bout en bout (Playwright) :**
 - nouvelle dépendance de développement `@axe-core/playwright` : chaque page publique passée aux règles
-  WCAG 2 A/AA (dont le contraste) — accueil, page personnalisée d'exemple, deux études de cas, contact,
-  Coulisses, mentions légales, politique de confidentialité, connexion à l'administration — sans
-  violation ;
-- l'iframe de la démo a `?theme=sombre` ;
+  WCAG 2.0, 2.1 et 2.2 de niveaux A et AA (dont le contraste) — accueil, page personnalisée d'exemple,
+  deux études de cas, contact, Coulisses, mentions légales, politique de confidentialité, connexion à
+  l'administration, et la démo en thème sombre — sans violation ; l'accueil est analysé deux fois : avec
+  mouvement réduit, et sans (une fois l'intro terminée) ;
+- focus : en tabulant sur l'accueil et sur le contact, **chaque** élément atteint montre un contour ou
+  un anneau pêche ; la page déclare `color-scheme: dark` ;
+- halo de repli : `.halo-css` est peint en corail puis rose ;
+- l'iframe de la démo a `?theme=sombre` et son document est en `color-scheme: dark` ;
+- `<meta name="theme-color">` et `<meta name="color-scheme">` présents ; l'icône est la goutte pêche ;
+  la vignette Open Graph de l'accueil a un fond nuit ;
 - tests existants de l'intro et des replis mis à jour (goutte, halo, repli CSS), toujours sans erreur
   console.
 
 **Inchangés :** Lighthouse (accessibilité bloquante), budgets de taille, accueil statique.
 
-**Contrôle visuel :** captures de chaque page (ordinateur et mobile) jointes à la PR, pour validation
-par Augustin avant la fusion.
+**Contrôle visuel :** captures de chaque page de la liste axe (ordinateur et mobile), plus l'intro en
+cours, prises par un script et jointes à la PR, pour validation par Augustin avant la fusion ; l'autofill
+des champs se vérifie à cette occasion (aucun test automatique ne peut le déclencher).
