@@ -15,4 +15,13 @@ describe("Tableau lots", () => {
     expect(t).toContain("[&_[data-colle]]:sticky");
     expect(t).toContain("[&_tfoot_th]:py-2.5");
   });
+
+  it("le non-retour à la ligne, le numéro de lot et le filet de la colonne figée sont des variantes de la brique", () => {
+    render(<Tableau variante="lots"><tbody><tr><td data-nowrap>x</td></tr></tbody></Tableau>);
+    const t = screen.getByRole("table").className;
+    expect(t).toContain("[&_[data-nowrap]]:whitespace-nowrap");
+    expect(t).toContain("[&_[data-numero]]:text-muted");
+    expect(t).toContain("[&_[data-colle]]:shadow-colle");
+    expect(t).not.toContain("[&_[data-colle]]:border-r");
+  });
 });

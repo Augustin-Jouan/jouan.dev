@@ -10,8 +10,7 @@ export const useAnnonce = () => useContext(Contexte);
 export function Annonce({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState("");
   const compteur = useRef(0);
-  /* Un caractère invisible en fin de message en alternance : le texte change à chaque appel,
-     donc une annonce identique est de nouveau lue. */
+  // Espace de largeur nulle en alternance : le texte change à chaque appel, donc une annonce identique est relue.
   const annoncer = useCallback((m: string) => {
     compteur.current += 1;
     setMessage(compteur.current % 2 === 0 ? `${m}\u200b` : m);

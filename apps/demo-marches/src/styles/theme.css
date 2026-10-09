@@ -57,6 +57,8 @@
 	--shadow-ombre: var(--ombre);
 	--shadow-ombre-h: var(--ombre-h);
 	--shadow-ombre-toast: var(--ombre-toast);
+	/* Le filet droit d'une colonne figée : une bordure collapsée ne suit pas une cellule sticky. */
+	--shadow-colle: inset -1px 0 0 var(--rule);
 
 	--font-sans: 'Figtree', system-ui, sans-serif;
 	--font-titre: 'Outfit', 'Figtree', sans-serif;

@@ -3,10 +3,9 @@ import type { Dispatch } from "react";
 import { montantEngage } from "../domaine/avenants";
 import { formaterEuros } from "../domaine/montants";
 import { Bouton } from "../briques/Bouton";
+import { Jauge } from "../briques/Jauge";
 import { Etiquette } from "../briques/Etiquette";
 import { Tableau } from "../briques/Tableau";
-import { cx } from "../briques/cx";
-import { CHIFFRES } from "../briques/typo";
 import type { Lot } from "../donnees/chantier";
 import { totauxChantier, type ActionDemo } from "../donnees/etat";
 import { PanneauLot } from "./PanneauLot";
@@ -14,27 +13,6 @@ import { PanneauLot } from "./PanneauLot";
 export const nomLot = (lot: Lot) => `Lot ${String(lot.numero).padStart(2, "0")}`;
 const payeHT = (lot: Lot) => lot.acomptes.reduce((s, a) => s + a, 0);
 const pourcentage = (paye: number, engage: number) => (engage > 0 ? Math.max(0, Math.min(100, Math.round((paye / engage) * 100))) : 0);
-
-function Avancement({ libelle, valeur }: { libelle: string; valeur: number }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <div
-        role="meter"
-        aria-label={libelle}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={valeur}
-        aria-valuetext={`${valeur} %`}
-        className="h-1.5 w-24 overflow-hidden rounded-full bg-band"
-      >
-        <div className="h-full bg-accent" style={{ width: `${valeur}%` }} />
-      </div>
-      <span aria-hidden="true" className={cx(CHIFFRES, "w-9 text-right text-12 text-muted")}>
-        {valeur} %
-      </span>
-    </div>
-  );
-}
 
 export function Marches({ lots, dispatch, surCertificat }: {
   lots: readonly Lot[];
@@ -68,7 +46,7 @@ export function Marches({ lots, dispatch, surCertificat }: {
                 <tr key={lot.id} data-ouvert={lot.id === ouvertId ? "" : undefined}
                   onClick={() => setOuvertId(lot.id)}>
                   <td data-colle>
-                    <span className={cx(CHIFFRES, "mr-2 text-12 text-muted")}>{String(lot.numero).padStart(2, "0")}</span>
+                    <span data-numero>{String(lot.numero).padStart(2, "0")}</span>
                     <Bouton
                       variante="lien"
                       onClick={(e) => {
@@ -86,13 +64,13 @@ export function Marches({ lots, dispatch, surCertificat }: {
                       </span>
                     )}
                   </td>
-                  <td>{lot.entreprise}</td>
+                  <td data-nowrap>{lot.entreprise}</td>
                   <td data-droite>{formaterEuros(lot.marcheHT)}</td>
                   <td data-droite data-attenue>{formaterEuros(avenantsHT)}</td>
                   <td data-droite data-fort>{formaterEuros(engage)}</td>
                   <td data-droite>{formaterEuros(paye)}</td>
                   <td>
-                    <Avancement libelle={`Avancement du ${nomLot(lot).toLowerCase()}`} valeur={pourcentage(paye, engage)} />
+                    <Jauge libelle={`Avancement du ${nomLot(lot).toLowerCase()}`} valeur={pourcentage(paye, engage)} />
                   </td>
                 </tr>
               );
@@ -107,7 +85,7 @@ export function Marches({ lots, dispatch, surCertificat }: {
               <td data-droite>{formaterEuros(totaux.engageHT)}</td>
               <td data-droite>{formaterEuros(totaux.payeHT)}</td>
               <td>
-                <Avancement libelle="Avancement du chantier" valeur={pourcentage(totaux.payeHT, totaux.engageHT)} />
+                <Jauge libelle="Avancement du chantier" valeur={pourcentage(totaux.payeHT, totaux.engageHT)} />
               </td>
             </tr>
           </tfoot>

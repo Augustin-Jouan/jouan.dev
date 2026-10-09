@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { App } from "../App";
 
-const espaces = (t: string | null) => (t ?? "").replace(/[  ]/g, " ");
+const espaces = (t: string | null) => (t ?? "").replace(/[\u00a0\u202f]/g, " ").replace(/\u200b/g, "");
 const ligne = (intitule: string) => screen.getByRole("button", { name: intitule }).closest("tr")!;
 const total = () => screen.getByRole("row", { name: /Total du chantier/ });
 
