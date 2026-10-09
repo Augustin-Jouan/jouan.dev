@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import PolitiqueConfidentialitePage from "./page";
 import { contact } from "@/data/contact";
@@ -52,6 +52,16 @@ describe("PolitiqueConfidentialitePage", () => {
   it("précise que le seul cookie est celui de la session d'administration", () => {
     render(<PolitiqueConfidentialitePage />);
     expect(screen.getByText(/session d'administration/i)).toBeInTheDocument();
+  });
+
+  it("décrit les mesures des coulisses", () => {
+    render(<PolitiqueConfidentialitePage />);
+    const coulisses = screen.getByRole("heading", { name: "Coulisses" }).closest("div");
+    expect(coulisses).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "Coulisses" })).toBeInTheDocument();
+    expect(within(coulisses!).getByText(/ne sont ni enregistrées ni transmises/)).toBeInTheDocument();
+    expect(within(coulisses!).getByText(/le temps de la connexion/)).toBeInTheDocument();
+    expect(within(coulisses!).getByText(/deux minutes au\s+plus/)).toBeInTheDocument();
   });
 
   it("décrit la présence en direct, sa base légale et le bouton d'opposition", () => {

@@ -21,6 +21,8 @@ const serviceDirect = process.env.NEXT_PUBLIC_DIRECT_URL
           ORIGINES_AUTORISEES: `http://127.0.0.1:${PORT}`,
           // Tous les navigateurs de test partagent 127.0.0.1.
           CONNEXIONS_PAR_IP: "1000",
+          // Tous les navigateurs de test partagent 127.0.0.1.
+          SONDE_CONNEXIONS_PAR_IP: "1000",
         },
       },
     ]
@@ -32,7 +34,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }], ["json", { outputFile: ".mesures/playwright.json" }]] : "list",
   globalSetup: "./e2e/smtp-factice.ts",
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
@@ -75,6 +77,8 @@ export default defineConfig({
         DATABASE_URL: process.env.DATABASE_URL ?? "",
         ADMIN_EMPREINTE: EMPREINTE_E2E,
         ADMIN_SECRET: SECRET_E2E,
+        // Tous les navigateurs de test partagent 127.0.0.1.
+        MESURE_MAX_PAR_IP: "100000",
       },
     },
     ...serviceDirect,

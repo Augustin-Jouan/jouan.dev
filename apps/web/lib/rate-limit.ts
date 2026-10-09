@@ -18,6 +18,7 @@ type Fenetre = { debut: number; envois: number; dureeMs: number };
 type Table = { fenetres: Map<string, Fenetre>; dernierePurge: number };
 
 const tables = new Map<string, Table>();
+let purgeReguliere: ReturnType<typeof setInterval> | null = null;
 
 // Les jetons aléatoires au bon format créent chacun une entrée : on borne chaque table,
 // et on ne la parcourt pas à chaque appel.
@@ -83,8 +84,23 @@ function tableDe(nom: string): Table {
   if (!table) {
     table = { fenetres: new Map(), dernierePurge: 0 };
     tables.set(nom, table);
+    lancerPurgeReguliere();
   }
   return table;
+}
+
+/**
+ * Purge chaque minute, même sans nouvel appel : une adresse IP ne reste jamais
+ * en mémoire plus d'une minute après la fin de sa fenêtre (politique de
+ * confidentialité). La minuterie ne retient pas le processus.
+ */
+function lancerPurgeReguliere(): void {
+  if (purgeReguliere) return;
+  purgeReguliere = setInterval(() => {
+    const maintenant = Date.now();
+    for (const table of tables.values()) purger(table, maintenant);
+  }, PURGE_ESPACEMENT_MS);
+  purgeReguliere.unref?.();
 }
 
 /**
@@ -105,4 +121,11 @@ function purger(table: Table, maintenant: number): void {
 /** Réservé aux tests : remet les compteurs à zéro. */
 export function reinitialiserLimites(): void {
   tables.clear();
+  if (purgeReguliere) clearInterval(purgeReguliere);
+  purgeReguliere = null;
+}
+
+/** Réservé aux tests : nombre de clés gardées en mémoire pour une limite. */
+export function clesEnMemoire(nom: string): number {
+  return tables.get(nom)?.fenetres.size ?? 0;
 }

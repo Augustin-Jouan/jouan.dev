@@ -13,5 +13,7 @@ export default defineConfig({
     globals: true,
     // Les specs Playwright (e2e/) tournent dans leur propre exécuteur.
     exclude: [...configDefaults.exclude, "e2e/**"],
+    // En CI, un rapport JSON en plus : le nombre de tests passés est affiché dans les coulisses.
+    ...(process.env.CI ? { reporters: ["default", "json"], outputFile: { json: ".mesures/vitest.json" } } : {}),
   },
 });

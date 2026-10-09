@@ -115,3 +115,19 @@ body::before {
   color: var(--color-papier);
   opacity: 0;
 }
+
+/* Coulisses : pointillés qui défilent le long des liaisons mesurées (durée : --duree). */
+@keyframes defiler-liaison {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+.liaison-mesuree {
+  stroke-dasharray: 6 6;
+  animation: defiler-liaison var(--duree, 1.5s) linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .liaison-mesuree {
+    animation: none;
+  }
+}

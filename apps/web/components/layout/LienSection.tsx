@@ -1,13 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import type Link from "next/link";
 import type { ComponentProps, MouseEvent } from "react";
+import { LienAuSurvol } from "./LienAuSurvol";
 
 /**
  * Lien de l'en-tête vers une ancre de l'accueil (`/#offre`). Sur l'accueil,
  * un `Link` ferait une vraie navigation vers `/` dès que la recherche diffère
  * (`/?pour=…`) et perdrait la personnalisation : on ne change donc que le hash
- * (défilement natif, recherche conservée). Ailleurs, comportement du `Link`.
+ * (défilement natif, recherche conservée). Ailleurs, comportement du `Link`,
+ * préchargé à l'intention seulement (`LienAuSurvol`).
  */
 export function LienSection({ href, onClick, ...reste }: ComponentProps<typeof Link>) {
   function surClic(e: MouseEvent<HTMLAnchorElement>) {
@@ -24,5 +26,5 @@ export function LienSection({ href, onClick, ...reste }: ComponentProps<typeof L
       window.location.hash = ancre;
     }
   }
-  return <Link href={href} onClick={surClic} {...reste} />;
+  return <LienAuSurvol href={href} onClick={surClic} {...reste} />;
 }

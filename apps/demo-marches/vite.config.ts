@@ -22,5 +22,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     css: false,
+    // En CI, un rapport JSON en plus : le nombre de tests passés est affiché dans les coulisses.
+    ...(process.env.CI ? { reporters: ["default", "json"], outputFile: { json: ".mesures/vitest.json" } } : {}),
   },
 });

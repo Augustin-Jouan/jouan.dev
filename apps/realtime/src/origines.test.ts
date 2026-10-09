@@ -30,3 +30,12 @@ describe("ipDuClient", () => {
     expect(ipDuClient(undefined, undefined)).toBe("inconnue");
   });
 });
+
+describe("ipDuClient en IPv6", () => {
+  it("regroupe par préfixe /64, garde l'IPv4", () => {
+    expect(ipDuClient("2001:db8:1:2:aaaa::1", undefined)).toBe("2001:db8:1:2::/64");
+    expect(ipDuClient(undefined, "2001:db8::1")).toBe("2001:db8:0:0::/64");
+    expect(ipDuClient(undefined, "::ffff:1.2.3.4")).toBe("1.2.3.4");
+    expect(ipDuClient("1.2.3.4", undefined)).toBe("1.2.3.4");
+  });
+});
