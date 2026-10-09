@@ -18,6 +18,7 @@
     "semer-lien-exemple": "node scripts/semer-lien-exemple.mjs",
     "verifier-accueil-statique": "node scripts/verifier-accueil-statique.mjs",
     "verifier-taille-encre": "node scripts/verifier-taille-encre.mjs",
+    "verifier-taille-direct": "node scripts/verifier-taille-direct.mjs",
     "verifier-taille-demo": "node scripts/verifier-taille-demo.mjs",
     "verifier-placeholders": "node scripts/verifier-placeholders.mjs",
     "capturer-apercu-demo": "node scripts/capturer-apercu-demo.mjs"

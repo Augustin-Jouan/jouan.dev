@@ -53,4 +53,13 @@ describe("PolitiqueConfidentialitePage", () => {
     render(<PolitiqueConfidentialitePage />);
     expect(screen.getByText(/session d'administration/i)).toBeInTheDocument();
   });
+
+  it("décrit la présence en direct, sa base légale et le bouton d'opposition", () => {
+    render(<PolitiqueConfidentialitePage />);
+    expect(screen.getByRole("heading", { name: "Présence en direct" })).toBeInTheDocument();
+    expect(screen.getAllByText(/article 6\.1\.f/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/les autres visiteurs présents au même moment/)).toBeInTheDocument();
+    expect(screen.getByText(/Masquer mon curseur/)).toBeInTheDocument();
+  });
 });
+
