@@ -12,6 +12,8 @@ export type LienResume = {
   angle: AngleLien;
   actif: boolean;
   creeLe: Date;
+  /** Total réel ; `visites` est limité aux 50 plus récentes. */
+  nombreVisites: number;
   visites: VisiteResume[];
 };
 export type VisiteEnregistree = { id: string; nom: string; numero: number; precedente: Date | null };
@@ -35,7 +37,7 @@ export async function creerLien(nom: string, angle: AngleLien): Promise<{ jeton:
 }
 
 export async function listerLiens(): Promise<LienResume[]> {
-  return base().lien.findMany({
+  const liens = await base().lien.findMany({
     orderBy: { creeLe: "desc" },
     select: {
       id: true,
@@ -44,6 +46,7 @@ export async function listerLiens(): Promise<LienResume[]> {
       angle: true,
       actif: true,
       creeLe: true,
+      _count: { select: { visites: true } },
       visites: {
         orderBy: { le: "desc" },
         take: 50,
@@ -51,6 +54,7 @@ export async function listerLiens(): Promise<LienResume[]> {
       },
     },
   });
+  return liens.map(({ _count, ...lien }) => ({ ...lien, nombreVisites: _count.visites }));
 }
 
 export async function changerEtat(id: string, actif: boolean): Promise<void> {

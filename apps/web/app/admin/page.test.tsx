@@ -36,6 +36,7 @@ describe("page d'administration", () => {
         angle: "vitrine",
         actif: true,
         creeLe: new Date(),
+        nombreVisites: 1,
         visites: [{ le: new Date(), appareil: "mobile", numero: 1, mailEnvoye: false }],
       },
     ]);
@@ -60,6 +61,7 @@ describe("page d'administration", () => {
         angle: "application",
         actif: false,
         creeLe: new Date(),
+        nombreVisites: 0,
         visites: [],
       },
     ]);
@@ -67,5 +69,26 @@ describe("page d'administration", () => {
     expect(screen.getByRole("heading", { level: 2, name: "A".repeat(60) })).toHaveClass("break-words");
     expect(screen.getByRole("button", { name: "Réactiver" })).toBeInTheDocument();
     expect(screen.getByText(/aucune visite/)).toBeInTheDocument();
+  });
+
+  it("affiche le nombre total de visites, au-delà des 50 détaillées", async () => {
+    process.env.DATABASE_URL = "postgresql://x";
+    listerLiens.mockResolvedValue([
+      {
+        id: "l3",
+        jeton: "y",
+        nom: "Garage Durand",
+        angle: "application",
+        actif: true,
+        creeLe: new Date(),
+        nombreVisites: 120,
+        visites: [
+          { le: new Date(), appareil: "mobile", numero: 120, mailEnvoye: true },
+          { le: new Date(), appareil: "mobile", numero: 119, mailEnvoye: true },
+        ],
+      },
+    ]);
+    render(await PageAdmin());
+    expect(screen.getByText(/120 visites/)).toBeInTheDocument();
   });
 });

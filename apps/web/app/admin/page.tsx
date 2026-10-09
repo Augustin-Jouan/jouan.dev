@@ -56,9 +56,9 @@ export default async function PageAdmin() {
                     <h2 className="min-w-0 break-words font-serif text-2xl">{lien.nom}</h2>
                     <p className="text-sm text-encre-douce">
                       {libellesAngle[lien.angle]} · {lien.actif ? "actif" : "désactivé"} ·{" "}
-                      {lien.visites.length === 0
+                      {lien.nombreVisites === 0
                         ? "aucune visite"
-                        : `${lien.visites.length} visite${lien.visites.length > 1 ? "s" : ""}, la dernière ${ilYA(lien.visites[0].le, maintenant)}`}
+                        : `${lien.nombreVisites} visite${lien.nombreVisites > 1 ? "s" : ""}, la dernière ${ilYA(lien.visites[0].le, maintenant)}`}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-3 text-sm">

@@ -52,6 +52,14 @@ describe.skipIf(!URL_TEST)("dépôt des liens (Postgres)", () => {
     expect(lien.visites).toHaveLength(1);
   });
 
+  it("compte toutes les visites alors que la liste est limitée à 50", async () => {
+    const { jeton } = await depot.creerLien("Boulangerie Martin", "application");
+    for (let i = 0; i < 51; i++) await depot.enregistrerVisite(jeton, "mobile", plus(i * 31));
+    const [lien] = await depot.listerLiens();
+    expect(lien.nombreVisites).toBe(51);
+    expect(lien.visites).toHaveLength(50);
+  });
+
   it("ignore les visites d'un lien désactivé", async () => {
     const { jeton } = await depot.creerLien("Boulangerie Martin", "application");
     const [lien] = await depot.listerLiens();
