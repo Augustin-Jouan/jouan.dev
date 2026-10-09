@@ -2,7 +2,7 @@ import Link from "next/link";
 import { contact } from "@/data/contact";
 import { siteName } from "@/data/site";
 
-/** Pied de page : signature, e-mail, GitHub et pages légales. */
+/** Pied de page : signature, e-mail, GitHub, coulisses et pages légales. */
 export function Footer() {
   return (
     <footer className="border-t border-trait">
@@ -21,6 +21,11 @@ export function Footer() {
               <a href={contact.github} rel="me" className="hover:text-encre">
                 GitHub
               </a>
+            </li>
+            <li>
+              <Link href="/coulisses" className="hover:text-encre">
+                Coulisses
+              </Link>
             </li>
             <li>
               <Link href="/mentions-legales" className="hover:text-encre">

@@ -20,6 +20,7 @@ describe("Footer", () => {
       "href",
       "/politique-de-confidentialite"
     );
+    expect(screen.getByRole("link", { name: "Coulisses" })).toHaveAttribute("href", "/coulisses");
   });
 
   it("signe l'année en cours", () => {

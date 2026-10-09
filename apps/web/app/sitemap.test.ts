@@ -11,6 +11,12 @@ describe("sitemap", () => {
     expect(urls).toContain(`${siteUrl}/realisations/site-artisan`);
     expect(urls).toContain(`${siteUrl}/mentions-legales`);
     expect(urls).toContain(`${siteUrl}/politique-de-confidentialite`);
+    expect(urls).toContain(`${siteUrl}/coulisses`);
+  });
+
+  it("les coulisses ont la priorité 0,5", () => {
+    const entree = sitemap().find((e) => e.url === `${siteUrl}/coulisses`);
+    expect(entree?.priority).toBe(0.5);
   });
 
   it("ne déclare aucune URL en double", () => {
