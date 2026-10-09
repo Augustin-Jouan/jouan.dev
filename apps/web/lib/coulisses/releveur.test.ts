@@ -101,6 +101,48 @@ describe("Releveur", () => {
     expect(horloge.delais()).toEqual([30_000]);
   });
 
+  it("429 puis aller-retour d'onglet : le délai demandé reste respecté", async () => {
+    reponses.push({ ok: false, reessaiMs: 30_000 });
+    const r = nouveau();
+    r.demarrer();
+    await viderPromesses();
+    await avancer(3_000);
+    r.surVisibilite(false);
+    r.surVisibilite(true);
+    expect(http).toHaveBeenCalledTimes(1);
+    expect(horloge.delais()).toEqual([27_000]);
+    await avancer(27_000);
+    expect(http).toHaveBeenCalledTimes(2);
+  });
+
+  it("retour sur l'onglet : la première mesure est un nouveau rodage (connexion refermée entre-temps)", async () => {
+    reponses.push(ok(10), ok(20), ok(90), ok(30));
+    const r = nouveau();
+    r.demarrer();
+    await viderPromesses();
+    await avancer(INTERVALLE_MS);
+    r.surVisibilite(false);
+    await avancer(60_000);
+    r.surVisibilite(true);
+    await viderPromesses();
+    await avancer(INTERVALLE_MS);
+    expect(magasin.etat().site.valeurs).toEqual([20, 30]);
+  });
+
+  it("échecs de la sonde : essais espacés de 2, 4, 8 puis 10 s", async () => {
+    http.mockImplementation(async () => ok(1));
+    const sonde = fausseSonde();
+    const appels: number[] = [];
+    sonde.mesurer.mockImplementation(async () => {
+      appels.push(horloge.maintenant());
+      return null;
+    });
+    nouveau(sonde).demarrer();
+    for (let i = 0; i < 30; i++) await avancer(1_000);
+    expect(appels).toEqual([2_000, 4_000, 8_000, 16_000, 26_000]);
+    expect(magasin.etat().tempsReel.disponible).toBe(false);
+  });
+
   it("onglet caché dès le démarrage : rien ne part avant le retour sur l'onglet", async () => {
     const sonde = fausseSonde();
     let visible = false;

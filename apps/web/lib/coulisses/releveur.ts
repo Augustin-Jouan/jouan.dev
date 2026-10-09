@@ -4,7 +4,9 @@
  * dans sa boucle. Un échec espace les essais (2, 4, 8 puis 10 s, ou le
  * `Retry-After` du serveur s'il est plus long). Onglet caché, y compris dès le
  * démarrage : rien ne part, la requête en vol est abandonnée et un résultat
- * arrivé après coup est ignoré (numéro de génération).
+ * arrivé après coup est ignoré (numéro de génération). Au retour sur l'onglet,
+ * chaque boucle reprend à son échéance prévue (un `Retry-After` reste respecté),
+ * et la première réponse HTTP redevient un rodage.
  */
 import type { Horloge } from "@/lib/direct/connexion";
 import type { ResultatHttp } from "./http";
@@ -39,6 +41,8 @@ export class Releveur {
   private rodage = true;
   private echecs: Record<Boucle, number> = { http: 0, sonde: 0 };
   private minuteries: Record<Boucle, unknown> = { http: null, sonde: null };
+  /** Instant prévu du prochain essai de chaque boucle, gardé pendant que l'onglet est caché. */
+  private echeances: Record<Boucle, number | null> = { http: null, sonde: null };
 
   constructor(
     private readonly magasin: MagasinMesures,
@@ -71,8 +75,12 @@ export class Releveur {
     if (this.actif) return;
     this.actif = true;
     this.abandon = new AbortController();
-    void this.tourHttp(this.generation);
-    if (this.sonde) this.planifier("sonde", INTERVALLE_MS);
+    // Après une pause, la connexion a pu être refermée : la première réponse ne compte pas.
+    this.rodage = true;
+    const reste = (boucle: Boucle) => Math.max(0, (this.echeances[boucle] ?? 0) - this.horloge.maintenant());
+    if (reste("http") === 0) void this.tourHttp(this.generation);
+    else this.planifier("http", reste("http"));
+    if (this.sonde) this.planifier("sonde", Math.max(INTERVALLE_MS, reste("sonde")));
   }
 
   private suspendre(): void {
@@ -130,8 +138,10 @@ export class Releveur {
 
   private planifier(boucle: Boucle, ms: number): void {
     const generation = this.generation;
+    this.echeances[boucle] = this.horloge.maintenant() + ms;
     this.minuteries[boucle] = this.horloge.programmer(() => {
       this.minuteries[boucle] = null;
+      this.echeances[boucle] = null;
       void (boucle === "http" ? this.tourHttp(generation) : this.tourSonde(generation));
     }, ms);
   }
