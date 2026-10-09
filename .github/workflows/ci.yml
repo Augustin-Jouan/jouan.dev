@@ -61,6 +61,19 @@ jobs:
 
       - run: pnpm test
 
+      # Coulisses : nombre de tests passés, repris dans l'image (build-info.json).
+      - name: Mesures des tests
+        run: >-
+          node apps/web/scripts/compter-tests.mjs vitest
+          apps/web/.mesures/vitest.json apps/demo-marches/.mesures/vitest.json apps/realtime/.mesures/vitest.json
+          > mesures-verifier.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mesures-verifier
+          path: mesures-verifier.json
+          retention-days: 7
+
       # Laissé commenté tant que les mentions légales attendent les
       # informations de l'EI ; à activer avant la bascule sur jouan.dev.
       # - run: pnpm verifier-placeholders
@@ -117,6 +130,9 @@ jobs:
 
       - run: pnpm e2e
 
+      - name: Mesures des tests de bout en bout
+        run: node apps/web/scripts/compter-tests.mjs playwright apps/web/.mesures/playwright.json > mesures-e2e-tests.json
+
       - run: pnpm --filter web verifier-taille-encre
 
       - run: pnpm --filter web verifier-taille-direct
@@ -132,6 +148,17 @@ jobs:
           cat /tmp/direct.log; exit 1
 
       - run: pnpm --filter web lighthouse
+
+      - name: Mesures Lighthouse
+        run: node apps/web/scripts/extraire-lighthouse.mjs apps/web/.lighthouseci/manifest.json > mesures-lighthouse.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mesures-e2e
+          path: |
+            mesures-e2e-tests.json
+            mesures-lighthouse.json
+          retention-days: 7
 
       - name: Rapports en cas d'échec
         if: failure()
@@ -167,6 +194,26 @@ jobs:
             dockerfile: apps/realtime/Dockerfile
     steps:
       - uses: actions/checkout@v7
+
+      # Coulisses : build-info.json (commit, date, tests, Lighthouse) avant le build
+      # de l'image du site ; il entre dans le contexte Docker (non ignoré).
+      - uses: actions/download-artifact@v4
+        if: matrix.nom == 'site'
+        with:
+          pattern: mesures-*
+          merge-multiple: true
+
+      - uses: actions/setup-node@v7
+        if: matrix.nom == 'site'
+        with:
+          node-version: 22
+
+      - name: Infos du build pour les coulisses
+        if: matrix.nom == 'site'
+        run: >-
+          node apps/web/scripts/assembler-build-info.mjs
+          --verifier mesures-verifier.json --tests-e2e mesures-e2e-tests.json --lighthouse mesures-lighthouse.json
+          > apps/web/build-info.json
 
       - uses: docker/setup-buildx-action@v3
 
