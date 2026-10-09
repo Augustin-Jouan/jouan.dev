@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { surveillerErreurs } from "./outils";
 
-const espaces = (t: string | null) => (t ?? "").replace(/[  ]/g, " ");
+const espaces = (t: string | null) => (t ?? "").replace(/[\u00a0\u202f]/g, " ");
 
 test.describe("ordinateur", () => {
   test.skip(({ isMobile }) => isMobile, "La démo s'ouvre en plein écran sur mobile.");
