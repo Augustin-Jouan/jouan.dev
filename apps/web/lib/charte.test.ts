@@ -1,3 +1,5 @@
+// @vitest-environment node
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CONTRASTES_EXIGES, ROLES, TEINTES, contraste, couleur } from "./charte";
 
@@ -48,5 +50,23 @@ describe("contrastes exigés", () => {
     expect(paires).toContain("sur-accent/accent");
     expect(paires).toContain("sur-accent/goutte");
     expect(paires).toContain("vivant/surface");
+  });
+});
+
+describe("concordance avec app/globals.css", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  it("déclare les mêmes teintes (--teinte-*)", () => {
+    const teintes = Object.fromEntries(
+      [...css.matchAll(/--teinte-([a-z-]+):\s*(#[0-9a-f]{6});/g)].map((m) => [m[1], m[2]]),
+    );
+    expect(teintes).toEqual(TEINTES);
+  });
+
+  it("déclare les mêmes rôles (--color-* = var(--teinte-*))", () => {
+    const roles = Object.fromEntries(
+      [...css.matchAll(/--color-([a-z-]+):\s*var\(--teinte-([a-z-]+)\);/g)].map((m) => [m[1], m[2]]),
+    );
+    expect(roles).toEqual(ROLES);
   });
 });
