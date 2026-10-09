@@ -8,7 +8,7 @@
         "http://127.0.0.1:3000/realisations/suivi-de-marches",
         "http://127.0.0.1:3000/realisations/site-artisan"
       ],
-      "numberOfRuns": 3,
+      "numberOfRuns": 5,
       "settings": {
         "chromeFlags": "--no-sandbox --headless=new"
       }

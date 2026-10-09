@@ -3,6 +3,9 @@ import { etudesDeCas, trouverEtude } from "@/data/realisations";
 import { tailleVignette, vignette } from "@/lib/vignette";
 
 export const size = tailleVignette;
+// Alt fixe volontairement : un `generateImageMetadata` rendrait la route
+// dynamique, et la police (lue sur disque) serait introuvable dans l'image
+// standalone. L'image de fichier prime d'ailleurs sur `generateMetadata`.
 export const alt = "Étude de cas";
 export const contentType = "image/png";
 

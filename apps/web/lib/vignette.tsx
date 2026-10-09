@@ -19,6 +19,7 @@ export async function chargerInstrumentSerif(): Promise<ArrayBuffer> {
 type Contenu = { surtitre: string; titre: string; sousTitre: string };
 
 // Couleurs de l'Atelier clair, en dur : le CSS du site n'existe pas ici.
+// Une seule police est chargée (Instrument Serif) : Satori l'applique à tout le texte.
 export async function vignette({ surtitre, titre, sousTitre }: Contenu) {
   const police = await chargerInstrumentSerif();
   return new ImageResponse(
@@ -55,7 +56,7 @@ export async function vignette({ surtitre, titre, sousTitre }: Contenu) {
           {surtitre}
         </div>
         <div style={{ fontSize: 84, lineHeight: 1.02, fontFamily: "Instrument Serif" }}>{titre}</div>
-        <div style={{ fontSize: 30, color: "#5b574f", maxWidth: 960, fontFamily: "sans-serif" }}>
+        <div style={{ fontSize: 30, color: "#5b574f", maxWidth: 960 }}>
           {sousTitre}
         </div>
       </div>

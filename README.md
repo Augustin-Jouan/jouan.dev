@@ -37,6 +37,8 @@ pnpm --filter web verifier-taille-demo
 pnpm --filter web capturer-apercu-demo   # après un changement visible de la démo
 ```
 
+Pour voir la démo dans la page des études de cas avec `pnpm dev`, construire d'abord la démo : `pnpm --filter demo-marches build` (sinon l'iframe affiche une 404).
+
 Les tests de bout en bout démarrent un faux serveur SMTP local (port 2525).
 
 ## Déploiement
