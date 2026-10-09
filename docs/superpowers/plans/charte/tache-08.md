@@ -15,6 +15,7 @@
 `apps/web/lib/charte-classes.test.ts` :
 
 ```ts
+// @vitest-environment node
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";

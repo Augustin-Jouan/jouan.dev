@@ -15,7 +15,7 @@ On **ajoute** les teintes et les rôles ; le site garde son apparence (fond papi
 
 - [ ] **Step 1: Test de concordance (échoue)**
 
-En tête de `apps/web/lib/charte.test.ts`, ajouter `import { readFileSync } from "node:fs";`, et à la fin du fichier :
+En tête de `apps/web/lib/charte.test.ts`, ajouter en **première ligne** `// @vitest-environment node` (sous jsdom, `import.meta.url` n'est pas une adresse `file://` et `readFileSync` échoue), puis `import { readFileSync } from "node:fs";` ; à la fin du fichier :
 
 ```ts
 describe("concordance avec app/globals.css", () => {
