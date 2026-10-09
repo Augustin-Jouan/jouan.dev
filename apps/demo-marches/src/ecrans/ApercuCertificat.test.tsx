@@ -39,6 +39,19 @@ describe("Aperçu du certificat", () => {
     expect(mandate(apercu)).toBe("3 021,00 €");
   });
 
+  it("recalcule le dernier cumul valide avec la caution courante quand la saisie est invalide", async () => {
+    const apercu = await ouvrirCertificat();
+    const champ = within(apercu).getByLabelText("Cumul des travaux réalisés HT");
+    await userEvent.type(champ, "9850");
+    await userEvent.clear(champ);
+    await userEvent.type(champ, "7 000");
+    await userEvent.click(within(apercu).getByRole("switch", { name: "Caution bancaire" }));
+    expect(mandate(apercu)).toBe("3 180,00 €");
+    expect(champ).toHaveAttribute("aria-invalid", "true");
+    expect(champ).toHaveAccessibleDescription("Le présent acompte doit être positif.");
+    expect(espaces(screen.getByRole("status").textContent)).toContain("3 180,00 €");
+  });
+
   it("affiche des tirets tant qu'aucun calcul n'est valide", async () => {
     const apercu = await ouvrirCertificat();
     expect(mandate(apercu)).toBe("—");

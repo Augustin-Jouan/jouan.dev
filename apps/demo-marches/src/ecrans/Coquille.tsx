@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Bouton } from "../briques/Bouton";
-import { SURTITRE } from "../briques/typo";
+import { SURTITRE, TEXTE_ATTENU } from "../briques/typo";
 import { CHANTIER } from "../donnees/chantier";
 
 /** Le cadre de la démo : bandeau, titre, chantier, réinitialisation, puis le contenu. */
@@ -15,7 +15,7 @@ export function Coquille({ enTete, surReinitialisation, children }: {
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-4 pt-5 pb-3 sm:px-6">
         <div className="min-w-0">
           <h1 className="font-titre text-22">Suivi de marchés</h1>
-          <p className="mt-1 text-13 text-muted">
+          <p className={`mt-1 ${TEXTE_ATTENU}`}>
             <span className="font-medium text-ink-2">{CHANTIER.nom}</span>
             <span className={SURTITRE}> · </span>
             <span>{CHANTIER.adresse}</span>

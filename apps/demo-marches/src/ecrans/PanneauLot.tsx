@@ -8,7 +8,7 @@ import { Champ } from "../briques/Champ";
 import { CleValeur } from "../briques/CleValeur";
 import { Surcouche } from "../briques/Surcouche";
 import { Corbeille, Plus } from "../briques/icones";
-import { CHIFFRES, SURTITRE } from "../briques/typo";
+import { CHIFFRES, NOTE, SURTITRE, TEXTE_ATTENU } from "../briques/typo";
 import type { Lot } from "../donnees/chantier";
 import type { ActionDemo } from "../donnees/etat";
 import { useAnnonce } from "./Annonce";
@@ -83,13 +83,13 @@ export function PanneauLot({ lot, dispatch, surFermeture }: {
       <section aria-labelledby="titre-avenants" className="flex flex-col gap-3">
         <h3 id="titre-avenants" className={SURTITRE}>Avenants</h3>
         {lot.avenants.length === 0 ? (
-          <p className="text-13 text-muted">Aucun avenant : le marché vaut son montant d'origine.</p>
+          <p className={TEXTE_ATTENU}>Aucun avenant : le marché vaut son montant d'origine.</p>
         ) : (
           <ul ref={liste} className="m-0 flex list-none flex-col p-0">
             {lot.avenants.map((a) => (
               <li key={a.id} className="flex items-center gap-3 border-b border-rule py-2">
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-12 text-muted">Avenant n° {numeroSur2(a.numero)}</span>
+                  <span className={NOTE}>Avenant n° {numeroSur2(a.numero)}</span>
                   <span className="text-13 [overflow-wrap:anywhere]">{a.libelle}</span>
                 </div>
                 <span className={`${CHIFFRES} text-13 whitespace-nowrap`}>{formaterEcart(a.montantHT)}</span>

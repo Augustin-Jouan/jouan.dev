@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch } from "react";
 import { calculerCertificat, type LignesCertificat } from "../domaine/certificat";
 import { formaterEuros } from "../domaine/montants";
@@ -7,7 +7,7 @@ import { Feuille } from "../briques/Feuille";
 import { Interrupteur } from "../briques/Interrupteur";
 import { Surcouche } from "../briques/Surcouche";
 import { Tableau } from "../briques/Tableau";
-import { SURTITRE } from "../briques/typo";
+import { NOTE, SURTITRE } from "../briques/typo";
 import type { Lot } from "../donnees/chantier";
 import type { ActionDemo } from "../donnees/etat";
 import { useAnnonce } from "./Annonce";
@@ -23,8 +23,8 @@ export function ApercuCertificat({ lot, dispatch, surFermeture }: {
 }) {
   const annoncer = useAnnonce();
   const [cumul, setCumul] = useState("");
-  const calcul = useMemo(
-    () =>
+  const calculer = useCallback(
+    (cumulTexte: string) =>
       calculerCertificat({
         marcheHT: lot.marcheHT,
         avenants: lot.avenants.map((a) => a.montantHT),
@@ -32,14 +32,16 @@ export function ApercuCertificat({ lot, dispatch, surFermeture }: {
         tauxTVA: lot.tauxTVA,
         tauxRetenue: lot.tauxRetenue,
         caution: lot.caution,
-        cumulTexte: cumul,
+        cumulTexte,
       }),
-    [lot, cumul],
+    [lot],
   );
-  // Le dernier résultat valide reste affiché tant que la saisie est en erreur.
-  const [valide, setValide] = useState<{ calcul: typeof calcul; lignes: LignesCertificat } | null>(null);
-  if (calcul.ok && valide?.calcul !== calcul) setValide({ calcul, lignes: calcul.lignes });
-  const l = valide?.lignes;
+  const calcul = calculer(cumul);
+  // Le dernier cumul valide est retenu : en cas d'erreur, la feuille est recalculée avec lui et le lot courant (caution, avenants).
+  const [cumulValide, setCumulValide] = useState<string | null>(null);
+  if (calcul.ok && cumulValide !== cumul) setCumulValide(cumul);
+  const affiche = calcul.ok ? calcul : cumulValide === null ? null : calculer(cumulValide);
+  const l = affiche?.ok ? affiche.lignes : undefined;
   const erreur = !calcul.ok && cumul.trim() ? calcul.message : undefined;
 
   const annonce = useRef<number | null>(null);
@@ -91,7 +93,7 @@ export function ApercuCertificat({ lot, dispatch, surFermeture }: {
         </Tableau>
       </Feuille>
 
-      <p className="m-0 text-12 text-muted">Dans l'application, le certificat est émis en PDF, figé et numéroté.</p>
+      <p className={`m-0 ${NOTE}`}>Dans l'application, le certificat est émis en PDF, figé et numéroté.</p>
     </Surcouche>
   );
 }
