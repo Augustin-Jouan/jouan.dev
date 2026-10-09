@@ -51,3 +51,14 @@ test("un lien inconnu affiche l'accueil normal", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Des applications métier");
   await expect(page.getByText(/^Bonjour/)).toHaveCount(0);
 });
+
+test("un clic sur « Contact » dans l'en-tête garde la personnalisation", async ({ page }, info) => {
+  const nom = `Navigation ${info.project.name} ${Date.now()}`;
+  const jeton = await creerLien(page, nom, "Site vitrine");
+  await page.goto(`/?pour=${jeton}&apercu=1`);
+  await expect(page.getByText(`Bonjour ${nom},`)).toBeVisible();
+  await page.getByRole("navigation", { name: "Navigation principale" }).getByRole("link", { name: "Contact" }).click();
+  await expect(page).toHaveURL(new RegExp(`\\?pour=${jeton}.*#contact$`));
+  await expect(page.getByText(`Bonjour ${nom},`)).toBeVisible();
+  await expect(page.locator('input[type="hidden"][name="pour"]')).toHaveValue(jeton);
+});
