@@ -7,7 +7,7 @@ import { enregistrerVisite, marquerMailEnvoye, purgerVisites } from "./depot";
 import { contenuMailVisite } from "./mail-visite";
 import { CONSERVATION_VISITES_MS, type Appareil } from "./visites";
 
-const LIMITE_SIGNAUX = { max: 10, dureeMs: 60 * 60 * 1000 };
+const LIMITE_SIGNAUX = { nom: "signaux-visite", max: 10, dureeMs: 60 * 60 * 1000 };
 
 /** Supprime les visites de plus de douze mois. Ne lève jamais. */
 export async function purgerVisitesAnciennes(maintenant = new Date()): Promise<void> {

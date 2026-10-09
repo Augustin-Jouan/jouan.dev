@@ -18,7 +18,7 @@ export type EtatConnexion = { erreur?: string };
  * La tentative est réservée avant le calcul scrypt (sinon des requêtes en
  * rafale passeraient toutes la limite) et rendue si le mot de passe est bon.
  */
-const LIMITE_ECHECS = { max: 5, dureeMs: 15 * 60 * 1000 };
+const LIMITE_ECHECS = { nom: "connexion-admin", max: 5, dureeMs: 15 * 60 * 1000 };
 const CLE_LIMITE = "admin:connexion";
 
 export async function seConnecter(_etat: EtatConnexion, donnees: FormData): Promise<EtatConnexion> {
@@ -31,7 +31,7 @@ export async function seConnecter(_etat: EtatConnexion, donnees: FormData): Prom
   if (!(await verifierMotDePasse(String(donnees.get("motDePasse") ?? ""), empreinte))) {
     return { erreur: "Mot de passe incorrect." };
   }
-  rendreLimite(CLE_LIMITE);
+  rendreLimite(CLE_LIMITE, LIMITE_ECHECS);
   const expireLe = Date.now() + DUREE_SESSION_MS;
   (await cookies()).set(NOM_COOKIE, signerSession(expireLe, secret), {
     httpOnly: true,

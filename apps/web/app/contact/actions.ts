@@ -23,7 +23,7 @@ export type ContactFormState = {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // placeholder-ok (classe de caractères, pas un placeholder)
 
 /** Cinq demandes par heure et par adresse : large pour un humain, étroit pour un bot. */
-const LIMITE_ENVOIS = { max: 5, dureeMs: 60 * 60 * 1000 };
+const LIMITE_ENVOIS = { nom: "contact", max: 5, dureeMs: 60 * 60 * 1000 };
 
 export async function submitContactForm(
   _prevState: ContactFormState,
