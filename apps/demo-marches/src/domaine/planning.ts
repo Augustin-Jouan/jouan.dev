@@ -29,5 +29,5 @@ export function placerBarre(debutIso: string, finIso: string, origineIso: string
   const origine = versDate(lundiDe(origineIso)).getTime();
   const colonne = Math.round((versDate(lundiDe(debutIso)).getTime() - origine) / (7 * JOUR));
   const derniere = Math.round((versDate(lundiDe(finIso)).getTime() - origine) / (7 * JOUR));
-  return { colonne, duree: derniere - colonne + 1 };
+  return { colonne, duree: Math.max(1, derniere - colonne + 1) };
 }

@@ -20,7 +20,8 @@ describe("lireMontant", () => {
     ["9 850,00", 985_000],
     ["9850", 985_000],
     ["9 850 €", 985_000],
-    ["9 850,5", 985_050],
+    ["9 850,5", 985_050],
+    ["9 850", 985_000],
     ["1234,5", 123_450],
     ["12.600", null], // point de milliers ambigu : refusé
     ["-1 450", -145_000],
@@ -30,6 +31,8 @@ describe("lireMontant", () => {
     ["", null],
     ["abc", null],
     ["12,345", null],
+    ["1 000 000 000 000", null], // trop grand
+    ["999 999 999,99", 99_999_999_999],
   ])("%s → %s", (texte, attendu) => {
     expect(lireMontant(texte)).toBe(attendu);
   });

@@ -14,4 +14,7 @@ describe("placerBarre", () => {
     expect(placerBarre("2026-09-07", "2026-10-30", "2026-09-07")).toEqual({ colonne: 0, duree: 8 });
     expect(placerBarre("2026-10-14", "2026-10-16", "2026-09-07")).toEqual({ colonne: 5, duree: 1 });
   });
+  it("ne rend jamais une durée nulle ou négative", () => {
+    expect(placerBarre("2026-10-16", "2026-10-01", "2026-09-07")).toEqual({ colonne: 5, duree: 1 });
+  });
 });
