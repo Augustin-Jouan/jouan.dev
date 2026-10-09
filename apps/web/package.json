@@ -20,6 +20,7 @@
     "verifier-taille-encre": "node scripts/verifier-taille-encre.mjs",
     "verifier-taille-direct": "node scripts/verifier-taille-direct.mjs",
     "verifier-taille-demo": "node scripts/verifier-taille-demo.mjs",
+    "verifier-taille-3d": "node scripts/verifier-taille-3d.mjs",
     "verifier-placeholders": "node scripts/verifier-placeholders.mjs",
     "capturer-apercu-demo": "node scripts/capturer-apercu-demo.mjs"
   },

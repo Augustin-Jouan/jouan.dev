@@ -1,11 +1,14 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { oublierWebgl } from "@/lib/coulisses/webgl";
 import { adresseSonde, ArchitectureVivante } from "./ArchitectureVivante";
 
 beforeEach(() => {
   vi.useFakeTimers();
   // jsdom ne se dit pas toujours « visible » : le releveur ne mesurerait rien.
   vi.spyOn(Document.prototype, "visibilityState", "get").mockReturnValue("visible");
+  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+  oublierWebgl();
   vi.stubEnv("NEXT_PUBLIC_DIRECT_URL", "");
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ base: 1, serveur: 2 })));
 });
