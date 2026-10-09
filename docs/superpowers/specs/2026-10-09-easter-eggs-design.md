@@ -11,7 +11,7 @@ pêche) s'est intercalée et devient le sous-projet 6 : les easter eggs passent 
 **Dépendances :**
 - sous-projet 5 (Coulisses) fusionné : la commande « Voir l'architecture en 3D » ouvre `/coulisses?vue=3d` ;
 - sous-projet 6 (Charte) fusionné : les couleurs du CV en terminal et le style de la palette viennent des
-  jetons `@theme` de la nouvelle charte.
+  rôles de la nouvelle charte (`lib/charte.ts` et classes de rôles comme `bg-surface`, `text-accent`).
 
 Branche : `sous-projet-7-easter-eggs`, rebasée sur `main` une fois les sous-projets 5 et 6 fusionnés.
 
@@ -104,8 +104,8 @@ Actions, Coolify). Un test vérifie que chaque élément des `stack` des réalis
 - **Couleurs :** trois styles — accent (titres, bandeau), atténué (stacks, accroche), souligné (adresses).
   Codes **256 couleurs** (`ESC[38;5;<n>m`), pris en charge par tous les terminaux courants, y compris
   Terminal.app de macOS qui ignore les couleurs 24 bits. Chaque code est calculé (couleur xterm-256 la plus
-  proche) depuis une valeur hexadécimale de `lib/cv/couleurs-terminal.ts`, elle-même liée à un jeton de la
-  charte ; un test lit les jetons `@theme` de `app/globals.css` et vérifie que les valeurs concordent. Une
+  proche) depuis un rôle de la charte lu dans `lib/charte.ts` (sous-projet 6, tenu d'accord avec
+  `app/globals.css` par ses propres tests) : accent → `accent`, atténué → `texte-doux`, souligné → `texte`. Une
   remise à zéro (`ESC[0m`) termine chaque segment coloré et le texte entier.
 - **Sans couleur :** `couleurs: false` produit exactement le même texte, sans aucun octet `ESC` (test :
   rendu coloré débarrassé de ses séquences = rendu sans couleur).
@@ -237,7 +237,7 @@ l'ouverture de la palette.
 - compétences : chaque élément des `stack` des réalisations figure dans `data/competences.ts` ;
 - terminal : largeur ≤ 80 (ANSI exclus) ; sans couleur = aucun `\x1b` ; avec couleur débarrassé des
   séquences = sans couleur ; chaque segment coloré se termine par `ESC[0m` ; conversion hex → xterm-256 ;
-- couleurs : les hex de `couleurs-terminal.ts` concordent avec les jetons `@theme` de `app/globals.css` ;
+- couleurs : chaque style correspond au code xterm-256 le plus proche du rôle de `lib/charte.ts` attendu ;
 - JSON Resume : `basics.name`, `profiles`, `projects[].url` absolues, `meta.canonical`, pas de date ;
 - proxy : `estClientTerminal` vrai pour `curl/8.5.0`, `Wget/1.21.4`, `HTTPie/3.2.2`, `xh/0.22.0` ; faux pour
   un navigateur, Googlebot, `""`, `undefined`, `Mozilla/5.0 (compatible; curl)` ; la valeur du `matcher` est
