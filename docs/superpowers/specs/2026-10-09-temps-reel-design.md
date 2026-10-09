@@ -37,7 +37,7 @@ dans une même image.
 
 ## 3. Service `apps/realtime`
 
-**Pile :** Node 22, Hono 4 (`hono`), `@hono/node-server`, `@hono/node-ws`, TypeScript, Vitest ; un
+**Pile :** Node 22, Hono 4 (`hono`), `@hono/node-server` 2 avec son WebSocket intégré (sur `ws`) — `@hono/node-ws` est déprécié —, TypeScript, Vitest, bundle `esbuild` ; un
 paquet du workspace pnpm comme `web` et `demo-marches`, avec `lint`, `typecheck`, `test`, `build`,
 `dev`.
 
@@ -131,8 +131,8 @@ un try/catch ; par défaut, partage). Masquer envoie `masque` et coupe l'envoi d
 **Robustesse :**
 - coupure → reconnexion avec délai croissant (1 s, 2 s, 4 s… jusqu'à 30 s) ;
 - onglet caché plus de 30 s → fermeture de la connexion (place libérée) ; retour → reconnexion ;
-- service injoignable ou refus → page identique à aujourd'hui, aucune erreur dans la console
-  (les échecs sont silencieux, au plus un `console.debug`).
+- service injoignable ou refus → page identique à aujourd'hui ; le code du site ne journalise rien
+  (le navigateur peut signaler lui-même l'échec de connexion dans sa console, ce qui ne peut pas être évité).
 
 ## 5. Confidentialité
 
