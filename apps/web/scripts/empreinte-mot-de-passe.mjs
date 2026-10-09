@@ -72,4 +72,8 @@ if (motDePasse !== confirmation) {
 }
 const sel = randomBytes(16);
 const cle = scryptSync(motDePasse, sel, 32, { N: 16384, r: 8, p: 1 });
-console.log(["scrypt", 16384, 8, 1, sel.toString("base64url"), cle.toString("base64url")].join("$"));
+const empreinte = ["scrypt", 16384, 8, 1, sel.toString("base64url"), cle.toString("base64url")].join("$");
+console.log("Pour .env.local :");
+console.log(`ADMIN_EMPREINTE=${empreinte.replaceAll("$", "\\$")}`);
+console.log("Pour Coolify (valeur brute) :");
+console.log(empreinte);
