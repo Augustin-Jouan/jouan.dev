@@ -1,6 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
+import { simulerGpu } from "./outils";
 
 const CLE = "jouan.dev:intro-vue";
+
+// L'intro ne se joue qu'avec une carte graphique : on en simule une.
+test.beforeEach(async ({ page }) => {
+  await simulerGpu(page);
+});
 
 test("première visite : l'intro se joue puis devient le halo", async ({ page }) => {
   await page.goto("/");
