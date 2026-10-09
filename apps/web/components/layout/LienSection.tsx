@@ -13,6 +13,8 @@ export function LienSection({ href, onClick, ...reste }: ComponentProps<typeof L
   function surClic(e: MouseEvent<HTMLAnchorElement>) {
     onClick?.(e);
     if (e.defaultPrevented || typeof href !== "string") return;
+    // Clic avec modificateur (nouvel onglet, nouvelle fenêtre…) : le navigateur décide.
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     if (window.location.pathname !== "/" || !href.startsWith("/#")) return;
     e.preventDefault();
     const ancre = href.slice(1);

@@ -16,6 +16,17 @@ describe("LienSection", () => {
     expect(window.location.hash).toBe("#contact");
   });
 
+  it.each([{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }])(
+    "laisse le navigateur gérer un clic avec modificateur (%o) : nouvel onglet ou fenêtre",
+    (modificateur) => {
+      window.history.replaceState(null, "", "/?pour=boulangerie-k7f3");
+      render(<LienSection href="/#contact">Contact</LienSection>);
+      const lien = screen.getByRole("link", { name: "Contact" });
+      expect(fireEvent.click(lien, modificateur)).toBe(true);
+      expect(window.location.hash).toBe("");
+    },
+  );
+
   it("ailleurs, laisse le Link naviguer", () => {
     window.history.replaceState(null, "", "/mentions-legales");
     render(<LienSection href="/#contact">Contact</LienSection>);
