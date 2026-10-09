@@ -6,9 +6,12 @@ import pg from "pg";
 
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
 await client.connect();
-await client.query(
-  `INSERT INTO "Lien" (id, jeton, nom, angle) VALUES ('lien-exemple', 'exemple-0000', 'Exemple', 'application')
-   ON CONFLICT (jeton) DO UPDATE SET actif = true`,
-);
-await client.end();
+try {
+  await client.query(
+    `INSERT INTO "Lien" (id, jeton, nom, angle) VALUES ('lien-exemple', 'exemple-0000', 'Exemple', 'application')
+     ON CONFLICT (jeton) DO UPDATE SET actif = true`,
+  );
+} finally {
+  await client.end();
+}
 console.log("Lien d'exemple prêt : /?pour=exemple-0000");
