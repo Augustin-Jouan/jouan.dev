@@ -101,13 +101,13 @@ export class ConnexionDirecte {
       this.ouvrir();
       return;
     }
+    this.cache = true;
+    this.annuler("reconnexion");
     this.enAttente = { type: "masque" };
     this.vider();
     this.annuler("fermetureCache");
     this.fermetureCache = this.horloge.programmer(() => {
       this.fermetureCache = null;
-      this.cache = true;
-      this.annuler("reconnexion");
       this.fermerSocket();
     }, FERMETURE_ONGLET_CACHE_MS);
   }

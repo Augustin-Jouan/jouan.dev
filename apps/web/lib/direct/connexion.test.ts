@@ -152,6 +152,30 @@ describe("ConnexionDirecte", () => {
     expect(derniere().readyState).toBe(1);
   });
 
+  it("onglet caché : une fermeture ne reconnecte pas avant le retour", () => {
+    const c = nouvelle();
+    c.ouvrir();
+    derniere().ouvrir();
+    c.surVisibilite(false);
+    derniere().close();
+    h.avancer(120_000);
+    expect(FausseSocket.instances).toHaveLength(1);
+    c.surVisibilite(true);
+    expect(FausseSocket.instances).toHaveLength(2);
+  });
+
+  it("onglet caché : une reconnexion déjà programmée est annulée", () => {
+    const c = nouvelle();
+    c.ouvrir();
+    derniere().ouvrir();
+    derniere().close();
+    c.surVisibilite(false);
+    h.avancer(120_000);
+    expect(FausseSocket.instances).toHaveLength(1);
+    c.surVisibilite(true);
+    expect(FausseSocket.instances).toHaveLength(2);
+  });
+
   it("arrêter ferme tout et ne programme plus rien", () => {
     const c = nouvelle();
     c.ouvrir();
