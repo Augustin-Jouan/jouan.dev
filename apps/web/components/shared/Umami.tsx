@@ -10,6 +10,8 @@ export function Umami() {
     <Script
       src="https://cloud.umami.is/script.js"
       data-website-id={websiteId}
+      // Le jeton `?pour=` identifie un prospect : la recherche ne doit pas partir chez Umami.
+      data-exclude-search="true"
       strategy="afterInteractive"
     />
   );
