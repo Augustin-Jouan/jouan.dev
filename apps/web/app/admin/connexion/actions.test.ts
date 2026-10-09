@@ -10,6 +10,11 @@ const redirect = vi.hoisted(() =>
 );
 vi.mock("next/headers", () => ({ cookies: async () => jar }));
 vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("@/lib/admin/session", async (importer) => {
+  const reel = await importer<typeof import("@/lib/admin/session")>();
+  return { ...reel, verifierMotDePasse: vi.fn(reel.verifierMotDePasse) };
+});
+import { verifierMotDePasse } from "@/lib/admin/session";
 import { reinitialiserLimites } from "@/lib/rate-limit";
 import { seConnecter, seDeconnecter } from "./actions";
 
@@ -51,6 +56,18 @@ describe("seConnecter", () => {
     expect(await seConnecter({}, formulaire("bon-mot-de-passe"))).toEqual({
       erreur: "Trop de tentatives. Réessayez dans un quart d'heure.",
     });
+    expect(jar.set).not.toHaveBeenCalled();
+  });
+  it("limite aussi les requêtes en rafale : au plus 5 atteignent la vérification", async () => {
+    const reponses = await Promise.all(Array.from({ length: 20 }, () => seConnecter({}, formulaire("mauvais"))));
+    expect(vi.mocked(verifierMotDePasse).mock.calls.length).toBeLessThanOrEqual(5);
+    expect(reponses.filter((r) => r.erreur?.startsWith("Trop de tentatives"))).toHaveLength(15);
+  });
+  it("un succès ne consomme rien : 4 échecs, un succès, puis encore 1 échec autorisé", async () => {
+    for (let i = 0; i < 4; i++) await seConnecter({}, formulaire("mauvais"));
+    await expect(seConnecter({}, formulaire("bon-mot-de-passe"))).rejects.toThrow("REDIRECT /admin");
+    expect(await seConnecter({}, formulaire("mauvais"))).toEqual({ erreur: "Mot de passe incorrect." });
+    expect((await seConnecter({}, formulaire("mauvais"))).erreur).toMatch(/^Trop de tentatives/);
   });
   it("ne compte pas les connexions réussies", async () => {
     for (let i = 0; i < 6; i++) {

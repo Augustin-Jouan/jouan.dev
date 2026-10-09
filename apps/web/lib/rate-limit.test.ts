@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from "vitest";
-import { consulterLimite, reinitialiserLimites, verifierLimite } from "./rate-limit";
+import { reinitialiserLimites, rendreLimite, verifierLimite } from "./rate-limit";
 
 const HEURE = 60 * 60 * 1000;
 const QUART_D_HEURE = 15 * 60 * 1000;
@@ -21,25 +21,26 @@ describe("rate-limit", () => {
     expect(verifierLimite("a", options, HEURE).autorise).toBe(true);
   });
 
-  it("consulterLimite refuse après max envois comptés", () => {
-    const options = { max: 2, dureeMs: HEURE };
+  it("rendreLimite rembourse un envoi réservé", () => {
+    const options = { max: 1, dureeMs: HEURE };
     verifierLimite("a", options, 0);
-    verifierLimite("a", options, 0);
-    expect(consulterLimite("a", options, 1000)).toEqual({ autorise: false, secondesAvantReessai: 3599 });
+    rendreLimite("a");
+    expect(verifierLimite("a", options, 0).autorise).toBe(true);
+    expect(verifierLimite("a", options, 0).autorise).toBe(false);
   });
 
-  it("consulterLimite ne compte aucun envoi", () => {
-    const options = { max: 2, dureeMs: HEURE };
-    for (let i = 0; i < 10; i++) expect(consulterLimite("neuve", options, 0)).toEqual({ autorise: true, secondesAvantReessai: 0 });
-    expect(verifierLimite("neuve", options, 0).autorise).toBe(true);
-    expect(verifierLimite("neuve", options, 0).autorise).toBe(true);
-    expect(verifierLimite("neuve", options, 0).autorise).toBe(false);
+  it("rendreLimite ne fait rien sur une clé inconnue", () => {
+    expect(() => rendreLimite("inconnue")).not.toThrow();
+    expect(verifierLimite("inconnue", { max: 1, dureeMs: HEURE }, 0).autorise).toBe(true);
   });
 
-  it("consulterLimite autorise une fenêtre échue", () => {
-    const options = { max: 1, dureeMs: QUART_D_HEURE };
+  it("rendreLimite ne descend pas sous 0", () => {
+    const options = { max: 1, dureeMs: HEURE };
     verifierLimite("a", options, 0);
-    expect(consulterLimite("a", options, QUART_D_HEURE).autorise).toBe(true);
+    rendreLimite("a");
+    rendreLimite("a");
+    expect(verifierLimite("a", options, 0).autorise).toBe(true);
+    expect(verifierLimite("a", options, 0).autorise).toBe(false);
   });
 
   it("ne purge pas une fenêtre d'une heure encore pleine lors d'un appel sur une fenêtre de 15 minutes", () => {
@@ -52,6 +53,6 @@ describe("rate-limit", () => {
   it("purge une fenêtre à sa propre échéance", () => {
     verifierLimite("contact", { max: 1, dureeMs: QUART_D_HEURE }, 0);
     verifierLimite("autre", { max: 1, dureeMs: HEURE }, QUART_D_HEURE);
-    expect(consulterLimite("contact", { max: 1, dureeMs: QUART_D_HEURE }, QUART_D_HEURE).autorise).toBe(true);
+    expect(verifierLimite("contact", { max: 1, dureeMs: QUART_D_HEURE }, QUART_D_HEURE).autorise).toBe(true);
   });
 });

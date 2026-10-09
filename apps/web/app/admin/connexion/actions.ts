@@ -9,11 +9,15 @@ import {
   signerSession,
   verifierMotDePasse,
 } from "@/lib/admin/session";
-import { consulterLimite, verifierLimite } from "@/lib/rate-limit";
+import { rendreLimite, verifierLimite } from "@/lib/rate-limit";
 
 export type EtatConnexion = { erreur?: string };
 
-/** Cinq échecs par quart d'heure, tous appelants confondus : un seul compte. */
+/**
+ * Cinq échecs par quart d'heure, tous appelants confondus : un seul compte.
+ * La tentative est réservée avant le calcul scrypt (sinon des requêtes en
+ * rafale passeraient toutes la limite) et rendue si le mot de passe est bon.
+ */
 const LIMITE_ECHECS = { max: 5, dureeMs: 15 * 60 * 1000 };
 const CLE_LIMITE = "admin:connexion";
 
@@ -21,13 +25,13 @@ export async function seConnecter(_etat: EtatConnexion, donnees: FormData): Prom
   const empreinte = process.env.ADMIN_EMPREINTE;
   const secret = secretSession();
   if (!empreinte || !secret) return { erreur: "Administration non configurée." };
-  if (!consulterLimite(CLE_LIMITE, LIMITE_ECHECS).autorise) {
+  if (!verifierLimite(CLE_LIMITE, LIMITE_ECHECS).autorise) {
     return { erreur: "Trop de tentatives. Réessayez dans un quart d'heure." };
   }
   if (!(await verifierMotDePasse(String(donnees.get("motDePasse") ?? ""), empreinte))) {
-    verifierLimite(CLE_LIMITE, LIMITE_ECHECS);
     return { erreur: "Mot de passe incorrect." };
   }
+  rendreLimite(CLE_LIMITE);
   const expireLe = Date.now() + DUREE_SESSION_MS;
   (await cookies()).set(NOM_COOKIE, signerSession(expireLe, secret), {
     httpOnly: true,

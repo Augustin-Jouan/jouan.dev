@@ -8,6 +8,8 @@
  * acceptable ici, et cela évite d'ajouter une dépendance de stockage.
  */
 
+// La durée d'une fenêtre est fixée par l'appel qui la crée : une même clé doit toujours
+// être utilisée avec les mêmes options.
 type Fenetre = { debut: number; envois: number; dureeMs: number };
 
 const fenetres = new Map<string, Fenetre>();
@@ -42,21 +44,13 @@ export function verifierLimite(
 }
 
 /**
- * Lit la fenêtre de `cle` sans compter d'envoi : pour les limites qui ne
- * comptent que certains événements (les échecs de connexion).
+ * Rend un envoi réservé par `verifierLimite` : pour les limites qui ne
+ * comptent que les échecs (réserver avant l'opération, rembourser au succès).
+ * Sans effet si la fenêtre n'existe pas ; le compteur ne descend pas sous 0.
  */
-export function consulterLimite(
-  cle: string,
-  { max }: LimiteOptions,
-  maintenant: number = Date.now()
-): { autorise: boolean; secondesAvantReessai: number } {
-  purger(maintenant);
-
+export function rendreLimite(cle: string): void {
   const fenetre = fenetres.get(cle);
-  if (fenetre && fenetre.envois >= max) {
-    return { autorise: false, secondesAvantReessai: secondesRestantes(fenetre, maintenant) };
-  }
-  return { autorise: true, secondesAvantReessai: 0 };
+  if (fenetre) fenetre.envois = Math.max(0, fenetre.envois - 1);
 }
 
 function secondesRestantes(fenetre: Fenetre, maintenant: number): number {
