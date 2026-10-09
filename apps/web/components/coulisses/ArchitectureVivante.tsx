@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { LIAISONS, NOEUDS, NOEUD_PAR_DEFAUT, noeudDe, type IdNoeud } from "@/data/architecture";
+import { useCallback, useEffect, useState, useSyncExternalStore, type ComponentType } from "react";
+import { NOEUD_PAR_DEFAUT, noeudDe, type IdNoeud } from "@/data/architecture";
 import { mesurerHttp } from "@/lib/coulisses/http";
-import { derniere, MagasinMesures, type EtatMesures } from "@/lib/coulisses/magasin";
+import { MagasinMesures, type EtatMesures } from "@/lib/coulisses/magasin";
 import { Releveur } from "@/lib/coulisses/releveur";
-import type { Scene3D } from "@/lib/coulisses/scene3d";
 import { SondeTempsReel } from "@/lib/coulisses/sonde";
 import { webglDisponible } from "@/lib/coulisses/webgl";
 import { quandLibre } from "@/lib/quand-libre";
@@ -16,18 +15,17 @@ import { Schema } from "./Schema";
 /** Sonde : même origine que le service temps réel, chemin `/sonde`. */
 export const adresseSonde = (url: string) => new URL("/sonde", url).href;
 
-type Vue = "2d" | "chargement" | "3d";
-type Module3D = typeof import("@/lib/coulisses/scene3d");
+type Vue = "2d" | "chargement" | "3d" | "echec";
+type Cadre3d = ComponentType<{
+  choisi: IdNoeud;
+  choisir: (id: IdNoeud) => void;
+  mesures: EtatMesures;
+  surPerte: () => void;
+}>;
 
 const jamais = () => () => {};
-const REQUETE_MOUVEMENT = "(prefers-reduced-motion: reduce)";
-const abonnerMouvement = (fn: () => void) => {
-  const mq = window.matchMedia(REQUETE_MOUVEMENT);
-  mq.addEventListener("change", fn);
-  return () => mq.removeEventListener("change", fn);
-};
-const lireMouvement = () => window.matchMedia(REQUETE_MOUVEMENT).matches;
-const dernieres = (m: EtatMesures) => ({ site: derniere(m.site), base: derniere(m.base), tempsReel: derniere(m.tempsReel) });
+/** Posé au premier clic ; vit dans le morceau 3D, pas dans le JS initial. */
+let Cadre: Cadre3d | null = null;
 
 /**
  * Schéma de l'architecture, détail du nœud choisi et mesures en direct. Les
@@ -41,24 +39,8 @@ export function ArchitectureVivante() {
   const [choisi, setChoisi] = useState<IdNoeud>(NOEUD_PAR_DEFAUT);
 
   const webgl = useSyncExternalStore(jamais, webglDisponible, () => false);
-  const mouvementReduit = useSyncExternalStore(abonnerMouvement, lireMouvement, () => false);
   const [vue, setVue] = useState<Vue>("2d");
-  const [module3d, setModule3d] = useState<Module3D | null>(null);
-  const [echec3d, setEchec3d] = useState(false);
-  const mesuresRef = useRef(mesures);
-  const sceneRef = useRef<Scene3D | null>(null);
-
-  useEffect(() => {
-    mesuresRef.current = mesures;
-  });
-  useEffect(() => {
-    sceneRef.current?.choisir(choisi);
-  }, [choisi, vue]);
-
-  const passerEn2d = useCallback((echec: boolean) => {
-    setVue("2d");
-    setEchec3d(echec);
-  }, []);
+  const surPerte3d = useCallback(() => setVue("echec"), []);
 
   const basculer3d = () => {
     if (vue === "chargement") return;
@@ -66,43 +48,14 @@ export function ArchitectureVivante() {
       setVue("2d");
       return;
     }
-    setEchec3d(false);
     setVue("chargement");
-    import("@/lib/coulisses/scene3d")
+    import("./CadreScene3d")
       .then((m) => {
-        setModule3d(m);
+        Cadre = m.Cadre;
         setVue("3d");
       })
-      .catch(() => passerEn2d(true));
+      .catch(surPerte3d);
   };
-
-  // Ref de rappel avec nettoyage (React 19) : la scène vit tant que son cadre est monté.
-  const monterScene = useCallback(
-    (cadre: HTMLDivElement | null) => {
-      if (!cadre || !module3d) return;
-      let scene: Scene3D;
-      try {
-        scene = module3d.creerScene({
-          conteneur: cadre,
-          noeuds: NOEUDS,
-          liaisons: LIAISONS,
-          latences: () => dernieres(mesuresRef.current),
-          mouvementReduit,
-          surChoix: setChoisi,
-          surPerte: () => passerEn2d(true),
-        });
-      } catch {
-        passerEn2d(true);
-        return;
-      }
-      sceneRef.current = scene;
-      return () => {
-        scene.arreter();
-        sceneRef.current = null;
-      };
-    },
-    [module3d, mouvementReduit, passerEn2d],
-  );
 
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_DIRECT_URL;
@@ -145,29 +98,14 @@ export function ArchitectureVivante() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="flex flex-col gap-6">
           <figure className="flex flex-col gap-2">
-            <div className="relative aspect-[360/820] w-full sm:aspect-[960/420]">
-              {vue === "3d" ? (
-                <div ref={monterScene} aria-hidden="true" data-testid="scene-3d" className="absolute inset-0 overflow-hidden rounded-xl" />
-              ) : (
+            {vue === "3d" && Cadre ? (
+              <Cadre choisi={choisi} choisir={setChoisi} mesures={mesures} surPerte={surPerte3d} />
+            ) : (
+              <div className="relative aspect-[360/820] w-full sm:aspect-[960/420]">
                 <Schema choisi={choisi} choisir={setChoisi} mesures={mesures} />
-              )}
-            </div>
-            {vue === "3d" && (
-              <div role="group" aria-label="Nœuds" className="flex flex-wrap gap-2">
-                {NOEUDS.map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    aria-pressed={n.id === choisi}
-                    onClick={() => setChoisi(n.id)}
-                    className="rounded-full border border-trait px-3 py-1 text-sm aria-pressed:border-brique aria-pressed:text-brique"
-                  >
-                    {n.nom}
-                  </button>
-                ))}
               </div>
             )}
-            {echec3d && <p role="status" className="text-sm text-encre-douce">3D indisponible sur cet appareil.</p>}
+            {vue === "echec" && <p role="status" className="text-sm text-encre-douce">3D indisponible sur cet appareil.</p>}
             <figcaption className="text-sm text-encre-douce">
               Choisissez un élément pour voir son rôle. Les temps sont mesurés depuis votre navigateur.
             </figcaption>

@@ -8,7 +8,7 @@ export function Header() {
   return (
     <header>
       <div className="mx-auto flex max-w-6xl 2xl:max-w-page flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-5 sm:px-8">
-        <Link href="/" className="font-serif text-2xl leading-none 2xl:text-3xl">
+        <Link href="/" prefetch={false} className="font-serif text-2xl leading-none 2xl:text-3xl">
           {siteName}
         </Link>
         <nav aria-label="Navigation principale">

@@ -24,5 +24,5 @@ export function LienSection({ href, onClick, ...reste }: ComponentProps<typeof L
       window.location.hash = ancre;
     }
   }
-  return <Link href={href} onClick={surClic} {...reste} />;
+  return <Link href={href} prefetch={false} onClick={surClic} {...reste} />;
 }
