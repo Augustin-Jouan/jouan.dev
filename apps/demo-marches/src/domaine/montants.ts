@@ -12,8 +12,8 @@ export function appliquerTaux(montant: Centimes, tauxPourCent: number): Centimes
   return montant < 0 ? -arrondi : arrondi;
 }
 
-const SEPARATEURS = /[\s ]/g;
-const MOTIF = /^([+-])?\s*(\d{1,3}(?:[\s ]\d{3})+|\d+)(?:[,.](\d{1,2}))?\s*€?$/;
+const SEPARATEURS = /[\s\u00a0\u202f]/g;
+const MOTIF = /^([+-])?\s*(\d{1,3}(?:[\s\u00a0\u202f]\d{3})+|\d+)(?:[,.](\d{1,2}))?\s*€?$/;
 const MAXIMUM = 99_999_999_999; // 999 999 999,99 € : au-delà, la saisie est une erreur de frappe
 
 /** Lit un montant tapé à la française ; `null` s'il est illisible. */

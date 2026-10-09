@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { appliquerTaux, formaterEcart, formaterEuros, lireMontant } from "./montants";
 
-const espaces = (texte: string) => texte.replace(/[   ]/g, " ");
+const espaces = (texte: string) => texte.replace(/[ \u202f\u00a0]/g, " ");
 
 describe("appliquerTaux", () => {
   it("arrondit au centime, demi-centime au-dessus", () => {
@@ -20,7 +20,7 @@ describe("lireMontant", () => {
     ["9 850,00", 985_000],
     ["9850", 985_000],
     ["9 850 €", 985_000],
-    ["9 850,5", 985_050],
+    ["9\u202f850,5", 985_050],
     ["9 850", 985_000],
     ["1234,5", 123_450],
     ["12.600", null], // point de milliers ambigu : refusé
