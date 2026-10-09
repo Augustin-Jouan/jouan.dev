@@ -89,6 +89,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://jouan:jouan@127.0.0.1:5432/jouan_test
       DATABASE_URL_TEST: postgresql://jouan:jouan@127.0.0.1:5432/jouan_test
+      # Service temps réel lancé par Playwright puis pour Lighthouse ; l'adresse est figée au build.
+      NEXT_PUBLIC_DIRECT_URL: ws://127.0.0.1:3201/direct
     steps:
       - uses: actions/checkout@v7
 
@@ -105,6 +107,8 @@ jobs:
 
       - run: pnpm build
 
+      - run: pnpm --filter realtime build
+
       - run: pnpm --filter web verifier-accueil-statique
 
       - run: pnpm --filter web semer-lien-exemple
@@ -115,7 +119,17 @@ jobs:
 
       - run: pnpm --filter web verifier-taille-encre
 
+      - run: pnpm --filter web verifier-taille-direct
+
       - run: pnpm --filter web verifier-taille-demo
+
+      # Playwright a arrêté son service temps réel : Lighthouse mesure l'accueil
+      # avec un service démarré, comme en production.
+      - name: Service temps réel pour Lighthouse
+        run: |
+          ORIGINES_AUTORISEES=http://127.0.0.1:3000 PORT=3201 HOTE=127.0.0.1 nohup pnpm --filter realtime start > /tmp/direct.log 2>&1 &
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:3201/sante && exit 0; sleep 0.5; done
+          cat /tmp/direct.log; exit 1
 
       - run: pnpm --filter web lighthouse
 
