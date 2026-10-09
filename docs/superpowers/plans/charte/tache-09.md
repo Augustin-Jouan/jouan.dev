@@ -8,7 +8,7 @@
 - Modify: `apps/web/components/direct/CalqueCurseurs.tsx` (attribut `stroke` du `<path>`)
 
 **Interfaces:**
-- Consumes: `couleur(role)` (tâche 2).
+- Consumes: la variable CSS du rôle `fond` (`--color-fond`, tâche 3).
 - Produces: `PALETTE` (même nom, même forme : 6 teintes).
 
 - [ ] **Step 1: Test du service (échoue)**
@@ -42,7 +42,7 @@ Expected: PASS.
 
 - [ ] **Step 3: Contour des flèches**
 
-Dans `apps/web/components/direct/CalqueCurseurs.tsx`, ajouter `import { couleur } from "@/lib/charte";` et remplacer `stroke="#f3efe7"` par `stroke={couleur("fond")}` (un contour nuit détache les flèches claires du fond).
+Dans `apps/web/components/direct/CalqueCurseurs.tsx`, remplacer `stroke="#f3efe7"` par `stroke="var(--color-fond)"`, **sans importer `lib/charte.ts`** (voir `contexte.md`, code chargé à la demande) (un contour nuit détache les flèches claires du fond).
 
 Run: `./docs/superpowers/plans/charte/court.sh pnpm --filter web exec vitest run components/direct --reporter=dot`, puis : `./docs/superpowers/plans/charte/court.sh bash -c 'pnpm build && pnpm --filter realtime build && pnpm --filter web verifier-taille-direct && pnpm --filter web exec playwright test e2e/direct.spec.ts --reporter=line'` (le service est reconstruit : les e2e lancent sa version compilée)
 Expected: PASS ; budget du JS de présence respecté.

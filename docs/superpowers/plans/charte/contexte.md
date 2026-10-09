@@ -8,6 +8,7 @@ Lis ce fichier, puis **ta fiche seulement** (`tache-XX.md`). Ne lis ni le plan c
 
 - Tout se passe dans le dossier principal du dépôt, sur la branche `sous-projet-6-charte`, déjà rebasée sur `main` (Coulisses comprises). Les commandes se lancent **depuis la racine du dépôt**.
 - Shell zsh : tout bloc qui contient un chemin à crochets (`[slug]`) ou une liste de fichiers se lance par `bash <<'EOF' … EOF`, avec un tableau et des chemins entre guillemets (les fiches le font déjà).
+- **Code chargé à la demande** (vue 3D, temps réel de l'accueil, moteur de l'intro) : ne pas y importer `lib/charte.ts` ni un autre module partagé. Turbopack en ferait un petit morceau de JS à part, hors des budgets (`verifier-taille-*`), que les e2e refusent. Utiliser la variable CSS du rôle (`var(--color-fond)`), ou une copie locale vérifiée par un test (exemple : `lib/coulisses/couleurs3d.ts`). Exception : l'intro importe déjà `lib/charte.ts` (tâche 04), c'est vérifié.
 - Next.js 16 : avant d'écrire du code Next, lire le guide concerné dans `apps/web/node_modules/next/dist/docs/` (la fiche le dit quand c'est utile).
 
 ## Sorties courtes, sans masquer les échecs
