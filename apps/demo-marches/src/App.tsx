@@ -4,6 +4,7 @@ import { etatInitial, reducteur } from "./donnees/etat";
 import { Annonce, useAnnonce } from "./ecrans/Annonce";
 import { Coquille } from "./ecrans/Coquille";
 import { Marches } from "./ecrans/Marches";
+import { Planning } from "./ecrans/Planning";
 
 const ONGLETS = [
   { id: "marches", titre: "Marchés" },
@@ -27,7 +28,7 @@ function Demo() {
         <Marches lots={etat.lots} dispatch={dispatch} />
       </PanneauOnglet>
       <PanneauOnglet groupe={groupe} id="planning" actif={actif}>
-        {null}
+        <Planning lots={etat.lots} />
       </PanneauOnglet>
     </Coquille>
   );
