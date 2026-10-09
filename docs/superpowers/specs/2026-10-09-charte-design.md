@@ -41,7 +41,7 @@ gardant leurs anciens noms ; teintes brutes employées directement dans les comp
 
 ## 3. Teintes et rôles
 
-**Teintes brutes** (`@theme`, préfixe `--color-`) :
+**Teintes brutes** (variables `--teinte-<nom>` sur `:root`, **hors** `@theme` : elles ne donnent aucune classe Tailwind, si bien qu'un composant ne peut employer qu'un rôle) :
 
 | Teinte | Valeur | Origine |
 |---|---|---|
@@ -81,9 +81,9 @@ une ombre noire plus profonde (`0 30px 80px -40px rgb(0 0 0 / 0.6)`).
 ## 4. Changements
 
 **Socle CSS (`app/globals.css`) :**
-- `@theme` à deux étages (teintes brutes, puis rôles en `var(--color-<teinte>)`) ; les anciens jetons
-  (`papier` comme rôle, `encre`, `encre-douce`, `brique`, `braise`, `braise-claire`, `terre`, `trait`
-  ancienne valeur) sont supprimés ;
+- deux étages : teintes brutes en `--teinte-<nom>` sur `:root`, puis rôles dans `@theme` en
+  `--color-<rôle>: var(--teinte-<nom>)` ; les anciens jetons (`papier`, `encre`, `encre-douce`, `brique`,
+  `braise`, `braise-claire`, `terre`, `trait` ancienne valeur) sont supprimés ;
 - `html { color-scheme: dark }` ; `body` en `fond`/`texte` ;
 - `::selection` : fond `accent`, texte `sur-accent` ; `:focus-visible` : anneau `accent` partout ;
 - `.halo-css` (repli sans WebGL) : dégradé `lueur` → `lueur-chaude` ;
@@ -114,7 +114,7 @@ rôles (section 3), pas la teinte d'origine.
 - `components/direct/CalqueCurseurs.tsx` : contour des flèches en nuit (au lieu du papier).
 
 **Démo (`apps/demo-marches`) :** `?theme=sombre` dans l'adresse pose `color-scheme: dark` sur la racine
-avant le premier rendu (script en tête de `index.html`) ; sans paramètre, rien ne change (clair).
+avant le premier rendu (module `src/theme.ts` appelé en tête de `src/main.tsx`, sans script en ligne) ; sans paramètre, rien ne change (clair).
 `FenetreDemo` charge `SOURCE_DEMO + "?theme=sombre"`, pour l'iframe comme pour l'ouverture plein écran ;
 l'aperçu statique est régénéré en sombre (`capturer-apercu-demo`). Les captures du site d'artisan ne
 changent pas (copies d'écran d'un site client).
@@ -131,13 +131,14 @@ rôles », où changer une couleur : `globals.css` et `lib/charte.ts`, tenus d'a
 ## 5. Vérifications
 
 **Unitaires (Vitest) :**
-- concordance : chaque teinte et chaque rôle de `lib/charte.ts` a la même valeur dans `@theme` de
-  `globals.css` (lecture du fichier) ;
+- concordance : chaque teinte (`--teinte-*`) et chaque rôle (`--color-*` de `@theme`) de `globals.css`
+  correspond à `lib/charte.ts` (lecture du fichier) ;
 - contrastes : chaque paire du tableau de la section 3 respecte son seuil (4,5 texte ; 3 contours, grands
   titres et curseurs) ;
-- anciens jetons : aucun fichier de `app/`, `components/`, `lib/` ne contient de classe Tailwind
-  `*-(papier|encre|encre-douce|brique|braise|braise-claire|terre)` ; `papier` n'est plus un rôle (Tailwind 4
-  ignore en silence une classe inconnue) ;
+- rôles seulement : aucun fichier de `app/`, `components/`, `lib/` ne contient de classe de couleur
+  Tailwind (`bg-`, `text-`, `border-`, `ring-`, `fill-`, `stroke-`, `decoration-`, `divide-`, `outline-`…)
+  dont la couleur est un ancien jeton, une teinte brute ou une couleur de la palette par défaut de
+  Tailwind (`white`, `emerald-600`…) — Tailwind 4 ignore en silence une classe inconnue ;
 - chronologie de l'intro : couleurs de départ (pêche), de mélange et du halo ;
 - `apps/realtime` : six teintes distinctes, chacune ≥ 3:1 sur la nuit ;
 - démo : `?theme=sombre` → `color-scheme: dark` ; sans paramètre → clair.
