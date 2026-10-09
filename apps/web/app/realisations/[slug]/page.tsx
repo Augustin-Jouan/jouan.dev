@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Captures } from "@/components/realisations/Captures";
 import { FenetreDemo } from "@/components/realisations/FenetreDemo";
 import { cheminEtude, etudesDeCas, trouverEtude } from "@/data/realisations";
+import { siteName } from "@/data/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -20,6 +21,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: etude.titre,
     description: etude.sousTitre,
     alternates: { canonical: cheminEtude(etude.slug) },
+    // La fusion des métadonnées est superficielle : sans ces blocs, l'étude
+    // hériterait du titre, de la description et de l'URL de l'accueil. L'image
+    // vient du fichier opengraph-image voisin (ne pas poser `images` ici).
+    openGraph: {
+      type: "article",
+      locale: "fr_FR",
+      siteName,
+      url: cheminEtude(etude.slug),
+      title: etude.titre,
+      description: etude.sousTitre,
+    },
+    twitter: { card: "summary_large_image", title: etude.titre, description: etude.sousTitre },
   };
 }
 

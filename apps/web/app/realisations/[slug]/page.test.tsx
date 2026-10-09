@@ -9,7 +9,7 @@ const notFound = vi.hoisted(() =>
 );
 vi.mock("next/navigation", () => ({ notFound }));
 
-import EtudeDeCasPage, { generateStaticParams } from "./page";
+import EtudeDeCasPage, { generateMetadata, generateStaticParams } from "./page";
 
 describe("page d'étude de cas", () => {
   beforeEach(() => {
@@ -41,6 +41,22 @@ describe("page d'étude de cas", () => {
         cheminEtude(autre.slug),
       );
       expect(screen.getByRole("link", { name: "Parlons-en" })).toHaveAttribute("href", "/#contact");
+    });
+  }
+
+  for (const etude of etudesDeCas) {
+    it(`pose les métadonnées de partage propres à ${etude.slug}`, async () => {
+      const meta = await generateMetadata({ params: Promise.resolve({ slug: etude.slug }) });
+      expect(meta.openGraph).toMatchObject({
+        type: "article",
+        locale: "fr_FR",
+        url: cheminEtude(etude.slug),
+        title: etude.titre,
+        description: etude.sousTitre,
+      });
+      expect(meta.openGraph).not.toHaveProperty("images");
+      expect(meta.openGraph).toHaveProperty("siteName");
+      expect(meta.twitter).toMatchObject({ title: etude.titre, description: etude.sousTitre });
     });
   }
 
