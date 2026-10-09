@@ -1,6 +1,6 @@
 "use client";
 
-import { useDirect } from "./PresenceDirecte";
+import { useDirect } from "./contexte";
 
 /**
  * Ligne du compteur, en tête de l'accroche (avant la salutation) : une place à

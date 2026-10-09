@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Accueil } from "@/components/accueil/Accueil";
-import { SignalVisite } from "@/components/accueil/SignalVisite";
 import { lienPourAffichage } from "@/lib/liens/affichage";
 
 /** Accueil personnalisé d'un prospect (`/?pour=<jeton>`, réécrit par proxy.ts). */
@@ -21,10 +20,5 @@ export default async function PagePersonnalisee({ params, searchParams }: Props)
   const { apercu } = await searchParams;
   const lien = await lienPourAffichage(jeton);
   if (!lien) return <Accueil />;
-  return (
-    <>
-      <Accueil personnalisation={{ ...lien, jeton }} />
-      {apercu !== "1" && <SignalVisite jeton={jeton} />}
-    </>
-  );
+  return <Accueil personnalisation={{ ...lien, jeton }} signalerVisite={apercu !== "1"} />;
 }

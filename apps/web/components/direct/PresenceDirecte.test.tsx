@@ -157,6 +157,9 @@ describe("PresenceDirecte", () => {
       rendre();
       await demarrer();
       recevoir({ type: "positions", curseurs: [["a", "#2f6f6a", 0, 0.5, 0.5]] });
+      await act(async () => {
+        await vi.dynamicImportSettled();
+      });
       const curseur = document.body.querySelector("[data-curseur]");
       expect(curseur).not.toBeNull();
       expect(curseur!.closest("[aria-hidden='true']")).not.toBeNull();

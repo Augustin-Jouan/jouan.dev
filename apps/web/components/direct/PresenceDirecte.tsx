@@ -1,23 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ComponentType, type ReactNode } from "react";
 import type { ConnexionDirecte } from "@/lib/direct/connexion";
-import { boitesDesSections, versRepere } from "@/lib/direct/coordonnees";
-import { MagasinDirect, type EtatDirect } from "@/lib/direct/magasin";
-import { CalqueCurseurs } from "./CalqueCurseurs";
+import type { CurseurAffiche, EtatDirect, MagasinDirect } from "@/lib/direct/magasin";
+import { ContexteDirect } from "./contexte";
 
 const CLE_PARTAGE = "direct:partage";
-
-type ValeurDirect = { etat: EtatDirect; pointeurFin: boolean; partage: boolean; basculerPartage(): void };
-
-const ContexteDirect = createContext<ValeurDirect>({
-  etat: { connecte: false, presents: 0, curseurs: [] },
-  pointeurFin: false,
-  partage: true,
-  basculerPartage: () => {},
-});
-
-export const useDirect = () => useContext(ContexteDirect);
+const VIDE: EtatDirect = { connecte: false, presents: 0, curseurs: [] };
+const nop = () => () => {};
+const etatVide = () => VIDE;
 
 function lirePartage(): boolean {
   try {
@@ -63,17 +54,23 @@ function quandLibre(fn: () => void): () => void {
   };
 }
 
+type Apres = typeof import("@/lib/direct/apres-affichage");
+type Calque = ComponentType<{ curseurs: CurseurAffiche[] }>;
+
 /**
  * Présence en direct sur l'accueil (sous-projet 4) : compteur des personnes
- * présentes et curseurs des autres visiteurs. Le code de connexion est un
- * morceau à part, chargé après l'affichage (comme le moteur de l'intro). Sans
- * `NEXT_PUBLIC_DIRECT_URL` (figée au build), rien n'est chargé ni connecté et
- * l'accueil reste celui d'avant.
+ * présentes et curseurs des autres visiteurs. Magasin, coordonnées et connexion
+ * partagent un morceau chargé après l'affichage, pour ne pas gonfler le chunk
+ * commun aux études de cas. Le calque n'est chargé que s'il y a d'autres
+ * curseurs. Sans `NEXT_PUBLIC_DIRECT_URL` (figée au build), rien n'est chargé
+ * ni connecté et l'accueil reste celui d'avant.
  */
 export function PresenceDirecte({ children }: { children: ReactNode }) {
   const url = process.env.NEXT_PUBLIC_DIRECT_URL;
-  const [magasin] = useState(() => new MagasinDirect());
-  const etat = useSyncExternalStore(magasin.abonner, magasin.etat, magasin.etat);
+  const [apres, setApres] = useState<Apres | null>(null);
+  const [magasin, setMagasin] = useState<MagasinDirect | null>(null);
+  const [Calque, setCalque] = useState<Calque | null>(null);
+  const etat = useSyncExternalStore(magasin ? magasin.abonner : nop, magasin ? magasin.etat : etatVide, etatVide);
   const pointeurFin = useSyncExternalStore(abonnerPointeur, lirePointeur, () => false);
   const [partage, setPartage] = useState(() => (typeof window === "undefined" ? true : lirePartage()));
   const [connexion, setConnexion] = useState<ConnexionDirecte | null>(null);
@@ -82,14 +79,18 @@ export function PresenceDirecte({ children }: { children: ReactNode }) {
     if (!url) return;
     let annule = false;
     let courante: ConnexionDirecte | null = null;
+    let mag: MagasinDirect | null = null;
     const surVisibilite = () => courante?.surVisibilite(document.visibilityState === "visible");
     const annulerDemarrage = quandLibre(() => {
-      import("@/lib/direct/connexion")
-        .then(({ ConnexionDirecte }) => {
+      import("@/lib/direct/apres-affichage")
+        .then((m) => {
           if (annule) return;
-          courante = new ConnexionDirecte(url, {
-            surMessage: (m) => magasin.appliquer(m, Date.now()),
-            surFermeture: () => magasin.vider(),
+          mag = new m.MagasinDirect();
+          setApres(m);
+          setMagasin(mag);
+          courante = new m.ConnexionDirecte(url, {
+            surMessage: (msg) => mag!.appliquer(msg, Date.now()),
+            surFermeture: () => mag!.vider(),
           });
           courante.ouvrir();
           document.addEventListener("visibilitychange", surVisibilite);
@@ -104,16 +105,17 @@ export function PresenceDirecte({ children }: { children: ReactNode }) {
       annulerDemarrage();
       document.removeEventListener("visibilitychange", surVisibilite);
       courante?.arreter();
-      magasin.vider();
+      mag?.vider();
     };
-  }, [url, magasin]);
+  }, [url]);
 
   useEffect(() => {
-    if (!connexion || !pointeurFin) return;
+    if (!connexion || !pointeurFin || !apres) return;
     if (!partage) {
       connexion.envoyer({ type: "masque" });
       return;
     }
+    const { versRepere, boitesDesSections } = apres;
     const surMouvement = (e: MouseEvent) => {
       // `pageX`/`pageY` restent vides sous jsdom ; `clientX + scrollX` est l'équivalent.
       const repere = versRepere(e.clientX + window.scrollX, e.clientY + window.scrollY, boitesDesSections());
@@ -126,7 +128,22 @@ export function PresenceDirecte({ children }: { children: ReactNode }) {
       document.removeEventListener("mousemove", surMouvement);
       document.documentElement.removeEventListener("mouseleave", surSortie);
     };
-  }, [connexion, pointeurFin, partage]);
+  }, [connexion, pointeurFin, partage, apres]);
+
+  useEffect(() => {
+    if (etat.curseurs.length === 0 || Calque) return;
+    let annule = false;
+    import("./CalqueCurseurs")
+      .then((m) => {
+        if (!annule) setCalque(() => m.CalqueCurseurs);
+      })
+      .catch(() => {
+        // Morceau introuvable : pas de curseurs dessinés.
+      });
+    return () => {
+      annule = true;
+    };
+  }, [etat.curseurs.length, Calque]);
 
   const basculerPartage = () => {
     const suivant = !partage;
@@ -137,7 +154,7 @@ export function PresenceDirecte({ children }: { children: ReactNode }) {
   return (
     <ContexteDirect.Provider value={{ etat, pointeurFin, partage, basculerPartage }}>
       {children}
-      <CalqueCurseurs curseurs={etat.curseurs} />
+      {Calque ? <Calque curseurs={etat.curseurs} /> : null}
     </ContexteDirect.Provider>
   );
 }
