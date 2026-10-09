@@ -62,9 +62,9 @@ export default function PolitiqueConfidentialitePage() {
           Je peux envoyer à un prospect un lien personnalisé vers ce site, qui le
           salue par le nom de son entreprise. Quand ce lien est ouvert,
           j&apos;enregistre la date de la visite, le type d&apos;appareil (mobile
-          ou ordinateur) et le nombre de visites, et je reçois un e-mail. Aucune
-          donnée de connexion, aucun cookie et aucun identifiant de navigateur
-          ne sont enregistrés.
+          ou ordinateur) et le nombre de visites, et je reçois un e-mail. Ni
+          adresse IP, ni cookie, ni identifiant de navigateur ne sont
+          enregistrés.
         </p>
         <p>
           Ce suivi sert uniquement à savoir quand reprendre contact. Sa base

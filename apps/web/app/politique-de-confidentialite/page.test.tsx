@@ -21,7 +21,8 @@ describe("PolitiqueConfidentialitePage", () => {
     render(<PolitiqueConfidentialitePage />);
     expect(screen.getByText(/mesures précontractuelles/i)).toBeInTheDocument();
     expect(screen.getByText(/portabilité/i)).toBeInTheDocument();
-    expect(screen.getByText(/adresse IP/i)).toBeInTheDocument();
+    expect(screen.getByText(/adresse IP est utilisée/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ni adresse IP/)).toBeInTheDocument();
   });
 
   it("indique l'hébergement en France sans transfert hors UE", () => {
