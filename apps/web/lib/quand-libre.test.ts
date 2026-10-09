@@ -36,4 +36,26 @@ describe("quandLibre", () => {
     vi.advanceTimersByTime(5_000);
     expect(fn).not.toHaveBeenCalled();
   });
+
+  it("annulée : n'annule que son propre temps libre, jamais un minuteur au même numéro", () => {
+    const annulerLibre = vi.fn();
+    vi.stubGlobal("requestIdleCallback", vi.fn(() => 1));
+    vi.stubGlobal("cancelIdleCallback", annulerLibre);
+    const effacer = vi.spyOn(window, "clearTimeout");
+    const annuler = quandLibre(vi.fn());
+    annuler();
+    expect(annulerLibre).toHaveBeenCalledWith(1);
+    expect(effacer).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it("annulée après coup : rien à annuler une fois la fonction lancée", () => {
+    const effacer = vi.spyOn(window, "clearTimeout");
+    const fn = vi.fn();
+    const annuler = quandLibre(fn);
+    vi.advanceTimersByTime(1_000);
+    expect(fn).toHaveBeenCalledTimes(1);
+    annuler();
+    expect(effacer).not.toHaveBeenCalled();
+  });
 });
