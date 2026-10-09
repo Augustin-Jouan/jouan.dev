@@ -1,6 +1,7 @@
 # Tout ce qui n'entre pas dans l'image : le build repart de zéro.
 **/node_modules
 **/.next
+apps/realtime/dist
 apps/web/lib/generated
 .git
 .github

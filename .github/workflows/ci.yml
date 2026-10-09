@@ -16,9 +16,6 @@ env:
   # URL finale du site, figée dans les pages au build (canonical, sitemap…).
   # La prévisualisation (portfolio.jouan.dev) sert déjà ces pages.
   SITE_URL: https://jouan.dev
-  # GHCR impose un nom en minuscules, d'où le nom en dur plutôt que
-  # `github.repository`.
-  IMAGE: ghcr.io/augustin-jouan/jouan.dev
 
 jobs:
   verifier:
@@ -136,13 +133,24 @@ jobs:
           retention-days: 7
 
   image:
-    name: Image Docker
+    name: Image Docker (${{ matrix.nom }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [verifier, e2e]
     permissions:
       contents: read
       packages: write
+    # Deux images : le site et le service temps réel (apps/realtime).
+    # GHCR impose des noms en minuscules, d'où les noms en dur.
+    strategy:
+      matrix:
+        include:
+          - nom: site
+            image: ghcr.io/augustin-jouan/jouan.dev
+            dockerfile: Dockerfile
+          - nom: temps-reel
+            image: ghcr.io/augustin-jouan/jouan.dev-realtime
+            dockerfile: apps/realtime/Dockerfile
     steps:
       - uses: actions/checkout@v7
 
@@ -161,7 +169,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE }}
+          images: ${{ matrix.image }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,format=long
@@ -169,18 +177,21 @@ jobs:
       # `SITE_URL` et `UMAMI_WEBSITE_ID` sont figés dans les pages au build :
       # ils doivent être connus ici, pas dans Coolify. L'identifiant Umami est
       # une variable de dépôt GitHub (Settings → Secrets and variables →
-      # Actions → Variables).
+      # Actions → Variables). `NEXT_PUBLIC_DIRECT_URL` aussi (variable de
+      # dépôt `DIRECT_URL`, par exemple `wss://direct.portfolio.jouan.dev/direct`).
       - uses: docker/build-push-action@v6
         with:
           context: .
+          file: ${{ matrix.dockerfile }}
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             SITE_URL=${{ env.SITE_URL }}
             UMAMI_WEBSITE_ID=${{ vars.UMAMI_WEBSITE_ID }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            NEXT_PUBLIC_DIRECT_URL=${{ vars.DIRECT_URL }}
+          cache-from: type=gha,scope=${{ matrix.nom }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.nom }}
 
   deployer:
     name: Déploiement Coolify
@@ -200,6 +211,19 @@ jobs:
         run: |
           if [ -z "$WEBHOOK_URL" ] || [ -z "$TOKEN" ]; then
             echo "Secrets Coolify absents : déploiement non déclenché."
+            exit 0
+          fi
+          curl --fail --silent --show-error \
+            --request POST "$WEBHOOK_URL" \
+            --header "Authorization: Bearer $TOKEN"
+
+      - name: Prévenir Coolify (temps réel)
+        env:
+          WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL_DIRECT }}
+          TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          if [ -z "$WEBHOOK_URL" ] || [ -z "$TOKEN" ]; then
+            echo "Secrets Coolify du service temps réel absents : déploiement non déclenché."
             exit 0
           fi
           curl --fail --silent --show-error \
