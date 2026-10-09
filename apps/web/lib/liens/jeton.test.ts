@@ -5,6 +5,9 @@ describe("nettoyerNom", () => {
   it("retire les espaces autour", () => {
     expect(nettoyerNom("  Boulangerie Martin ")).toEqual({ ok: true, nom: "Boulangerie Martin" });
   });
+  it("remplace blancs et caractères de contrôle par une espace", () => {
+    expect(nettoyerNom("A\nB\tC\u0007D")).toEqual({ ok: true, nom: "A B C D" });
+  });
   it("refuse un nom vide ou fait d'espaces", () => {
     expect(nettoyerNom("   ").ok).toBe(false);
   });

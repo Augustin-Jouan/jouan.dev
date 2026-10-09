@@ -13,7 +13,7 @@ const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
 const FORMAT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function nettoyerNom(brut: string): { ok: true; nom: string } | { ok: false; erreur: string } {
-  const nom = brut.trim();
+  const nom = brut.replace(/[\s\p{Cc}]+/gu, " ").trim();
   if (!nom) return { ok: false, erreur: "Indiquez le nom du prospect." };
   if (nom.length > LONGUEUR_NOM_MAX) {
     return { ok: false, erreur: `Le nom ne doit pas dépasser ${LONGUEUR_NOM_MAX} caractères.` };
