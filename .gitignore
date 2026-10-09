@@ -47,6 +47,9 @@ next-env.d.ts
 # Sortie du build de la démo (apps/demo-marches)
 apps/web/public/demo/
 
+# Bundle CommonJS du service temps réel
+apps/realtime/dist
+
 # Playwright et Lighthouse
 test-results/
 playwright-report/
