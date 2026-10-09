@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CompteurPresents } from "@/components/direct/CompteurPresents";
 import { accrochesParAngle, salutation, type Angle } from "@/data/accueil";
 
 /** Premier écran : promesse, signature et deux actions. */
@@ -7,9 +8,10 @@ export function Accroche({ angle = "application", nom }: { angle?: Angle; nom?: 
   return (
     <section
       aria-labelledby="accroche-titre"
+      data-direct-section="accroche"
       className="mx-auto flex min-h-[min(calc(100svh-5rem),56rem)] w-full max-w-6xl flex-col justify-end px-5 pb-16 pt-24 sm:px-8 sm:pb-24 2xl:max-w-page"
     >
-      {/* Le compteur de visiteurs (sous-projet 4) se placera aussi au-dessus du surtitre. */}
+      <CompteurPresents />
       {nom && (
         <p className="mb-3 break-words font-serif text-2xl text-encre sm:text-3xl 2xl:text-4xl">{salutation(nom)}</p>
       )}

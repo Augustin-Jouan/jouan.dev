@@ -85,3 +85,21 @@ Liens personnalisés (accueil `/?pour=<jeton>`) : ils demandent une base.
   mesuré par Lighthouse en CI (base migrée et `DATABASE_URL` requises).
 - `pnpm --filter web verifier-accueil-statique`, après `pnpm build`, vérifie
   que l'accueil `/` reste prérendu (statique).
+
+Temps réel (compteur et curseurs de l'accueil) : service `apps/realtime` (Hono, WebSocket).
+
+- En local : `pnpm dev:direct` (port 3001, `ORIGINES_AUTORISEES=http://localhost:3000` à définir), puis le site construit ou lancé avec `NEXT_PUBLIC_DIRECT_URL=ws://localhost:3001/direct`. Sans cette variable, l'accueil ne charge ni ne connecte rien.
+- Image : `ghcr.io/augustin-jouan/jouan.dev-realtime`, construite par la CI comme celle du site.
+- Origines autorisées (`ORIGINES_AUTORISEES`, séparées par des virgules) :
+  - prévisualisation : `https://portfolio.jouan.dev` ;
+  - production, à la bascule sur le domaine nu : ajouter `https://jouan.dev` ;
+  - local : `http://localhost:3000` ; e2e et Lighthouse : posées par la CI.
+
+  Toute origine HTTPS servant le site doit figurer dans la liste de la ressource Coolify.
+- Exposition : uniquement par le proxy de Coolify, en HTTPS ; le port 3001 n'est pas publié sur l'hôte (sinon la dernière entrée de `X-Forwarded-For` ne serait plus fiable). Une seule réplique : un redéploiement déconnecte les visiteurs quelques secondes.
+- Mise en service, dans cet ordre :
+  1. entrée DNS `direct.portfolio.jouan.dev` vers le VPS ;
+  2. ressource Coolify depuis l'image du service, port 3001, domaine `https://direct.portfolio.jouan.dev`, variable `ORIGINES_AUTORISEES` ; attendre qu'elle soit en ligne et saine (`/sante`) ;
+  3. variable de dépôt GitHub `DIRECT_URL=wss://direct.portfolio.jouan.dev/direct` (figée au build du site : tant qu'elle est vide, le site ne tente aucune connexion) ;
+  4. secret GitHub `COOLIFY_WEBHOOK_URL_DIRECT` (webhook de la ressource du service).
+- Limites : 300 connexions au total, 5 par adresse IP (`CONNEXIONS_PAR_IP`), messages de 128 octets et 40 par seconde au plus. Aucune IP ni position n'est journalisée.

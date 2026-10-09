@@ -10,7 +10,9 @@ const enDeveloppement = process.env.NODE_ENV === "development";
  * rester stricte sans rien casser.
  *
  * Seule exception : Umami Cloud (mesure d'audience, voir
- * components/shared/Umami.tsx), autorisé dans `script-src` et `connect-src`.
+ * components/shared/Umami.tsx), autorisé dans `script-src` et `connect-src`,
+ * et le service temps réel, autorisé dans `connect-src` quand
+ * `NEXT_PUBLIC_DIRECT_URL` est définie.
  *
  * `unsafe-inline` reste nécessaire pour les styles : Tailwind et next/font
  * injectent des balises <style>. Les scripts, eux, sont limités au domaine.
@@ -24,6 +26,14 @@ const enDeveloppement = process.env.NODE_ENV === "development";
 const umamiScript = "https://cloud.umami.is";
 const umamiApi = "https://gateway.umami.is";
 
+// Service temps réel (apps/realtime) : son adresse est figée au build ; seule
+// son origine (`wss://…` en production) est ajoutée à `connect-src`.
+const urlDirect = process.env.NEXT_PUBLIC_DIRECT_URL;
+const origineDirect = urlDirect ? new URL(urlDirect).origin : "";
+// En e2e et sous Lighthouse, le service est en `ws://` (site servi en http) :
+// `upgrade-insecure-requests` réécrirait la connexion en `wss://`.
+const serviceNonChiffre = urlDirect?.startsWith("ws://") ?? false;
+
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' ${umamiScript}${enDeveloppement ? " 'unsafe-eval'" : ""}`,
@@ -31,12 +41,12 @@ const csp = [
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
   // En développement, Fast Refresh passe par un websocket vers l'hôte local.
-  `connect-src 'self' ${umamiApi}${enDeveloppement ? " ws: wss:" : ""}`,
+  `connect-src 'self' ${umamiApi}${origineDirect ? ` ${origineDirect}` : ""}${enDeveloppement ? " ws: wss:" : ""}`,
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "object-src 'none'",
-  ...(enDeveloppement ? [] : ["upgrade-insecure-requests"]),
+  ...(enDeveloppement || serviceNonChiffre ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const securityHeaders = [

@@ -21,6 +21,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
 COPY apps/demo-marches/package.json apps/demo-marches/
+COPY apps/realtime/package.json apps/realtime/
 RUN pnpm install --frozen-lockfile
 
 FROM base AS build
@@ -37,6 +38,10 @@ ENV SITE_URL=${SITE_URL}
 # être connu au build. Vide, le script n'est simplement pas injecté.
 ARG UMAMI_WEBSITE_ID=
 ENV UMAMI_WEBSITE_ID=${UMAMI_WEBSITE_ID}
+# Adresse du service temps réel (apps/realtime), figée au build comme Umami.
+# Vide : l'accueil ne se connecte à rien (ni compteur ni curseurs).
+ARG NEXT_PUBLIC_DIRECT_URL=
+ENV NEXT_PUBLIC_DIRECT_URL=${NEXT_PUBLIC_DIRECT_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 # La démo (apps/demo-marches) puis le site ; la sortie de la démo tombe dans apps/web/public.
 RUN pnpm build

@@ -27,5 +27,13 @@ describe("Accueil", () => {
     expect(titres.indexOf("Site vitrine d'artisan")).toBeLessThan(titres.indexOf("Suivi de marchés de travaux"));
     expect(container.querySelector('input[name="pour"]')).toHaveValue("boulangerie-k7f3");
     expect(within(container).getByText("Mon cœur de métier").closest("article")).toHaveTextContent("Site vitrine");
+    const reperes = [...container.querySelectorAll("[data-direct-section]")].map((el) =>
+      el.getAttribute("data-direct-section"),
+    );
+    expect(reperes).toEqual(["accroche", "offre", "realisations", "methode", "parcours", "contact"]);
+    const ligne = screen.getByTestId("compteur-presents");
+    const salut = screen.getByText("Bonjour <b>Boulangerie</b> 🍞,");
+    expect(ligne.compareDocumentPosition(salut) & Node.DOCUMENT_POSITION_FOLLOWING).toBeGreaterThan(0);
   });
 });
+
