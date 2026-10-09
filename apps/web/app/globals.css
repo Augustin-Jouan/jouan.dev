@@ -29,6 +29,8 @@
   --teinte-trait-mauve: #8a7480;
 }
 @theme {
+  /* Seuls les rôles ci-dessous existent : pas de palette par défaut (bg-white…). */
+  --color-*: initial;
   --color-fond: var(--teinte-nuit);
   --color-surface: var(--teinte-nuit-haute);
   --color-texte: var(--teinte-papier);
@@ -42,16 +44,6 @@
   --color-lueur: var(--teinte-corail);
   --color-lueur-chaude: var(--teinte-rose);
   --color-goutte: var(--teinte-peche);
-
-  /* Ancienne charte « Atelier clair » : retirée à la tâche 8 du plan, une fois
-     toutes les pages passées aux rôles. */
-  --color-papier: #f3efe7;
-  --color-encre: #1b1a17;
-  --color-encre-douce: #5b574f;
-  --color-brique: #c84a1f;
-  --color-braise: #e0582b;
-  --color-braise-claire: #ef9c62;
-  --color-terre: #8a5a3c;
 
   --shadow-fenetre: 0 30px 80px -40px rgb(0 0 0 / 0.6);
 
