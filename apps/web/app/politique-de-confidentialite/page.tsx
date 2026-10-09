@@ -70,7 +70,9 @@ export default function PolitiqueConfidentialitePage() {
           Ce suivi sert uniquement à savoir quand reprendre contact. Sa base
           légale est mon intérêt légitime à assurer le suivi commercial
           d&apos;une proposition (article 6.1.f du RGPD). Les visites sont
-          conservées douze mois, puis supprimées automatiquement. Vous pouvez
+          conservées douze mois, puis supprimées automatiquement. Le nom de
+          l&apos;entreprise et le lien sont conservés tant que le lien existe, et
+          les e-mails de notification restent dans ma boîte de réception. Vous pouvez
           demander à tout moment la suppression de votre lien et de ses visites,
           par le formulaire de contact ou à l&apos;adresse{" "}
           {mentionsLegales.email}.

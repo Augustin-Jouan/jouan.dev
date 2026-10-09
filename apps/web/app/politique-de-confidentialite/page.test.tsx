@@ -44,6 +44,9 @@ describe("PolitiqueConfidentialitePage", () => {
     render(<PolitiqueConfidentialitePage />);
     expect(screen.getByRole("heading", { name: /liens personnalisés/i })).toBeInTheDocument();
     expect(screen.getByText(/douze mois/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/conservés tant que le lien existe, et les e-mails de notification restent dans ma boîte de réception/i)
+    ).toBeInTheDocument();
   });
 
   it("précise que le seul cookie est celui de la session d'administration", () => {
