@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 const Contexte = createContext<(message: string) => void>(() => {});
@@ -9,7 +9,13 @@ export const useAnnonce = () => useContext(Contexte);
 /** La région vivante unique de l'application ; ses enfants annoncent par `useAnnonce()`. */
 export function Annonce({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState("");
-  const annoncer = useCallback((m: string) => setMessage(m), []);
+  const compteur = useRef(0);
+  /* Un caractère invisible en fin de message en alternance : le texte change à chaque appel,
+     donc une annonce identique est de nouveau lue. */
+  const annoncer = useCallback((m: string) => {
+    compteur.current += 1;
+    setMessage(compteur.current % 2 === 0 ? `${m}\u200b` : m);
+  }, []);
   return (
     <Contexte.Provider value={annoncer}>
       {children}

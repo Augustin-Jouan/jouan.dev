@@ -66,4 +66,69 @@ describe("Écran Marchés", () => {
     await userEvent.click(screen.getByRole("button", { name: "Réinitialiser la démo" }));
     expect(espaces(total().textContent)).toContain("496 480,00 €");
   });
+
+  it("l'erreur d'un champ disparaît dès qu'on le corrige", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Carrelage — faïence" }));
+    const panneau = screen.getByRole("dialog");
+    await userEvent.click(within(panneau).getByRole("button", { name: "Ajouter" }));
+    const libelle = within(panneau).getByLabelText("Libellé");
+    expect(libelle).toHaveAttribute("aria-invalid", "true");
+    await userEvent.type(libelle, "P");
+    expect(libelle).not.toHaveAttribute("aria-invalid");
+    expect(libelle).not.toHaveAccessibleDescription("Donnez un libellé à l'avenant.");
+  });
+
+  it("après la suppression du seul avenant, le focus va au champ Libellé", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Carrelage — faïence" }));
+    const panneau = screen.getByRole("dialog");
+    await userEvent.click(within(panneau).getByRole("button", { name: "Supprimer l'avenant n° 01" }));
+    expect(within(panneau).getByLabelText("Libellé")).toHaveFocus();
+  });
+
+  it("après la suppression du premier de deux avenants, le focus va au suivant", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Carrelage — faïence" }));
+    const panneau = screen.getByRole("dialog");
+    await userEvent.type(within(panneau).getByLabelText("Libellé"), "Autre");
+    await userEvent.type(within(panneau).getByLabelText("Montant HT"), "500");
+    await userEvent.click(within(panneau).getByRole("button", { name: "Ajouter" }));
+    await userEvent.click(within(panneau).getByRole("button", { name: "Supprimer l'avenant n° 01" }));
+    expect(within(panneau).getByRole("button", { name: "Supprimer l'avenant n° 02" })).toHaveFocus();
+  });
+
+  it("après la suppression du dernier avenant, le focus va au précédent", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Carrelage — faïence" }));
+    const panneau = screen.getByRole("dialog");
+    await userEvent.type(within(panneau).getByLabelText("Libellé"), "Autre");
+    await userEvent.type(within(panneau).getByLabelText("Montant HT"), "500");
+    await userEvent.click(within(panneau).getByRole("button", { name: "Ajouter" }));
+    await userEvent.click(within(panneau).getByRole("button", { name: "Supprimer l'avenant n° 02" }));
+    expect(within(panneau).getByRole("button", { name: "Supprimer l'avenant n° 01" })).toHaveFocus();
+  });
+
+  it("l'avancement du lot 07 est un indicateur à 54 %", () => {
+    render(<App />);
+    const m = screen.getByRole("meter", { name: "Avancement du lot 07" });
+    expect(m).toHaveAttribute("aria-valuenow", "54");
+  });
+
+  it("une même annonce répétée est ré-annoncée", async () => {
+    render(<App />);
+    const region = screen.getByRole("status");
+    const vues: string[] = [];
+    const obs = new MutationObserver(() => vues.push(region.textContent ?? ""));
+    obs.observe(region, { childList: true, characterData: true, subtree: true });
+    await userEvent.click(screen.getByRole("button", { name: "Réinitialiser la démo" }));
+    await new Promise((r) => setTimeout(r, 50));
+    const apres1 = vues.length;
+    await userEvent.click(screen.getByRole("button", { name: "Réinitialiser la démo" }));
+    await new Promise((r) => setTimeout(r, 50));
+    obs.disconnect();
+    expect(apres1).toBeGreaterThan(0);
+    expect(vues.length).toBeGreaterThan(apres1);
+    expect(region.textContent).toContain("Démo réinitialisée.");
+  });
 });

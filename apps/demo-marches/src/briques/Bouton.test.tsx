@@ -20,4 +20,8 @@ describe("Bouton", () => {
     await userEvent.click(screen.getByRole("button"));
     expect(f).not.toHaveBeenCalled();
   });
+  it("lien : un bouton qui a l'apparence d'un lien souligné", () => {
+    render(<Bouton variante="lien">Ouvrir</Bouton>);
+    expect(screen.getByRole("button")).toHaveClass("underline");
+  });
 });
