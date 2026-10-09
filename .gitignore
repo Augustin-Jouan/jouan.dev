@@ -51,3 +51,6 @@ apps/web/public/demo/
 test-results/
 playwright-report/
 .lighthouseci/
+
+# Client Prisma généré
+apps/web/lib/generated/

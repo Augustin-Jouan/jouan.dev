@@ -41,6 +41,21 @@ Pour voir la démo dans la page des études de cas avec `pnpm dev`, construire d
 
 Les tests de bout en bout démarrent un faux serveur SMTP local (port 2525).
 
+## Base de données
+
+Les liens personnalisés et leurs visites sont dans Postgres (Prisma 7).
+
+```bash
+docker compose -f compose.dev.yml up -d              # Postgres sur le port 5433 (bases jouan et jouan_test)
+cp apps/web/.env.example apps/web/.env.local         # puis renseigner ADMIN_EMPREINTE et ADMIN_SECRET
+pnpm --filter web migrer                             # applique les migrations (DATABASE_URL)
+DATABASE_URL_TEST=postgresql://jouan:jouan@127.0.0.1:5433/jouan_test pnpm --filter web exec vitest run lib/liens/depot.integration.test.ts
+```
+
+Les tests d'intégration sont ignorés sans `DATABASE_URL_TEST` ; la base de test doit être migrée (`DATABASE_URL=…/jouan_test pnpm --filter web migrer`). Le client est généré par `pnpm --filter web generer-client` (lancé automatiquement par `dev`, `build`, `typecheck` et `test`, sans base).
+
+En production : ressource Postgres Coolify, `DATABASE_URL`, migrations appliquées au démarrage du conteneur.
+
 ## Déploiement
 
 Comme les sites vitrines (voir `docs/deploiement-site.md`) : la CI construit

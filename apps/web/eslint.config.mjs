@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Démo construite (copiée depuis apps/demo-marches, ignorée par Git).
     "public/demo/**",
+    // Client Prisma généré (ignoré par Git).
+    "lib/generated/**",
   ]),
 ]);
 

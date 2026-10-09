@@ -1,0 +1,14 @@
+# Base Postgres de développement et de test (pnpm --filter web …).
+#   docker compose -f compose.dev.yml up -d
+# Deux bases : `jouan` (développement) et `jouan_test` (tests d'intégration, e2e).
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: jouan
+      POSTGRES_PASSWORD: jouan
+      POSTGRES_DB: jouan
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./apps/web/scripts/base/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
