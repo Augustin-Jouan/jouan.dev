@@ -38,4 +38,15 @@ describe("PolitiqueConfidentialitePage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/umami/i)).toBeInTheDocument();
   });
+
+  it("décrit les liens personnalisés et leur durée de conservation", () => {
+    render(<PolitiqueConfidentialitePage />);
+    expect(screen.getByRole("heading", { name: /liens personnalisés/i })).toBeInTheDocument();
+    expect(screen.getByText(/douze mois/i)).toBeInTheDocument();
+  });
+
+  it("précise que le seul cookie est celui de la session d'administration", () => {
+    render(<PolitiqueConfidentialitePage />);
+    expect(screen.getByText(/session d'administration/i)).toBeInTheDocument();
+  });
 });

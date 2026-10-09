@@ -57,6 +57,27 @@ export default function PolitiqueConfidentialitePage() {
       </div>
 
       <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">Liens personnalisés</h2>
+        <p>
+          Je peux envoyer à un prospect un lien personnalisé vers ce site, qui le
+          salue par le nom de son entreprise. Quand ce lien est ouvert,
+          j&apos;enregistre la date de la visite, le type d&apos;appareil (mobile
+          ou ordinateur) et le nombre de visites, et je reçois un e-mail. Aucune
+          donnée de connexion, aucun cookie et aucun identifiant de navigateur
+          ne sont enregistrés.
+        </p>
+        <p>
+          Ce suivi sert uniquement à savoir quand reprendre contact. Sa base
+          légale est mon intérêt légitime à assurer le suivi commercial
+          d&apos;une proposition (article 6.1.f du RGPD). Les visites sont
+          conservées douze mois, puis supprimées automatiquement. Vous pouvez
+          demander à tout moment la suppression de votre lien et de ses visites,
+          par le formulaire de contact ou à l&apos;adresse{" "}
+          {mentionsLegales.email}.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
         <h2 className="text-xl font-semibold">Destinataires</h2>
         <p>
           Vos données sont destinées exclusivement à{" "}
@@ -118,7 +139,9 @@ export default function PolitiqueConfidentialitePage() {
           Cookies et mesure d&apos;audience
         </h2>
         <p>
-          Ce site ne dépose aucun cookie de suivi. La fréquentation est mesurée
+          Ce site ne dépose aucun cookie de suivi. Le seul cookie du site est celui
+          de la session d&apos;administration, réservé au chemin /admin et
+          strictement nécessaire : il ne concerne pas les visiteurs. La fréquentation est mesurée
           avec Umami, un outil respectueux de la vie privée : il ne dépose pas
           de cookie, ne collecte aucune donnée personnelle et ne permet pas de
           suivre un visiteur d&apos;un site à l&apos;autre. Les données sont
