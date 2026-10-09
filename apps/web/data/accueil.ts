@@ -154,3 +154,46 @@ export const parcours: string[] = [
   "Master of Science à Epitech, en cours",
   "Indépendant : applications métier et sites vitrines",
 ];
+
+/** Angle d'un lien personnalisé : l'offre mise en avant pour ce prospect. */
+export type Angle = "application" | "vitrine";
+export const ANGLES: Angle[] = ["application", "vitrine"];
+export const libellesAngle: Record<Angle, string> = {
+  application: "Application métier",
+  vitrine: "Site vitrine",
+};
+
+export const accrochesParAngle: Record<Angle, Accroche> = {
+  application: accroche,
+  vitrine: {
+    ...accroche,
+    titreAvant: "Un site vitrine ",
+    titreAccent: "qui vous ressemble",
+    titreApres: ", rapide et bien référencé.",
+    sousTitre: "Je conçois, développe et héberge votre site, du premier échange à la mise en ligne.",
+  },
+};
+
+/** Les offres, celle de l'angle en premier et mise en avant. */
+export function offresPour(angle: Angle): Offre[] {
+  return offres
+    .map((offre) => ({ ...offre, miseEnAvant: offre.id === angle }))
+    .sort((a, b) => Number(b.miseEnAvant) - Number(a.miseEnAvant));
+}
+
+const etudeParAngle: Record<Angle, SlugEtude> = {
+  application: "suivi-de-marches",
+  vitrine: "site-artisan",
+};
+
+/** Les réalisations, celle de l'angle en premier. */
+export function realisationsPour(angle: Angle): Realisation[] {
+  const premiere = etudeParAngle[angle];
+  return [...realisations].sort((a, b) => Number(b.slug === premiere) - Number(a.slug === premiere));
+}
+
+export function salutation(nom: string): string {
+  return `Bonjour ${nom},`;
+}
+
+export type Personnalisation = { nom: string; angle: Angle; jeton: string };

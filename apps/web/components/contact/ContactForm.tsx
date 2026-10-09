@@ -18,7 +18,7 @@ const champ =
   "rounded-xl border bg-papier px-4 py-3 outline-none transition-colors focus:border-encre focus-visible:ring-2 focus-visible:ring-encre focus-visible:ring-offset-2 focus-visible:ring-offset-papier";
 const etiquette = "flex flex-col gap-2 text-sm font-medium";
 
-export function ContactForm() {
+export function ContactForm({ jeton }: { jeton?: string }) {
   const [state, formAction, pending] = useActionState(submitContactForm, initialState);
   const enErreur = state.status === "error";
 
@@ -94,6 +94,7 @@ export function ContactForm() {
         aria-hidden="true"
         className="hidden"
       />
+      {jeton && <input type="hidden" name="pour" value={jeton} />}
 
       <button type="submit" disabled={pending} className="self-start rounded-full bg-encre px-6 py-3 text-sm font-medium text-papier transition-opacity hover:opacity-85 disabled:opacity-60">
         {pending ? "Envoi…" : "Envoyer"}

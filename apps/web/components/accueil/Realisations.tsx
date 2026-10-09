@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { Section } from "./Section";
-import { ANCRES, realisations, sections } from "@/data/accueil";
+import { ANCRES, realisationsPour, sections, type Angle } from "@/data/accueil";
 import { cheminEtude } from "@/data/realisations";
 
 /** Réalisations anonymisées : besoin, livrable, technologies. */
-export function Realisations() {
+export function Realisations({ angle = "application" }: { angle?: Angle }) {
   return (
     <Section id={ANCRES.realisations} {...sections.realisations}>
       <div className="grid gap-5 md:grid-cols-2">
-        {realisations.map((r) => (
+        {realisationsPour(angle).map((r) => (
           <article key={r.titre} className="relative flex flex-col gap-5 rounded-3xl border border-trait p-8">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-terre">{r.contexte}</p>
             <h3 className="font-serif text-3xl">
