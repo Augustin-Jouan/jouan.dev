@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { SkipLink, CONTENU_ID } from "@/components/layout/SkipLink";
@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PersonJsonLd } from "@/components/shared/PersonJsonLd";
 import { Umami } from "@/components/shared/Umami";
 import { siteUrl, siteName, siteDescription } from "@/data/site";
+import { couleur } from "@/lib/charte";
 
 // next/font sert les fichiers depuis le domaine : la CSP n'a pas besoin de
 // Google Fonts.
@@ -41,6 +42,12 @@ export const metadata: Metadata = {
     title: siteName,
     description: siteDescription,
   },
+};
+
+/** Barre du navigateur mobile et contrôles natifs aux couleurs de la nuit. */
+export const viewport: Viewport = {
+  themeColor: couleur("fond"),
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
