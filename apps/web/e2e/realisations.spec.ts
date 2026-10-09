@@ -11,10 +11,12 @@ test("depuis l'accueil, une carte ouvre son étude de cas", async ({ page }) => 
 });
 
 test("l'étude du site vitrine montre ses captures et renvoie vers l'autre étude", async ({ page }) => {
+  const erreurs = surveillerErreurs(page);
   await page.goto("/realisations/site-artisan");
   await expect(page.getByRole("img", { name: /sur ordinateur/ })).toBeVisible();
   await page.getByRole("link", { name: /Voir aussi/ }).click();
   await expect(page).toHaveURL(/suivi-de-marches$/);
+  expect(erreurs).toEqual([]);
 });
 
 test("pas de débordement horizontal", async ({ page }) => {
@@ -29,7 +31,7 @@ test("sans JavaScript, l'aperçu et le lien plein écran restent", async ({ brow
   const page = await contexte.newPage();
   await page.goto("/realisations/suivi-de-marches");
   await expect(page.getByRole("img", { name: /Écran des marchés de la démo/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Ouvrir la démo en plein écran" })).toHaveAttribute("href", "/demo/suivi-de-marches/index.html");
+  await expect(page.getByRole("link", { name: /Ouvrir la démo en plein écran/ })).toHaveAttribute("href", "/demo/suivi-de-marches/index.html");
   await contexte.close();
 });
 
@@ -37,6 +39,9 @@ test("les en-têtes n'autorisent l'inclusion que de la démo, par le site seulem
   const demo = await request.get("/demo/suivi-de-marches/index.html");
   expect(demo.headers()["x-frame-options"]).toBe("SAMEORIGIN");
   expect(demo.headers()["content-security-policy"]).toContain("frame-ancestors 'self'");
+  expect(demo.headers()["content-security-policy"]).not.toContain("frame-ancestors 'none'");
+  const courte = await request.get("/demo/suivi-de-marches");
+  expect(courte.headers()["x-frame-options"]).toBe("SAMEORIGIN");
   const etude = await request.get("/realisations/suivi-de-marches");
   expect(etude.headers()["x-frame-options"]).toBe("DENY");
 });

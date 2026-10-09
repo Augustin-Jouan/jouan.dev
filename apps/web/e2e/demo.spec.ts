@@ -56,5 +56,14 @@ test("sur mobile, la page propose d'ouvrir la démo au lieu d'une iframe", async
   await page.goto("/realisations/suivi-de-marches");
   await page.locator("figure").first().scrollIntoViewIfNeeded();
   await expect(page.locator("iframe")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Ouvrir la démo en plein écran" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Ouvrir la démo en plein écran/ })).toBeVisible();
+});
+
+test("l'adresse courte de la démo (avec ou sans barre finale) sert la démo", async ({ page }) => {
+  for (const chemin of ["/demo/suivi-de-marches", "/demo/suivi-de-marches/"]) {
+    const reponse = await page.goto(chemin);
+    expect(reponse!.status()).toBe(200);
+    await expect(page.getByRole("heading", { name: "Suivi de marchés" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Planning" })).toBeVisible();
+  }
 });

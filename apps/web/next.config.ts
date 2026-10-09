@@ -100,6 +100,12 @@ const nextConfig: NextConfig = {
       { source: "/demo/:path*", headers: entetesDemo },
     ];
   },
+  // Next ne sert pas l'index.html d'un dossier de `public` : l'adresse naturelle
+  // de la démo est réécrite vers son fichier (les en-têtes ci-dessus s'appliquent
+  // au chemin demandé). Les ressources de la démo sont en URL absolues (base Vite).
+  async rewrites() {
+    return [{ source: "/demo/suivi-de-marches", destination: "/demo/suivi-de-marches/index.html" }];
+  },
   async redirects() {
     return redirections;
   },
