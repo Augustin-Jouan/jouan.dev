@@ -35,28 +35,28 @@ export default async function PageAdmin() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-serif text-4xl">Liens personnalisés</h1>
         <form action={seDeconnecter}>
-          <button className="text-sm text-encre-douce underline underline-offset-4 hover:text-encre">
+          <button className="text-sm text-texte-doux underline underline-offset-4 hover:text-texte">
             Se déconnecter
           </button>
         </form>
       </div>
 
       {liens === null ? (
-        <p role="alert" className="rounded-2xl border border-brique p-4 text-brique">
+        <p role="alert" className="rounded-2xl border border-alerte p-4 text-alerte">
           Base de données indisponible.
         </p>
       ) : (
         <>
           <NouveauLien />
           {liens.length === 0 ? (
-            <p className="text-encre-douce">Aucun lien pour l&apos;instant.</p>
+            <p className="text-texte-doux">Aucun lien pour l&apos;instant.</p>
           ) : (
             <ul className="flex flex-col gap-4">
               {liens.map((lien) => (
                 <li key={lien.id} className="flex flex-col gap-3 rounded-2xl border border-trait p-5">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h2 className="min-w-0 break-words font-serif text-2xl">{lien.nom}</h2>
-                    <p className="text-sm text-encre-douce">
+                    <p className="text-sm text-texte-doux">
                       {libellesAngle[lien.angle]} · {lien.actif ? "actif" : "désactivé"} ·{" "}
                       {lien.nombreVisites === 0
                         ? "aucune visite"
@@ -78,7 +78,7 @@ export default async function PageAdmin() {
                   {lien.visites.length > 0 && (
                     <details>
                       <summary className="cursor-pointer text-sm">Visites</summary>
-                      <ul className="mt-2 flex flex-col gap-1 text-sm text-encre-douce">
+                      <ul className="mt-2 flex flex-col gap-1 text-sm text-texte-doux">
                         {lien.visites.map((v) => (
                           <li key={v.numero}>
                             {ordinalVisite(v.numero)} — {dateHeureParis(v.le)}, sur {v.appareil}

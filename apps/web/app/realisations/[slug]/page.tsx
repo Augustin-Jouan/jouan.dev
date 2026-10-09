@@ -48,13 +48,13 @@ export default async function EtudeDeCasPage({ params }: Props) {
   return (
     <article>
       <header className="mx-auto w-full max-w-6xl 2xl:max-w-page px-5 pb-6 pt-16 sm:px-8 sm:pt-24">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-terre">{etude.surtitre}</p>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{etude.surtitre}</p>
         <h1 className="max-w-4xl font-serif text-4xl leading-[1.05] sm:text-6xl">{etude.titre}</h1>
-        <p className="mt-6 max-w-3xl text-lg text-encre-douce">{etude.sousTitre}</p>
+        <p className="mt-6 max-w-3xl text-lg text-texte-doux">{etude.sousTitre}</p>
         <dl className="mt-10 grid gap-6 sm:grid-cols-3">
           {etude.chiffres.map((chiffre) => (
             <div key={chiffre.libelle} className="flex flex-col-reverse gap-1 border-t border-trait pt-4">
-              <dt className="text-sm text-encre-douce">{chiffre.libelle}</dt>
+              <dt className="text-sm text-texte-doux">{chiffre.libelle}</dt>
               <dd className="font-serif text-5xl">{chiffre.valeur}</dd>
             </div>
           ))}
@@ -65,7 +65,7 @@ export default async function EtudeDeCasPage({ params }: Props) {
         <h2 id="besoin-titre" className={classeTitreSection}>
           Le besoin
         </h2>
-        <div className="flex max-w-3xl flex-col gap-4 text-lg text-encre-douce">
+        <div className="flex max-w-3xl flex-col gap-4 text-lg text-texte-doux">
           {etude.besoin.map((paragraphe) => (
             <p key={paragraphe}>{paragraphe}</p>
           ))}
@@ -91,7 +91,7 @@ export default async function EtudeDeCasPage({ params }: Props) {
           {etude.livre.map((element) => (
             <div key={element.titre} className="rounded-3xl border border-trait p-7">
               <h3 className="font-serif text-2xl">{element.titre}</h3>
-              <p className="mt-3 text-encre-douce">{element.texte}</p>
+              <p className="mt-3 text-texte-doux">{element.texte}</p>
             </div>
           ))}
         </div>
@@ -112,7 +112,7 @@ export default async function EtudeDeCasPage({ params }: Props) {
           {etude.choix.map((choix) => (
             <div key={choix.titre}>
               <h3 className="font-serif text-2xl">{choix.titre}</h3>
-              <p className="mt-3 text-encre-douce">{choix.texte}</p>
+              <p className="mt-3 text-texte-doux">{choix.texte}</p>
             </div>
           ))}
         </div>
@@ -122,11 +122,11 @@ export default async function EtudeDeCasPage({ params }: Props) {
         <p className="font-serif text-3xl">Un projet similaire ?</p>
         <Link
           href="/#contact"
-          className="rounded-full bg-encre px-6 py-3 font-medium text-papier transition-opacity hover:opacity-85"
+          className="rounded-full bg-accent px-6 py-3 font-medium text-sur-accent transition-opacity hover:opacity-85"
         >
           Parlons-en
         </Link>
-        <Link href={cheminEtude(autre.slug)} className="text-encre-douce underline">
+        <Link href={cheminEtude(autre.slug)} className="text-texte-doux underline">
           Voir aussi : {autre.titre}
         </Link>
       </footer>

@@ -11,11 +11,11 @@ import { siteName } from "@/data/site";
 
 const initialState: ContactFormState = { status: "idle", message: "" };
 
-// Classes aux couleurs de l'Atelier clair. Bordure au repos encre-douce/80 :
-// ≈ 4:1 sur le papier (WCAG 1.4.11 demande 3:1 pour la limite d'un champ).
+// Classes de la charte « Nuit mauve ». Bordure au repos trait-fort : 3,6:1 sur
+// le fond (WCAG 1.4.11 demande 3:1 pour la limite d'un champ).
 // Le focus ajoute un anneau de 2 px : il ne repose pas sur la seule couleur.
 const champ =
-  "rounded-xl border bg-papier px-4 py-3 outline-none transition-colors focus:border-encre focus-visible:ring-2 focus-visible:ring-encre focus-visible:ring-offset-2 focus-visible:ring-offset-papier";
+  "rounded-xl border bg-surface px-4 py-3 outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-fond";
 const etiquette = "flex flex-col gap-2 text-sm font-medium";
 
 export function ContactForm({ jeton }: { jeton?: string }) {
@@ -31,7 +31,7 @@ export function ContactForm({ jeton }: { jeton?: string }) {
     const fautif = enErreur && state.champ === nom;
     return {
       defaultValue: state.valeurs?.[nom],
-      className: `${champ} ${fautif ? "border-brique" : "border-encre-douce/80"}`,
+      className: `${champ} ${fautif ? "border-alerte" : "border-trait-fort"}`,
       "aria-invalid": fautif || undefined,
       "aria-describedby": fautif ? "contact-retour" : undefined,
     };
@@ -96,12 +96,12 @@ export function ContactForm({ jeton }: { jeton?: string }) {
       />
       {jeton && <input type="hidden" name="pour" value={jeton} />}
 
-      <button type="submit" disabled={pending} className="self-start rounded-full bg-encre px-6 py-3 text-sm font-medium text-papier transition-opacity hover:opacity-85 disabled:opacity-60">
+      <button type="submit" disabled={pending} className="self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-sur-accent transition-opacity hover:opacity-85 disabled:opacity-60">
         {pending ? "Envoi…" : "Envoyer"}
       </button>
 
       {/* Information au point de collecte, article 13 du RGPD / CNIL. */}
-      <p className="text-xs text-encre-douce">
+      <p className="text-xs text-texte-doux">
         Le responsable du traitement est {siteName}. Nom, email et message sont
         obligatoires ; le téléphone est facultatif. Ces données servent
         uniquement à répondre à votre demande (mesures précontractuelles,

@@ -5,7 +5,7 @@ import { seConnecter, type EtatConnexion } from "./actions";
 
 // Mêmes classes de champ que le formulaire de contact.
 const champ =
-  "rounded-xl border bg-papier px-4 py-3 outline-none transition-colors focus:border-encre focus-visible:ring-2 focus-visible:ring-encre focus-visible:ring-offset-2 focus-visible:ring-offset-papier";
+  "rounded-xl border bg-surface px-4 py-3 outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-fond";
 
 export function FormulaireConnexion() {
   const [etat, action, enCours] = useActionState<EtatConnexion, FormData>(seConnecter, {});
@@ -21,13 +21,13 @@ export function FormulaireConnexion() {
           required
           aria-invalid={etat.erreur ? true : undefined}
           aria-describedby={etat.erreur ? "connexion-erreur" : undefined}
-          className={`${champ} ${etat.erreur ? "border-brique" : "border-encre-douce/80"}`}
+          className={`${champ} ${etat.erreur ? "border-alerte" : "border-trait-fort"}`}
         />
       </label>
       <button
         type="submit"
         disabled={enCours}
-        className="self-start rounded-full bg-encre px-6 py-3 text-sm font-medium text-papier transition-opacity hover:opacity-85 disabled:opacity-60"
+        className="self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-sur-accent transition-opacity hover:opacity-85 disabled:opacity-60"
       >
         {enCours ? "Connexion…" : "Se connecter"}
       </button>
