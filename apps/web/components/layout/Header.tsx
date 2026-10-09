@@ -15,7 +15,7 @@ export function Header() {
           <ul className="flex gap-5 text-sm text-texte-doux 2xl:gap-7 2xl:text-base">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <LienSection href={link.href} className="transition-colors hover:text-texte">
+                <LienSection href={link.href} className="transition-[color] hover:text-texte">
                   {link.label}
                 </LienSection>
               </li>

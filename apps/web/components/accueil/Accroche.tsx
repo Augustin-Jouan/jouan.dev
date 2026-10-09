@@ -36,7 +36,7 @@ export function Accroche({ angle = "application", nom }: { angle?: Angle; nom?: 
         </Link>
         <Link
           href={accroche.actionSecondaire.href}
-          className="rounded-full border border-trait-fort px-6 py-3 text-sm font-medium transition-colors hover:border-texte 2xl:px-7 2xl:py-3.5 2xl:text-base"
+          className="rounded-full border border-trait-fort px-6 py-3 text-sm font-medium transition-[border-color] hover:border-texte 2xl:px-7 2xl:py-3.5 2xl:text-base"
         >
           {accroche.actionSecondaire.libelle}
         </Link>

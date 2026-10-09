@@ -1,8 +1,8 @@
 # jouan.dev
 
 Portfolio d'Augustin Jouan, développeur full stack indépendant. Le site
-lui-même sert de démonstration : page d'accueil « Atelier clair », intro
-WebGL « goutte d'encre » écrite à la main, budgets de performance vérifiés
+lui-même sert de démonstration : page d'accueil sombre (charte « Nuit mauve »), intro
+WebGL « goutte de lumière » écrite à la main, budgets de performance vérifiés
 en CI.
 
 Conception : `docs/superpowers/specs/` · Plans : `docs/superpowers/plans/`.
@@ -57,6 +57,23 @@ DATABASE_URL_TEST=postgresql://jouan:jouan@127.0.0.1:5433/jouan_test pnpm --filt
 Les tests d'intégration sont ignorés sans `DATABASE_URL_TEST` ; la base de test doit être migrée (`DATABASE_URL=…/jouan_test pnpm --filter web migrer`). Le client est généré par `pnpm --filter web generer-client` (lancé automatiquement par `dev`, `build`, `typecheck` et `test`, sans base).
 
 En production : ressource Postgres Coolify, `DATABASE_URL`, migrations appliquées au démarrage du conteneur.
+
+## Charte
+
+Charte « Nuit mauve » (spec : `docs/superpowers/specs/2026-10-09-charte-design.md`) :
+fond nuit `#2a2127`, texte papier, accent pêche, alerte corail, « en direct » sauge.
+
+- Deux étages dans `apps/web/app/globals.css` : les teintes brutes (`--teinte-*`, sur
+  `:root`, sans classe Tailwind) et les rôles (`@theme` : `fond`, `surface`, `texte`,
+  `texte-doux`, `accent`, `sur-accent`, `alerte`, `vivant`, `trait`, `trait-fort`,
+  `lueur`, `lueur-chaude`, `goutte`). La palette par défaut de Tailwind est retirée.
+- Les composants n'emploient **que des rôles** (`bg-fond`, `text-texte-doux`…), sans
+  opacité, et jamais `text-vivant` : `lib/charte-classes.test.ts` refuse le reste.
+- Le code qui ne lit pas le CSS (intro WebGL, vignettes, curseurs, scène 3D) importe
+  `apps/web/lib/charte.ts`. Pour changer une couleur : la modifier dans `globals.css`
+  **et** `lib/charte.ts` ; `lib/charte.test.ts` vérifie qu'ils concordent et que chaque
+  contraste reste suffisant ; `e2e/accessibilite.spec.ts` passe chaque page à axe-core.
+- La démo de l'étude de cas est intégrée en thème sombre (`?theme=sombre`).
 
 ## Déploiement
 

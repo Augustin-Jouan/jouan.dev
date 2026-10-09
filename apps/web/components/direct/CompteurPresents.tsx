@@ -25,7 +25,7 @@ export function CompteurPresents() {
         <button
           type="button"
           onClick={basculerPartage}
-          className="underline decoration-trait-fort underline-offset-4 transition-colors hover:text-texte"
+          className="underline decoration-trait-fort underline-offset-4 transition-[color] hover:text-texte"
         >
           {partage ? "Masquer mon curseur" : "Montrer mon curseur"}
         </button>
