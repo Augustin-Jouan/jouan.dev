@@ -16,12 +16,15 @@ import {
   CONNEXIONS_MAX,
   CONNEXIONS_PAR_IP,
   Debit,
+  FILE_ENVOI_MAX,
   Gardien,
   SONDE_CONNEXIONS_MAX,
   SONDE_CONNEXIONS_PAR_IP,
+  SONDE_FILE_ENVOI_MAX,
   SONDE_MESSAGES_PAR_SECONDE,
   SONDE_TAILLE_MAX,
 } from "./limites.js";
+import { envoyer } from "./envoi.js";
 import { ipDuClient, origineAutorisee } from "./origines.js";
 import { encoder, lireMessage, TAILLE_MAX_MESSAGE, type MessageServeur } from "./protocole.js";
 import { Salle } from "./salle.js";
@@ -47,7 +50,7 @@ export async function demarrerServeur(options: OptionsServeur): Promise<{ port: 
 
   const diffuser = (message: MessageServeur, sauf?: string) => {
     const texte = encoder(message);
-    for (const [id, c] of connectes) if (id !== sauf) c.ws.send(texte);
+    for (const [id, c] of connectes) if (id !== sauf) envoyer(c.ws, texte, FILE_ENVOI_MAX);
   };
   const ipDe = (c: Context) => ipDuClient(c.req.header("x-forwarded-for"), getConnInfo(c).remote.address);
 
@@ -149,7 +152,7 @@ export async function demarrerServeur(options: OptionsServeur): Promise<{ port: 
             ws.close(1008, "Trop de messages");
             return;
           }
-          ws.send(evt.data);
+          envoyer(ws as WSContext<WebSocket>, evt.data, SONDE_FILE_ENVOI_MAX);
         },
         onClose() {
           if (!connecte) return;
@@ -166,7 +169,7 @@ export async function demarrerServeur(options: OptionsServeur): Promise<{ port: 
     if (lot.length === 0) return;
     for (const [id, c] of connectes) {
       const autres = lot.filter((curseur) => curseur[0] !== id);
-      if (autres.length > 0) c.ws.send(encoder({ type: "positions", curseurs: autres }));
+      if (autres.length > 0) envoyer(c.ws, encoder({ type: "positions", curseurs: autres }), FILE_ENVOI_MAX);
     }
   }, options.intervalleLotMs ?? 50);
 

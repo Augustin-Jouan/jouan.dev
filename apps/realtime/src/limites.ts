@@ -67,3 +67,11 @@ export const SONDE_CONNEXIONS_PAR_IP = 2;
 export const SONDE_MESSAGES_PAR_SECONDE = 5;
 /** Octets UTF-8 au plus par message (un horodatage en texte). */
 export const SONDE_TAILLE_MAX = 32;
+
+/**
+ * Octets en attente d'envoi au-delà desquels un client qui ne lit plus est
+ * coupé : une trentaine de lots de positions pour l'accueil, quelques échos
+ * pour la sonde.
+ */
+export const FILE_ENVOI_MAX = 256 * 1_024;
+export const SONDE_FILE_ENVOI_MAX = 1_024;
