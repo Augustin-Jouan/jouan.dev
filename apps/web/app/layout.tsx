@@ -51,7 +51,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${instrument.variable}`}>
       {/* `relative` : le fond de l'accueil se positionne par rapport au corps. */}
-      <body className="relative flex min-h-screen flex-col font-sans text-encre">
+      <body className="relative flex min-h-screen flex-col font-sans text-texte">
         <PersonJsonLd />
         <Umami />
         <SkipLink />

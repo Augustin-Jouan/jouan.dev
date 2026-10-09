@@ -53,7 +53,7 @@
   --color-braise-claire: #ef9c62;
   --color-terre: #8a5a3c;
 
-  --shadow-fenetre: 0 30px 80px -40px rgb(27 26 23 / 0.45);
+  --shadow-fenetre: 0 30px 80px -40px rgb(0 0 0 / 0.6);
 
   /* Colonne de contenu des grands écrans (classe `max-w-page`, à partir de 2xl). */
   --container-page: 90rem;
@@ -63,9 +63,32 @@
 }
 
 html {
-  background-color: var(--color-papier);
-  color: var(--color-encre);
+  color-scheme: dark;
+  background-color: var(--color-fond);
+  color: var(--color-texte);
   scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-sur-accent);
+}
+
+/* Anneau de focus pêche partout (3:1 au moins sur le fond et les cartes). */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* Champs pré-remplis par le navigateur : Chrome y pose un fond clair que
+   `color-scheme` ne corrige pas. */
+input:autofill,
+textarea:autofill,
+input:-webkit-autofill,
+textarea:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-texte);
+  caret-color: var(--color-texte);
+  box-shadow: 0 0 0 1000px var(--color-surface) inset;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -74,7 +97,7 @@ html {
   }
 }
 
-/* Grain de papier : bruit SVG très léger, fixe, sous tout le contenu. */
+/* Grain : bruit SVG très léger, fixe, sous tout le contenu. */
 body::before {
   content: "";
   position: fixed;
