@@ -14,7 +14,7 @@
 
 - Tout le texte visible, les commentaires, les noms de fichiers et les messages de commit sont en **français**.
 - **Anonymat** : aucun nom réel de client, de projet, d'employeur, de ville, de téléphone ou d'adresse dans le dépôt ni dans les commits. Contrôle : `grep -ciF -f <(grep -v '^#' .superpowers/anonymat/termes-interdits.txt | grep -v '^$')` sur le diff et les messages → `0`. Ne jamais citer ce fichier.
-- **Caractères invisibles** : U+00A0 et U+202F (produits par `Intl` en `fr-FR`) s'écrivent uniquement en échappements ` ` / ` ` dans le code et les tests ; les tests normalisent avec `.replace(/[  ]/g, " ")`.
+- **Caractères invisibles** : U+00A0 et U+202F (produits par `Intl` en `fr-FR`) s'écrivent uniquement en échappements `\u00a0` / `\u202f` dans le code et les tests ; les tests normalisent avec `.replace(/[\u00a0\u202f]/g, " ")`.
 - **Next 16 a des ruptures** : lire le guide concerné dans `apps/web/node_modules/next/dist/docs/` avant d'utiliser `proxy`, `after`, `cookies`, les Route Handlers, les Server Actions, `params`/`searchParams` (Promises).
 - **Prisma épinglé à `7.10.0`** (`prisma`, `@prisma/client`, `@prisma/adapter-pg`) ; client généré dans `apps/web/lib/generated/prisma` (ignoré par Git et par ESLint).
 - **Aucun cookie pour les visiteurs** ; seul `admin_session` existe, `Path=/admin`. **Aucune adresse IP stockée.**
@@ -261,7 +261,7 @@ export function appareilDepuis(indiceMobile: string | null, ua: string | null): 
 import { describe, expect, it } from "vitest";
 import { dateHeureParis, ilYA } from "./temps";
 
-const espaces = (t: string) => t.replace(/[  ]/g, " ");
+const espaces = (t: string) => t.replace(/[\u00a0\u202f]/g, " ");
 const maintenant = new Date("2026-10-09T12:00:00Z");
 const avant = (ms: number) => new Date(maintenant.getTime() - ms);
 
@@ -318,7 +318,7 @@ Si le format réel de `Intl` diffère du test (par exemple « 14 h 00 »), align
 import { describe, expect, it } from "vitest";
 import { contenuMailVisite, ordinalVisite } from "./mail-visite";
 
-const espaces = (t: string) => t.replace(/[  ]/g, " ");
+const espaces = (t: string) => t.replace(/[\u00a0\u202f]/g, " ");
 const base = {
   nom: "Boulangerie Martin",
   appareil: "mobile" as const,
