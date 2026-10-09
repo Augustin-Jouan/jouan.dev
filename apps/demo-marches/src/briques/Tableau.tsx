@@ -27,6 +27,9 @@ const VARIANTE = {
     "[&_tbody_[data-colle]]:bg-inherit [&_tfoot_[data-colle]]:bg-inherit " +
     /* Le pied : la ligne des totaux. */
     "[&_tfoot_tr]:bg-surface [&_tfoot_tr]:font-semibold [&_tfoot_th]:px-3 [&_tfoot_th]:py-2.5 [&_tfoot_th]:text-left [&_tfoot_td]:px-3 [&_tfoot_td]:py-2.5",
+  certificat:
+    "[&_tr]:border-b [&_tr]:border-feuille-trait [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:text-13 [&_th]:font-normal [&_td]:px-2 [&_td]:py-1.5 [&_td]:text-13 " +
+    "[&_thead_th]:text-11 [&_thead_th]:font-semibold [&_thead_th]:text-feuille-gris [&_tr[data-total]]:bg-feuille-zone [&_tr[data-total]]:font-semibold",
 } as const;
 
 /** Un tableau : les cellules restent du HTML, leurs écarts passent par des attributs data-*. */

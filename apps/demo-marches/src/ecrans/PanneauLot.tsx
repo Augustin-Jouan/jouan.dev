@@ -12,16 +12,17 @@ import { CHIFFRES, SURTITRE } from "../briques/typo";
 import type { Lot } from "../donnees/chantier";
 import type { ActionDemo } from "../donnees/etat";
 import { useAnnonce } from "./Annonce";
+import { ApercuCertificat } from "./ApercuCertificat";
 
 const numeroSur2 = (n: number) => String(n).padStart(2, "0");
 
-export function PanneauLot({ lot, dispatch, surFermeture, surCertificat }: {
+export function PanneauLot({ lot, dispatch, surFermeture }: {
   lot: Lot;
   dispatch: Dispatch<ActionDemo>;
   surFermeture(): void;
-  surCertificat(): void;
 }) {
   const annoncer = useAnnonce();
+  const [apercu, setApercu] = useState(false);
   const [libelle, setLibelle] = useState("");
   const [montant, setMontant] = useState("");
   const [erreur, setErreur] = useState<{ champ: "libelle" | "montant"; message: string } | null>(null);
@@ -141,9 +142,10 @@ export function PanneauLot({ lot, dispatch, surFermeture, surCertificat }: {
         </Carte>
       </form>
 
-      <Bouton onClick={surCertificat} className="self-start">
+      <Bouton onClick={() => setApercu(true)} className="self-start">
         Certificat de paiement
       </Bouton>
+      {apercu && <ApercuCertificat lot={lot} dispatch={dispatch} surFermeture={() => setApercu(false)} />}
     </Surcouche>
   );
 }

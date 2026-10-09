@@ -15,8 +15,6 @@ function Demo() {
   const annoncer = useAnnonce();
   const [etat, dispatch] = useReducer(reducteur, undefined, etatInitial);
   const [actif, setActif] = useState("marches");
-  // L'aperçu du certificat arrive avec la tâche 6 : pour l'instant on ne retient que le lot demandé.
-  const [, setApercuLotId] = useState<string | null>(null);
   return (
     <Coquille
       surReinitialisation={() => {
@@ -26,7 +24,7 @@ function Demo() {
       enTete={<Onglets groupe={groupe} libelle="Écrans de la démo" onglets={ONGLETS} actif={actif} surChangement={setActif} />}
     >
       <PanneauOnglet groupe={groupe} id="marches" actif={actif}>
-        <Marches lots={etat.lots} dispatch={dispatch} surCertificat={setApercuLotId} />
+        <Marches lots={etat.lots} dispatch={dispatch} />
       </PanneauOnglet>
       <PanneauOnglet groupe={groupe} id="planning" actif={actif}>
         {null}

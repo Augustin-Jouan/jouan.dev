@@ -14,10 +14,9 @@ export const nomLot = (lot: Lot) => `Lot ${String(lot.numero).padStart(2, "0")}`
 const payeHT = (lot: Lot) => lot.acomptes.reduce((s, a) => s + a, 0);
 const pourcentage = (paye: number, engage: number) => (engage > 0 ? Math.max(0, Math.min(100, Math.round((paye / engage) * 100))) : 0);
 
-export function Marches({ lots, dispatch, surCertificat }: {
+export function Marches({ lots, dispatch }: {
   lots: readonly Lot[];
   dispatch: Dispatch<ActionDemo>;
-  surCertificat?(lotId: string): void;
 }) {
   const [ouvertId, setOuvertId] = useState<string | null>(null);
   const ouvert = lots.find((l) => l.id === ouvertId);
@@ -96,7 +95,6 @@ export function Marches({ lots, dispatch, surCertificat }: {
           lot={ouvert}
           dispatch={dispatch}
           surFermeture={() => setOuvertId(null)}
-          surCertificat={() => surCertificat?.(ouvert.id)}
         />
       )}
     </>
