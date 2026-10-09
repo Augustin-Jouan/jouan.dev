@@ -3,8 +3,12 @@
     "collect": {
       "startServerCommand": "HOSTNAME=127.0.0.1 PORT=3000 node scripts/demarrer-standalone.mjs",
       "startServerReadyPattern": "Ready",
-      "url": ["http://127.0.0.1:3000/"],
-      "numberOfRuns": 3,
+      "url": [
+        "http://127.0.0.1:3000/",
+        "http://127.0.0.1:3000/realisations/suivi-de-marches",
+        "http://127.0.0.1:3000/realisations/site-artisan"
+      ],
+      "numberOfRuns": 5,
       "settings": {
         "chromeFlags": "--no-sandbox --headless=new"
       }

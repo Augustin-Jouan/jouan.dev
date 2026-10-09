@@ -13,9 +13,12 @@
     "e2e": "playwright test",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
     "verifier-taille-encre": "node scripts/verifier-taille-encre.mjs",
-    "verifier-placeholders": "node scripts/verifier-placeholders.mjs"
+    "verifier-taille-demo": "node scripts/verifier-taille-demo.mjs",
+    "verifier-placeholders": "node scripts/verifier-placeholders.mjs",
+    "capturer-apercu-demo": "node scripts/capturer-apercu-demo.mjs"
   },
   "dependencies": {
+    "@fontsource/instrument-serif": "^5.3.0",
     "next": "^16.3.4",
     "nodemailer": "^9.1.1",
     "react": "19.2.4",

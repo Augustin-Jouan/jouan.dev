@@ -3,6 +3,8 @@
  * valider. Réalisations anonymisées : ni nom de client ni détail identifiant.
  */
 
+import type { SlugEtude } from "./realisations";
+
 /** Identifiants des sections de l'accueil, cibles des ancres (`/#offre`). */
 export const ANCRES = {
   offre: "offre",
@@ -89,6 +91,7 @@ export const offres: Offre[] = [
 ];
 
 export type Realisation = {
+  slug: SlugEtude;
   titre: string;
   /** Secteur ou métier du client, sans le nommer. */
   contexte: string;
@@ -99,6 +102,7 @@ export type Realisation = {
 
 export const realisations: Realisation[] = [
   {
+    slug: "suivi-de-marches",
     titre: "Suivi de marchés de travaux",
     contexte: "Entreprise du BTP",
     besoin:
@@ -108,6 +112,7 @@ export const realisations: Realisation[] = [
     stack: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Docker"],
   },
   {
+    slug: "site-artisan",
     titre: "Site vitrine d'artisan",
     contexte: "Électricien-plombier",
     besoin:

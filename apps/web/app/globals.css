@@ -19,6 +19,8 @@
   --color-terre: #8a5a3c;
   --color-trait: #c9c1b2;
 
+  --shadow-fenetre: 0 30px 80px -40px rgb(27 26 23 / 0.45);
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
 }
