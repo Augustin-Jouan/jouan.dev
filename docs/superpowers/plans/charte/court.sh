@@ -17,6 +17,11 @@ if [ -f "$principal/apps/web/.env.local" ]; then
   set +a
 fi
 export NEXT_PUBLIC_DIRECT_URL="${NEXT_PUBLIC_DIRECT_URL:-ws://127.0.0.1:3201/direct}"
+# Navigateurs de Playwright : ceux de l'utilisateur, même si le bac à sable de
+# l'éditeur pointe ailleurs (sinon « Executable doesn't exist »).
+if [ -d "$HOME/.cache/ms-playwright" ]; then
+  export PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright"
+fi
 
 journal="$(mktemp "${TMPDIR:-/tmp}/charte-XXXXXX.log")"
 "$@" > "$journal" 2>&1
