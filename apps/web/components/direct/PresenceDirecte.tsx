@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore, type ComponentType, type ReactNode } from "react";
 import type { ConnexionDirecte } from "@/lib/direct/connexion";
 import type { CurseurAffiche, EtatDirect, MagasinDirect } from "@/lib/direct/magasin";
+import { quandLibre } from "@/lib/quand-libre";
 import { ContexteDirect } from "./contexte";
 
 const CLE_PARTAGE = "direct:partage";
@@ -34,25 +35,6 @@ const abonnerPointeur = (fn: () => void) => {
   return () => mq.removeEventListener("change", fn);
 };
 const lirePointeur = () => window.matchMedia(REQUETE_POINTEUR).matches;
-
-/** Lance `fn` une fois la page chargée, dans un temps libre du navigateur. */
-function quandLibre(fn: () => void): () => void {
-  let id: number | undefined;
-  const lancer = () => {
-    id =
-      typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(fn, { timeout: 3_000 })
-        : window.setTimeout(fn, 1_000);
-  };
-  if (document.readyState === "complete") lancer();
-  else window.addEventListener("load", lancer, { once: true });
-  return () => {
-    window.removeEventListener("load", lancer);
-    if (id === undefined) return;
-    if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(id);
-    window.clearTimeout(id);
-  };
-}
 
 type Apres = typeof import("@/lib/direct/apres-affichage");
 type Calque = ComponentType<{ curseurs: CurseurAffiche[] }>;
