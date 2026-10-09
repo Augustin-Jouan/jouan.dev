@@ -17,6 +17,13 @@ test("première visite : l'intro se joue puis devient le halo", async ({ page })
   expect(await page.evaluate((cle) => localStorage.getItem(cle), CLE)).toBe("1");
 });
 
+test("pendant l'intro, le nom se lit en nuit sur la goutte pêche", async ({ page }) => {
+  await page.goto("/");
+  const nom = page.locator(".fond-accueil__nom");
+  await expect(nom).toBeAttached();
+  expect(await nom.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(42, 33, 39)"); // sur-accent (nuit)
+});
+
 test("un clic termine l'intro immédiatement", async ({ page }) => {
   await page.goto("/");
   const fond = page.locator(".fond-accueil");

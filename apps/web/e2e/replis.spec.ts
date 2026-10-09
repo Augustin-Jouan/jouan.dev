@@ -11,6 +11,13 @@ test.describe("mouvement réduit", () => {
     await expect(fond.locator("canvas")).toHaveCount(0);
     await expect(fond.locator(".halo-css")).toBeVisible();
   });
+
+  test("halo CSS aux couleurs de la charte (corail bordé de rose)", async ({ page }) => {
+    await page.goto("/");
+    const halo = await page.locator(".halo-css").evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(halo).toContain("rgb(216, 127, 129)"); // lueur (corail)
+    expect(halo).toContain("rgb(174, 99, 120)"); // lueur chaude (rose)
+  });
 });
 
 test("WebGL2 absent : halo CSS", async ({ page }) => {

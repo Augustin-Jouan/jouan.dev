@@ -123,8 +123,8 @@ body::before {
   border-radius: 9999px;
   background: radial-gradient(
     circle at 45% 45%,
-    var(--color-braise) 0%,
-    var(--color-braise-claire) 40%,
+    var(--color-lueur) 0%,
+    var(--color-lueur-chaude) 40%,
     transparent 70%
   );
   filter: blur(28px);
@@ -146,7 +146,7 @@ body::before {
   margin: 0;
   font-family: var(--font-serif);
   font-size: clamp(2.5rem, 7vw, 5rem);
-  color: var(--color-papier);
+  color: var(--color-sur-accent);
   opacity: 0;
 }
 
