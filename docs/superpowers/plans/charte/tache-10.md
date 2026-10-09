@@ -21,17 +21,17 @@ import { describe, expect, it } from "vitest";
 import { appliquerTheme } from "./theme";
 
 describe("appliquerTheme", () => {
-  it("passe la démo en sombre avec ?theme=sombre", () => {
+  it("passe la démo en sombre avec ?theme=sombre (règle de styles/jetons.css)", () => {
     const racine = document.createElement("html");
     appliquerTheme("?theme=sombre", racine);
-    expect(racine.style.colorScheme).toBe("dark");
+    expect(racine.dataset.theme).toBe("sombre");
   });
 
   it("ne change rien sans paramètre ni avec une autre valeur", () => {
     for (const recherche of ["", "?theme=clair", "?autre=sombre"]) {
       const racine = document.createElement("html");
       appliquerTheme(recherche, racine);
-      expect(racine.style.colorScheme).toBe("");
+      expect(racine.dataset.theme).toBeUndefined();
     }
   });
 });
@@ -48,11 +48,13 @@ Expected: FAIL — `Failed to resolve import "./theme"`.
 /**
  * Thème de la démo : claire quand on l'ouvre seule ; sombre quand le site
  * l'intègre (`?theme=sombre`), pour s'accorder à sa charte « Nuit mauve ».
- * Les jetons (styles/jetons.css) ont déjà leurs valeurs sombres (`light-dark()`).
+ * Pose `data-theme="sombre"` : la règle CSS de styles/jetons.css déclare
+ * `color-scheme: dark`, et c'est à elle que LightningCSS attache la bascule des
+ * valeurs sombres de `light-dark()` (un style en ligne ne la déclencherait pas).
  * Appelé avant le premier rendu, sans script en ligne (la CSP du site s'applique).
  */
 export function appliquerTheme(recherche: string, racine: HTMLElement): void {
-  if (new URLSearchParams(recherche).get("theme") === "sombre") racine.style.colorScheme = "dark";
+  if (new URLSearchParams(recherche).get("theme") === "sombre") racine.dataset.theme = "sombre";
 }
 ```
 
@@ -64,10 +66,19 @@ appliquerTheme(window.location.search, document.documentElement);
 
 `apps/demo-marches/src/styles/jetons.css` :
 - dans le commentaire d'en-tête, remplacer `La démo reste en thème clair. */` par `Claire quand on l'ouvre seule ; sombre dans le site (`?theme=sombre`, src/theme.ts). */` ;
+- juste après `:root { color-scheme: light; }`, ajouter la règle ci-dessous — **obligatoire** : LightningCSS compile `light-dark()` en variables `--lightningcss-light/-dark` qu'il ne bascule que dans les règles CSS qui déclarent `color-scheme` ; un `style.colorScheme` en ligne laisse la démo claire :
+
+```css
+/* Dans le site (`?theme=sombre`, src/theme.ts). Une vraie règle CSS, pas un style
+   en ligne : LightningCSS compile light-dark() en variables qu'il ne bascule
+   qu'aux règles qui déclarent color-scheme. */
+:root[data-theme="sombre"] { color-scheme: dark; }
+```
+
 - remplacer `--faint: light-dark(#97a0a7, #748a9d);` par `--faint: light-dark(#97a0a7, #8a9eb0);` (en sombre : 4,64:1 sur `#223442`, sa surface la plus claire, contre 3,58 ; la valeur claire ne change pas).
 
 Run: `./docs/superpowers/plans/charte/court.sh bash -c 'pnpm --filter demo-marches exec vitest run --reporter=dot && pnpm --filter demo-marches build'`
-Expected: PASS ; build OK.
+Expected: PASS ; build OK ; `grep -o '\[data-theme=[^}]*}' apps/web/public/demo/suivi-de-marches/assets/*.css` affiche `--lightningcss-dark:initial;color-scheme:dark`.
 
 - [ ] **Step 3: Le site charge la démo en sombre, sans éclair clair (test d'abord)**
 
@@ -108,6 +119,12 @@ Expected: PASS.
     await expect(iframe).toHaveClass(/opacity-100/);
     const cadre = page.frames().find((f) => f.url().includes("/demo/suivi-de-marches/"))!;
     expect(await cadre.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe("dark");
+    // Les couleurs réellement affichées (le seul color-scheme ne prouve pas la bascule des jetons).
+    const corps = await cadre.evaluate(() => {
+      const s = getComputedStyle(document.body);
+      return { fond: s.backgroundColor, texte: s.color };
+    });
+    expect(corps).toEqual({ fond: "rgb(20, 32, 43)", texte: "rgb(233, 239, 245)" });
   });
 ```
 
@@ -123,7 +140,7 @@ Expected: PASS.
 ./docs/superpowers/plans/charte/court.sh pnpm --filter web exec playwright test e2e/demo.spec.ts e2e/realisations.spec.ts --reporter=line
 ```
 
-Expected: « Aperçu enregistré : …/apercu.webp » ; ouvrir l'image : la démo y est sombre ; e2e PASS. Puis `./docs/superpowers/plans/charte/court.sh pnpm --filter web verifier-taille-demo` : PASS.
+Expected: « Aperçu enregistré : …/apercu.webp » ; ouvrir l'image : la démo y est sombre (luminance moyenne ≈ 40 ; ≈ 228 si elle est restée claire) ; e2e PASS. Puis `./docs/superpowers/plans/charte/court.sh pnpm --filter web verifier-taille-demo` : PASS.
 
 - [ ] **Step 6: Commiter**
 
