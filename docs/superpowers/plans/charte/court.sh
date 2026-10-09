@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Fiches du plan « charte » : lance une commande avec l'environnement des tests
+# (base locale de développement, adresse du service temps réel), garde le journal
+# complet dans un fichier et n'affiche que sa fin et le code de sortie.
+#
+# Usage, depuis la racine du worktree :
+#   ./docs/superpowers/plans/charte/court.sh pnpm test
+#   ./docs/superpowers/plans/charte/court.sh bash -c 'pnpm build && pnpm --filter web verifier-taille-encre'
+# LIGNES=60 ./docs/superpowers/plans/charte/court.sh … pour voir plus de lignes.
+#
+# Les valeurs de .env.local ne sont jamais affichées.
+principal="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
+if [ -f "$principal/apps/web/.env.local" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  source <(grep -E '^DATABASE_URL(_TEST)?=' "$principal/apps/web/.env.local")
+  set +a
+fi
+export NEXT_PUBLIC_DIRECT_URL="${NEXT_PUBLIC_DIRECT_URL:-ws://127.0.0.1:3201/direct}"
+
+journal="$(mktemp "${TMPDIR:-/tmp}/charte-XXXXXX.log")"
+"$@" > "$journal" 2>&1
+code=$?
+tail -n "${LIGNES:-30}" "$journal"
+echo "→ code de sortie $code (journal complet : $journal)"
+exit "$code"

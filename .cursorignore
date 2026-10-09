@@ -1,0 +1,31 @@
+# Ce que l'agent de l'éditeur n'a pas besoin de lire : dépendances, fichiers
+# générés, rapports de test, secrets locaux, et les plans des sous-projets déjà
+# livrés (plusieurs milliers de lignes). Ouvrir l'éditeur sur le worktree où se
+# fait le travail, pas sur le dossier principal : les worktrees sont exclus.
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+build/
+coverage/
+**/dist/
+apps/web/lib/generated/
+apps/web/public/demo/
+*.tsbuildinfo
+next-env.d.ts
+pnpm-lock.yaml
+test-results/
+playwright-report/
+**/.lighthouseci/
+**/.mesures/
+apps/web/build-info.json
+.env*
+!.env.example
+.superpowers/
+docs/superpowers/plans/2026-10-08-socle-et-accueil.md
+docs/superpowers/plans/2026-10-09-accueil-personnalise.md
+docs/superpowers/plans/2026-10-09-etudes-de-cas.md
+docs/superpowers/plans/2026-10-09-temps-reel.md
+docs/superpowers/plans/2026-10-09-coulisses.md
+docs/superpowers/plans/2026-10-09-charte.md
