@@ -1,11 +1,17 @@
+import { appendFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { SMTPServer } from "smtp-server";
 
 /** Un message qui contient ce mot est refusé : sert à tester le message d'échec. */
 export const MOT_REFUS = "REFUS-SMTP";
 export const PORT_SMTP = 2525;
+/** Un message reçu par ligne (JSON d'une chaîne) : lu par `boite.ts`. */
+export const FICHIER_MAILS = join(tmpdir(), "jouan-e2e-mails.jsonl");
 
 /** Démarré avant les tests (globalSetup) ; la fonction renvoyée l'arrête. */
 export default async function demarrerSmtpFactice() {
+  writeFileSync(FICHIER_MAILS, "");
   const serveur = new SMTPServer({
     authOptional: true,
     allowInsecureAuth: true,
@@ -20,7 +26,10 @@ export default async function demarrerSmtpFactice() {
         contenu += morceau.toString();
       });
       flux.on("end", () => {
-        if (!contenu.includes(MOT_REFUS)) return rappel();
+        if (!contenu.includes(MOT_REFUS)) {
+          appendFileSync(FICHIER_MAILS, JSON.stringify(contenu) + "\n");
+          return rappel();
+        }
         rappel(Object.assign(new Error("Message refusé"), { responseCode: 550 }));
       });
     },
