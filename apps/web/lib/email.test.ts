@@ -7,7 +7,7 @@ vi.mock("nodemailer", () => ({
   },
 }));
 
-import { sendContactEmail } from "./email";
+import { envoyerMail, sendContactEmail } from "./email";
 
 describe("sendContactEmail", () => {
   beforeEach(() => {
@@ -56,5 +56,17 @@ describe("sendContactEmail", () => {
     await expect(
       sendContactEmail({ nom: "Jean", email: "jean@exemple.fr", message: "Bonjour" })
     ).rejects.toThrow("SMTP_HOST");
+  });
+
+  it("mentionne le lien personnalisé d'origine", async () => {
+    await sendContactEmail({ nom: "Jean", email: "jean@exemple.fr", message: "Bonjour", lienPersonnalise: "Boulangerie Martin" });
+    expect(sendMail.mock.calls[0][0].text).toMatch(/^Message envoyé depuis le lien de Boulangerie Martin\n\n/);
+  });
+
+  it("envoie un mail libre sans adresse de réponse", async () => {
+    await envoyerMail({ sujet: "Sujet", texte: "Corps" });
+    expect(sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({ subject: "Sujet", text: "Corps", to: "dest@test", replyTo: undefined }),
+    );
   });
 });
