@@ -17,7 +17,14 @@ describe("dureeDefilement", () => {
   it("plus la latence est basse, plus les pointillés vont vite, dans des bornes", () => {
     expect(dureeDefilement(null)).toBe(1.5);
     expect(dureeDefilement(1)).toBe(0.4);
-    expect(dureeDefilement(50)).toBe(2);
+    expect(dureeDefilement(50)).toBe(2.5);
     expect(dureeDefilement(1_000)).toBe(4);
+  });
+
+  it("quelques paliers seulement : une petite variation de latence ne change pas la durée (pas de saut des pointillés)", () => {
+    expect(dureeDefilement(40)).toBe(dureeDefilement(45));
+    expect(dureeDefilement(12)).toBe(dureeDefilement(18));
+    const durees = new Set(Array.from({ length: 200 }, (_, ms) => dureeDefilement(ms)));
+    expect(durees.size).toBeLessThanOrEqual(5);
   });
 });

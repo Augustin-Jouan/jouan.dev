@@ -1,4 +1,5 @@
 import type { InfosBuild } from "@/lib/coulisses/build-info";
+import { formaterDateAbsolue } from "@/lib/coulisses/dates";
 import { DateRelative } from "./DateRelative";
 
 const note = (v: number) => Math.round(v * 100);
@@ -16,7 +17,7 @@ export function SectionDeploiement({ infos }: { infos: InfosBuild | null }) {
           <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <code className="rounded bg-encre/5 px-1.5 py-0.5 text-sm">{infos.sha.slice(0, 7)}</code>
             <span>{infos.titre}</span>
-            <DateRelative iso={infos.date} />
+            <DateRelative iso={infos.date} absolue={formaterDateAbsolue(infos.date)} />
           </p>
           <dl className="grid gap-4 sm:grid-cols-3">
             <div className="flex flex-col gap-1 rounded-xl border border-trait p-5">

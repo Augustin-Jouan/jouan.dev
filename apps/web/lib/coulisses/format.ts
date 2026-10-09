@@ -12,8 +12,15 @@ export function texteSerie(s: EtatSerie): string {
   return s.disponible ? formaterMs(derniere(s)) : "indisponible";
 }
 
+/**
+ * Paliers de durée : changer `animation-duration` d'une animation en cours la
+ * fait sauter ; avec quelques paliers, elle ne change que si la latence change vraiment.
+ */
+const PALIERS_DEFILEMENT = [0.4, 0.8, 1.5, 2.5, 4];
+
 /** Durée d'un cycle des pointillés, en secondes : plus la latence est basse, plus ils vont vite. */
 export function dureeDefilement(ms: number | null): number {
   if (ms === null) return 1.5;
-  return Math.round(Math.min(4, Math.max(0.4, ms / 25)) * 10) / 10;
+  const brute = ms / 25;
+  return PALIERS_DEFILEMENT.find((p) => p >= brute) ?? PALIERS_DEFILEMENT.at(-1)!;
 }
