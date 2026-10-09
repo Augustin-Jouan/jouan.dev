@@ -60,6 +60,14 @@ const securityHeaders = [
       ]),
 ];
 
+// La démo (public/demo, construite depuis apps/demo-marches) s'affiche dans
+// une iframe des études de cas : elle seule accepte d'être incluse, et
+// seulement par le site lui-même. La dernière règle qui pose un en-tête l'emporte.
+const entetesDemo = [
+  { key: "Content-Security-Policy", value: csp.replace("frame-ancestors 'none'", "frame-ancestors 'self'") },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+];
+
 // Monorepo : le lockfile pnpm et les dépendances hissées sont à la racine du
 // dépôt. Le traçage du mode standalone et Turbopack doivent partir de là,
 // sinon l'image Docker manque des modules (doc Next : output.md, turbopack.md).
@@ -87,7 +95,10 @@ const nextConfig: NextConfig = {
   // N'annonce pas la pile technique aux robots de reconnaissance.
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/demo/:path*", headers: entetesDemo },
+    ];
   },
   async redirects() {
     return redirections;

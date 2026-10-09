@@ -1,8 +1,15 @@
 import type { MetadataRoute } from "next";
+import { cheminEtude, etudesDeCas } from "@/data/realisations";
 import { siteUrl } from "@/data/site";
 
 /** Ajouter ici chaque page créée. Les pages légales restent en priorité basse. */
-const pages = ["", "/contact", "/mentions-legales", "/politique-de-confidentialite"];
+const pages = [
+  "",
+  "/contact",
+  ...etudesDeCas.map((etude) => cheminEtude(etude.slug)),
+  "/mentions-legales",
+  "/politique-de-confidentialite",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();

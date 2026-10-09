@@ -50,6 +50,10 @@ describe("HomePage", () => {
     }
     for (const r of realisations) {
       expect(screen.getByRole("heading", { level: 3, name: r.titre })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: r.titre })).toHaveAttribute(
+        "href",
+        `/realisations/${r.slug}`
+      );
     }
     for (const etape of etapes) {
       expect(screen.getByRole("heading", { level: 3, name: etape.titre })).toBeInTheDocument();

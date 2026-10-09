@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Démo construite (copiée depuis apps/demo-marches, ignorée par Git).
+    "public/demo/**",
   ]),
 ]);
 

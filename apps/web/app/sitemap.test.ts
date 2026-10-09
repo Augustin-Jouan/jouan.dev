@@ -3,10 +3,12 @@ import sitemap from "./sitemap";
 import { siteUrl } from "@/data/site";
 
 describe("sitemap", () => {
-  it("inclut l'accueil, le contact et les pages légales", () => {
+  it("inclut l'accueil, le contact, les études de cas et les pages légales", () => {
     const urls = sitemap().map((entree) => entree.url);
     expect(urls).toContain(`${siteUrl}`);
     expect(urls).toContain(`${siteUrl}/contact`);
+    expect(urls).toContain(`${siteUrl}/realisations/suivi-de-marches`);
+    expect(urls).toContain(`${siteUrl}/realisations/site-artisan`);
     expect(urls).toContain(`${siteUrl}/mentions-legales`);
     expect(urls).toContain(`${siteUrl}/politique-de-confidentialite`);
   });
