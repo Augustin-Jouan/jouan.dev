@@ -1,7 +1,7 @@
 # Tâche 03 — Teintes et rôles dans `globals.css`, sans changement visible
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **low**.
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 On **ajoute** les teintes et les rôles ; le site garde son apparence (fond papier, anciennes classes) jusqu'à la tâche 5. `html` et `body` ne changent pas ici.
 

@@ -1,7 +1,7 @@
 # Tâche 09 — Curseurs du temps réel sur la nuit
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **low**.
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 **Files:**
 - Modify: `apps/realtime/src/couleurs.ts`, `apps/realtime/src/couleurs.test.ts`

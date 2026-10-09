@@ -1,6 +1,6 @@
 # Vérification finale (pour Augustin)
 
-À lancer une fois la tâche 12 terminée, depuis la racine du worktree (`.superpowers/worktrees/charte`). C'est ici que se font les vérifications lourdes retirées des fiches : `pnpm e2e` complet, Lighthouse et captures.
+À lancer une fois la tâche 12 terminée, depuis la racine du dépôt. C'est ici que se font les vérifications lourdes retirées des fiches : `pnpm e2e` complet, Lighthouse et captures.
 
 Prérequis : le conteneur Postgres local tourne (`docker ps | grep postgres`). `court.sh` charge l'environnement des tests et n'affiche que la fin de chaque sortie.
 

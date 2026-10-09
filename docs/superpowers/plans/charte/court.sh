@@ -3,7 +3,7 @@
 # (base locale de développement, adresse du service temps réel), garde le journal
 # complet dans un fichier et n'affiche que sa fin et le code de sortie.
 #
-# Usage, depuis la racine du worktree :
+# Usage, depuis la racine du dépôt :
 #   ./docs/superpowers/plans/charte/court.sh pnpm test
 #   ./docs/superpowers/plans/charte/court.sh bash -c 'pnpm build && pnpm --filter web verifier-taille-encre'
 # LIGNES=60 ./docs/superpowers/plans/charte/court.sh … pour voir plus de lignes.

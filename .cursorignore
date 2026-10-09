@@ -1,7 +1,7 @@
 # Ce que l'agent de l'éditeur n'a pas besoin de lire : dépendances, fichiers
 # générés, rapports de test, secrets locaux, et les plans des sous-projets déjà
-# livrés (plusieurs milliers de lignes). Ouvrir l'éditeur sur le worktree où se
-# fait le travail, pas sur le dossier principal : les worktrees sont exclus.
+# livrés (plusieurs milliers de lignes). `.superpowers/` (worktrees, notes
+# locales) est exclu : travailler dans le dossier principal.
 node_modules/
 **/node_modules/
 .next/

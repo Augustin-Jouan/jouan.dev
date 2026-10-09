@@ -1,7 +1,7 @@
 # Tâche 02 — `lib/charte.ts` : teintes, rôles, contrastes
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **low**.
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 **Files:**
 - Create: `apps/web/lib/charte.ts`

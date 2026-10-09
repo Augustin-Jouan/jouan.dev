@@ -1,7 +1,7 @@
 # Tâche 08 — Retirer l'ancienne charte et la palette Tailwind, garde-fou « rôles seulement »
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **medium**.
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 **Files:**
 - Modify: `apps/web/app/globals.css` (`@theme`)

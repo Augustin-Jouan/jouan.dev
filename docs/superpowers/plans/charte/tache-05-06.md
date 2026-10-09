@@ -1,7 +1,7 @@
 # Tâche 05 — Socle sombre, en-tête, pied de page et accueil ; puis tâche 06
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **medium**. Les deux tâches se font dans la même conversation, l'une après l'autre (un commit chacune).
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 Après cette tâche, l'accueil est entièrement dans la nouvelle charte. Les autres pages gardent quelques anciennes classes jusqu'aux tâches 6 et 7 (par exemple un texte `encre-douce` peu lisible sur la nuit) : état intermédiaire attendu, la branche n'est montrée qu'une fois les tâches 5 à 8 faites.
 

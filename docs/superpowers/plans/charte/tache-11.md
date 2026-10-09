@@ -1,7 +1,7 @@
 # Tâche 11 — Vignettes de partage, navigateur et icône
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **medium**.
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 **Files:**
 - Modify: `apps/web/lib/vignette.tsx`, `apps/web/app/layout.tsx`

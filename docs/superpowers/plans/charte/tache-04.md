@@ -1,7 +1,7 @@
 # Tâche 04 — Intro « goutte de lumière »
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **medium**.
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 **Files:**
 - Modify: `apps/web/lib/encre/chronologie.ts` (couleurs, commentaires, `etatEncre`, `etatHalo`), `apps/web/lib/encre/moteur.ts` (import et ligne `gl.uniform3fv(uniformes.couleurClaire, …)`)

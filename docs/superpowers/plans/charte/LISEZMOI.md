@@ -12,7 +12,7 @@ La spec (`../../specs/2026-10-09-charte-design.md`) reste la référence en cas 
 
 ## Avant de commencer (toi, une fois)
 
-Ouvre l'éditeur sur le **worktree** `.superpowers/worktrees/charte`, pas sur le dossier principal. La branche `sous-projet-6-charte` y est déjà rebasée sur `main` (Coulisses comprises). Puis :
+Ouvre l'éditeur sur le dossier du dépôt, sur la branche `sous-projet-6-charte`, déjà rebasée sur `main` (Coulisses comprises). Puis :
 
 ```bash
 ./docs/superpowers/plans/charte/court.sh pnpm install --frozen-lockfile

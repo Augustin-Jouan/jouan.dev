@@ -6,7 +6,7 @@ Lis ce fichier, puis **ta fiche seulement** (`tache-XX.md`). Ne lis ni le plan c
 
 ## Où et comment travailler
 
-- Tout se passe dans ce worktree, branche `sous-projet-6-charte`, déjà rebasée sur `main` (Coulisses comprises). Les commandes se lancent **depuis la racine du worktree**.
+- Tout se passe dans le dossier principal du dépôt, sur la branche `sous-projet-6-charte`, déjà rebasée sur `main` (Coulisses comprises). Les commandes se lancent **depuis la racine du dépôt**.
 - Shell zsh : tout bloc qui contient un chemin à crochets (`[slug]`) ou une liste de fichiers se lance par `bash <<'EOF' … EOF`, avec un tableau et des chemins entre guillemets (les fiches le font déjà).
 - Next.js 16 : avant d'écrire du code Next, lire le guide concerné dans `apps/web/node_modules/next/dist/docs/` (la fiche le dit quand c'est utile).
 

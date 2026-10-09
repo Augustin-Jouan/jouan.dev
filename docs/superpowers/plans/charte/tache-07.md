@@ -1,7 +1,7 @@
 # Tâche 07 — Coulisses aux rôles, scène 3D comprise
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **medium**.
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 Couleurs relevées dans le code fusionné (`main` du 10/10) : le tableau du step 2 donne chaque occurrence. Le step 1 sert à vérifier qu'il n'y en a pas d'autre.
 

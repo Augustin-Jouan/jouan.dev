@@ -1,7 +1,7 @@
 # Tâche 12 — Accessibilité de bout en bout et documentation
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **high**.
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 **Files:**
 - Modify: `apps/web/package.json`, `pnpm-lock.yaml` (dépendance `@axe-core/playwright`)

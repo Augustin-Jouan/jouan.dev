@@ -1,7 +1,7 @@
 # Tâche 10 — Démo intégrée en sombre (`?theme=sombre`)
 
 > Lis d'abord `contexte.md` (même dossier). Niveau de raisonnement conseillé : **medium**.
-> Commandes depuis la racine du worktree. Termine par le compte rendu de `contexte.md`.
+> Commandes depuis la racine du dépôt. Termine par le compte rendu de `contexte.md`.
 
 **Files:**
 - Create: `apps/demo-marches/src/theme.ts`, `apps/demo-marches/src/theme.test.ts`
