@@ -10,7 +10,7 @@ const envoyerMail = vi.hoisted(() => vi.fn());
 vi.mock("./depot", () => depot);
 vi.mock("@/lib/email", () => ({ envoyerMail }));
 import { reinitialiserLimites } from "@/lib/rate-limit";
-import { traiterVisite } from "./traitement";
+import { purgerVisitesAnciennes, traiterVisite } from "./traitement";
 
 const le = new Date("2026-10-09T12:00:00Z");
 
@@ -88,5 +88,21 @@ describe("traiterVisite", () => {
     envoyerMail.mockResolvedValue(undefined);
     depot.purgerVisites.mockRejectedValue(new Error("ECONNRESET"));
     await expect(traiterVisite("x-0000", "mobile", le)).resolves.toBeUndefined();
+  });
+});
+
+describe("purgerVisitesAnciennes", () => {
+  beforeEach(() => vi.spyOn(console, "error").mockImplementation(() => {}));
+  afterEach(() => vi.resetAllMocks());
+
+  it("purge les visites de plus de douze mois", async () => {
+    await purgerVisitesAnciennes(le);
+    expect(depot.purgerVisites).toHaveBeenCalledWith(new Date(le.getTime() - 365 * 24 * 60 * 60 * 1000));
+  });
+
+  it("ne lève pas sur une erreur et la journalise", async () => {
+    depot.purgerVisites.mockRejectedValue(new Error("ECONNRESET"));
+    await expect(purgerVisitesAnciennes(le)).resolves.toBeUndefined();
+    expect(console.error).toHaveBeenCalled();
   });
 });

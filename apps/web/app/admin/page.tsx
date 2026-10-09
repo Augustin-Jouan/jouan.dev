@@ -7,6 +7,7 @@ import { libellesAngle } from "@/data/accueil";
 import { exigerSession } from "@/lib/admin/acces";
 import { baseConfiguree } from "@/lib/base/client";
 import { listerLiens, type LienResume } from "@/lib/liens/depot";
+import { purgerVisitesAnciennes } from "@/lib/liens/traitement";
 import { ordinalVisite } from "@/lib/liens/mail-visite";
 import { dateHeureParis, ilYA } from "@/lib/liens/temps";
 import { apercuDuLien, urlDuLien } from "@/lib/liens/url";
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 
 async function chargerLiens(): Promise<LienResume[] | null> {
   if (!baseConfiguree()) return null;
+  await purgerVisitesAnciennes();
   try {
     return await listerLiens();
   } catch (err) {

@@ -5,6 +5,7 @@ const exigerSession = vi.hoisted(() => vi.fn());
 const listerLiens = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/admin/acces", () => ({ exigerSession }));
 vi.mock("@/lib/liens/depot", () => ({ listerLiens }));
+vi.mock("@/lib/liens/traitement", () => ({ purgerVisitesAnciennes: vi.fn() }));
 vi.mock("./actions", () => ({ changerEtatAction: vi.fn(), creerLienAction: vi.fn(), supprimerLienAction: vi.fn() }));
 vi.mock("./connexion/actions", () => ({ seDeconnecter: vi.fn() }));
 import PageAdmin from "./page";

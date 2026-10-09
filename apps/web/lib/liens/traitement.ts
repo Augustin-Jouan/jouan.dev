@@ -9,6 +9,15 @@ import { CONSERVATION_VISITES_MS, type Appareil } from "./visites";
 
 const LIMITE_SIGNAUX = { max: 10, dureeMs: 60 * 60 * 1000 };
 
+/** Supprime les visites de plus de douze mois. Ne lève jamais. */
+export async function purgerVisitesAnciennes(maintenant = new Date()): Promise<void> {
+  try {
+    await purgerVisites(new Date(maintenant.getTime() - CONSERVATION_VISITES_MS));
+  } catch (err) {
+    console.error("[visites] Purge impossible :", err);
+  }
+}
+
 export async function traiterVisite(jeton: string, appareil: Appareil, maintenant = new Date()): Promise<void> {
   if (!baseConfiguree()) return;
   if (!verifierLimite(`visite:${jeton}`, LIMITE_SIGNAUX, maintenant.getTime()).autorise) return;
@@ -47,9 +56,5 @@ export async function traiterVisite(jeton: string, appareil: Appareil, maintenan
     }
   }
 
-  try {
-    await purgerVisites(new Date(maintenant.getTime() - CONSERVATION_VISITES_MS));
-  } catch (err) {
-    console.error("[visites] Purge impossible :", err);
-  }
+  await purgerVisitesAnciennes(maintenant);
 }
