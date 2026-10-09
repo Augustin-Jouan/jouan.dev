@@ -14,6 +14,12 @@ type Fenetre = { debut: number; envois: number; dureeMs: number };
 
 const fenetres = new Map<string, Fenetre>();
 
+// Les jetons aléatoires au bon format créent chacun une entrée : on borne la table,
+// et on ne la parcourt pas à chaque appel.
+const CLES_MAX = 10_000;
+const PURGE_ESPACEMENT_MS = 60 * 1000;
+let dernierePurge = 0;
+
 export type LimiteOptions = {
   /** Nombre d'envois autorisés par fenêtre. */
   max: number;
@@ -28,9 +34,16 @@ export function verifierLimite(
 ): { autorise: boolean; secondesAvantReessai: number } {
   purger(maintenant);
 
-  const fenetre = fenetres.get(cle);
+  let fenetre = fenetres.get(cle);
+  // La purge est espacée : une fenêtre échue peut encore être là, on la traite comme absente.
+  if (fenetre && maintenant - fenetre.debut >= fenetre.dureeMs) {
+    fenetres.delete(cle);
+    fenetre = undefined;
+  }
 
   if (!fenetre) {
+    // Table pleine : une nouvelle clé est refusée, les clés existantes continuent.
+    if (fenetres.size >= CLES_MAX) return { autorise: false, secondesAvantReessai: Math.ceil(dureeMs / 1000) };
     fenetres.set(cle, { debut: maintenant, envois: 1, dureeMs });
     return { autorise: true, secondesAvantReessai: 0 };
   }
@@ -61,9 +74,12 @@ function secondesRestantes(fenetre: Fenetre, maintenant: number): number {
  * Évite que la table grossisse indéfiniment sur un serveur au long cours.
  * Chaque fenêtre n'est purgée qu'à sa propre échéance : les limites ont des
  * durées différentes (une heure pour le contact, un quart d'heure pour la
- * connexion) et ne doivent pas se purger les unes les autres.
+ * connexion) et ne doivent pas se purger les unes les autres. Au plus une
+ * purge par minute.
  */
 function purger(maintenant: number): void {
+  if (maintenant - dernierePurge < PURGE_ESPACEMENT_MS) return;
+  dernierePurge = maintenant;
   for (const [cle, fenetre] of fenetres) {
     if (maintenant - fenetre.debut >= fenetre.dureeMs) {
       fenetres.delete(cle);
@@ -74,4 +90,5 @@ function purger(maintenant: number): void {
 /** Réservé aux tests : remet le compteur à zéro. */
 export function reinitialiserLimites(): void {
   fenetres.clear();
+  dernierePurge = 0;
 }

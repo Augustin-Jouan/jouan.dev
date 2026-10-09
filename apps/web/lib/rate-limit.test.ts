@@ -50,6 +50,24 @@ describe("rate-limit", () => {
     expect(verifierLimite("contact", { max: 1, dureeMs: HEURE }, vingtMinutes).autorise).toBe(false);
   });
 
+  it("ne purge la table qu'une fois par minute au plus, sans rendre une fenêtre échue bloquante", () => {
+    const options = { max: 1, dureeMs: 1000 };
+    verifierLimite("a", options, 60_000); // purge à 60 000
+    verifierLimite("b", options, 60_500);
+    verifierLimite("c", options, 61_500); // b est échue mais pas purgée (< 1 min)
+    // b, échue, est traitée comme absente : nouvelle fenêtre
+    expect(verifierLimite("b", options, 61_500).autorise).toBe(true);
+    expect(verifierLimite("b", options, 61_500).autorise).toBe(false);
+  });
+
+  it("plafonne la table : une nouvelle clé est refusée, les existantes continuent", () => {
+    const options = { max: 2, dureeMs: HEURE };
+    for (let i = 0; i < 10_000; i++) verifierLimite(`k${i}`, options, 0);
+    expect(verifierLimite("nouvelle", options, 0).autorise).toBe(false);
+    expect(verifierLimite("k0", options, 0).autorise).toBe(true);
+    expect(verifierLimite("k0", options, 0).autorise).toBe(false);
+  });
+
   it("purge une fenêtre à sa propre échéance", () => {
     verifierLimite("contact", { max: 1, dureeMs: QUART_D_HEURE }, 0);
     verifierLimite("autre", { max: 1, dureeMs: HEURE }, QUART_D_HEURE);
