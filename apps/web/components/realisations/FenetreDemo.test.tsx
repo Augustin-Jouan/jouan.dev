@@ -49,7 +49,7 @@ describe("FenetreDemo", () => {
     act(() => declencher(true));
     expect(screen.queryByTitle("Démo interactive : suivi de marchés de travaux")).toBeNull();
     expect(screen.getByAltText(apercu.alt)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ouvrir la démo en plein écran" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^Ouvrir la démo en plein écran\s*\(nouvel onglet\)$/ })).toHaveAttribute(
       "href",
       SOURCE_DEMO,
     );

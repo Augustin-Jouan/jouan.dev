@@ -56,7 +56,14 @@ export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
             className="block h-[720px] w-full bg-white"
           />
         ) : (
-          <Image src={apercu.src} alt={apercu.alt} width={apercu.largeur} height={apercu.hauteur} className="block h-auto w-full" />
+          <Image
+            src={apercu.src}
+            alt={apercu.alt}
+            width={apercu.largeur}
+            height={apercu.hauteur}
+            sizes="(min-width: 1152px) 1088px, 100vw"
+            className="block h-auto w-full md:h-180 md:object-cover md:object-top"
+          />
         )}
       </div>
       <figcaption className="flex flex-wrap items-center justify-between gap-3 text-sm text-encre-douce">
@@ -67,7 +74,7 @@ export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
           rel="noopener"
           className="rounded-full bg-encre px-5 py-2.5 font-medium text-papier transition-opacity hover:opacity-85"
         >
-          Ouvrir la démo en plein écran
+          Ouvrir la démo en plein écran<span className="sr-only"> (nouvel onglet)</span>
         </a>
       </figcaption>
     </figure>
