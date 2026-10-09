@@ -105,3 +105,11 @@ Temps réel (compteur et curseurs de l'accueil) : service `apps/realtime` (Hono,
   3. variable de dépôt GitHub `DIRECT_URL=wss://direct.portfolio.jouan.dev/direct` (figée au build du site : tant qu'elle est vide, le site ne tente aucune connexion) ;
   4. secret GitHub `COOLIFY_WEBHOOK_URL_DIRECT` (webhook de la ressource du service).
 - Limites : 300 connexions au total, 5 par adresse IP (`CONNEXIONS_PAR_IP`), messages de 128 octets et 40 par seconde au plus. Aucune IP ni position n'est journalisée.
+
+Coulisses (`/coulisses`) : architecture du site mesurée en direct, vue 3D à la demande, preuves de qualité du build.
+
+- Mesures : `GET /api/coulisses/mesure` (temps d'un `SELECT 1`, 60 requêtes par minute et par IP, appels d'un autre site refusés) et WebSocket d'écho `/sonde` du service temps réel (hors de la salle de l'accueil, 2 connexions par IP). Rien n'est stocké. Pour les tests de bout en bout seulement : `MESURE_MAX_PAR_IP` (site) et `SONDE_CONNEXIONS_PAR_IP` (service).
+- Dernier déploiement : la CI écrit `apps/web/build-info.json` (commit, date, nombre de tests, notes Lighthouse, poids JS de l'accueil) dans le job `image`, avant le build Docker. En local, sans ce fichier, la section affiche « Build local : pas de mesures CI ». La page reste statique (`pnpm --filter web verifier-accueil-statique`).
+- Le titre du commit déployé devient public : la règle d'anonymat des messages de commit s'applique pleinement, et la CI refuse un titre qui contient une adresse e-mail ou IP.
+- Budgets : `/coulisses` est mesurée par Lighthouse comme les autres pages ; la vue 3D (Three.js, chargée au clic) reste sous 180 Ko compressés (`pnpm --filter web verifier-taille-3d`).
+- Rien de nouveau à configurer dans Coolify.

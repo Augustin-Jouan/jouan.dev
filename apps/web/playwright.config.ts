@@ -21,6 +21,8 @@ const serviceDirect = process.env.NEXT_PUBLIC_DIRECT_URL
           ORIGINES_AUTORISEES: `http://127.0.0.1:${PORT}`,
           // Tous les navigateurs de test partagent 127.0.0.1.
           CONNEXIONS_PAR_IP: "1000",
+          // Tous les navigateurs de test partagent 127.0.0.1.
+          SONDE_CONNEXIONS_PAR_IP: "1000",
         },
       },
     ]
@@ -75,6 +77,8 @@ export default defineConfig({
         DATABASE_URL: process.env.DATABASE_URL ?? "",
         ADMIN_EMPREINTE: EMPREINTE_E2E,
         ADMIN_SECRET: SECRET_E2E,
+        // Tous les navigateurs de test partagent 127.0.0.1.
+        MESURE_MAX_PAR_IP: "100000",
       },
     },
     ...serviceDirect,
