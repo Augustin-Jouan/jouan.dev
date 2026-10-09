@@ -86,7 +86,7 @@ export function Cadre({ choisi, choisir, mesures, surPerte }: Props) {
             type="button"
             aria-pressed={n.id === choisi}
             onClick={() => choisir(n.id)}
-            className="rounded-full border border-trait px-3 py-1 text-sm aria-pressed:border-brique aria-pressed:text-brique"
+            className="rounded-full border border-trait px-3 py-1 text-sm aria-pressed:border-accent aria-pressed:text-accent"
           >
             {n.nom}
           </button>

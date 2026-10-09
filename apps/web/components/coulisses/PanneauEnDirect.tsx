@@ -13,7 +13,7 @@ export function PanneauEnDirect({ mesures }: { mesures: EtatMesures }) {
   return (
     <section aria-labelledby="titre-en-direct" className="flex flex-col gap-4 rounded-xl border border-trait p-5">
       <h3 id="titre-en-direct" className="flex items-center gap-2 font-semibold">
-        <span aria-hidden="true" className="size-2 rounded-full bg-emerald-600 motion-safe:animate-pulse" />
+        <span aria-hidden="true" className="size-2 rounded-full bg-vivant motion-safe:animate-pulse" />
         En direct
       </h3>
       <dl className="flex flex-col gap-4">
@@ -21,11 +21,11 @@ export function PanneauEnDirect({ mesures }: { mesures: EtatMesures }) {
           const s = mesures[serie];
           return (
             <div key={serie} data-testid={`mesure-${serie}`} className="flex flex-col gap-1">
-              <dt className="text-sm text-encre-douce">{LIBELLES[serie]}</dt>
+              <dt className="text-sm text-texte-doux">{LIBELLES[serie]}</dt>
               <dd className="flex items-baseline justify-between gap-3">
                 <span className="font-serif text-2xl tabular-nums">{texteSerie(s)}</span>
                 {s.disponible && s.mediane !== null && (
-                  <span className="text-xs text-encre-douce tabular-nums">médiane {formaterMs(s.mediane)}</span>
+                  <span className="text-xs text-texte-doux tabular-nums">médiane {formaterMs(s.mediane)}</span>
                 )}
               </dd>
               <dd>

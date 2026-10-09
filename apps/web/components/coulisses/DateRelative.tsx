@@ -19,7 +19,7 @@ const minuteCourante = () => Math.floor(Date.now() / MINUTE);
 export function DateRelative({ iso, absolue }: { iso: string; absolue: string }) {
   const minute = useSyncExternalStore(abonnerMinute, minuteCourante, () => null);
   return (
-    <time dateTime={iso} title={absolue} className="whitespace-nowrap text-sm text-encre-douce">
+    <time dateTime={iso} title={absolue} className="whitespace-nowrap text-sm text-texte-doux">
       {minute === null ? absolue : dateRelative(iso, minute * MINUTE)}
     </time>
   );

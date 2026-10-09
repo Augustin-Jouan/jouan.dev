@@ -29,13 +29,14 @@ import {
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DObject, CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
 import type { IdNoeud, Liaison, Noeud } from "@/data/architecture";
+import { COULEURS_3D } from "./couleurs3d";
 import { CHAMP_VERTICAL, distanceCamera, periodePaquet, position3d } from "./geometrie3d";
 import type { Serie } from "./magasin";
 
 /** Repère ce morceau de JS dans le build (scripts/verifier-taille-3d.mjs). */
 export const MARQUEUR_3D = "scene-3d:v1";
 
-const COULEURS = { papier: 0xf3efe7, brique: 0xc84a1f, trait: 0xc9c1b2 };
+const COULEURS = COULEURS_3D;
 
 export type OptionsScene = {
   conteneur: HTMLElement;
@@ -122,20 +123,20 @@ function construire(o: OptionsScene, rendu: WebGLRenderer): Scene3D {
   const geometrieBloc = new BoxGeometry(2.4, 0.9, 0.9);
   const blocs = new Map<IdNoeud, Mesh<BoxGeometry, MeshStandardMaterial>>();
   for (const n of o.noeuds) {
-    const bloc = new Mesh(geometrieBloc, new MeshStandardMaterial({ color: COULEURS.papier }));
+    const bloc = new Mesh(geometrieBloc, new MeshStandardMaterial({ color: COULEURS.bloc }));
     bloc.position.set(...position3d(n));
     bloc.userData.id = n.id;
     const etiquette = document.createElement("span");
     etiquette.textContent = n.nom;
-    etiquette.className = "rounded bg-papier/90 px-1.5 py-0.5 text-xs font-semibold text-encre";
+    etiquette.className = "rounded bg-surface px-1.5 py-0.5 text-xs font-semibold text-texte";
     bloc.add(new CSS2DObject(etiquette));
     scene.add(bloc);
     blocs.set(n.id, bloc);
   }
 
-  const materielLigne = new LineBasicMaterial({ color: COULEURS.trait });
+  const materielLigne = new LineBasicMaterial({ color: COULEURS.liaison });
   const geometriePaquet = new SphereGeometry(0.09, 12, 12);
-  const materielPaquet = new MeshBasicMaterial({ color: COULEURS.brique });
+  const materielPaquet = new MeshBasicMaterial({ color: COULEURS.actif });
   const lignes: BufferGeometry[] = [];
   const paquets: Paquet[] = [];
   for (const l of o.liaisons) {
@@ -151,7 +152,7 @@ function construire(o: OptionsScene, rendu: WebGLRenderer): Scene3D {
   }
 
   const choisir = (id: IdNoeud) => {
-    for (const [cle, bloc] of blocs) bloc.material.color.set(cle === id ? COULEURS.brique : COULEURS.papier);
+    for (const [cle, bloc] of blocs) bloc.material.color.set(cle === id ? COULEURS.actif : COULEURS.bloc);
   };
   choisir(o.choisi);
 
