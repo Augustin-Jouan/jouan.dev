@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { Image as ImageEtude } from "@/data/realisations";
 
-export const SOURCE_DEMO = "/demo/suivi-de-marches/index.html";
+export const SOURCE_DEMO = "/demo/suivi-de-marches/index.html?theme=sombre";
 
 /** Sous cette largeur, une iframe à défilement interne se manie mal : on ouvre la démo en plein écran. */
 const LARGEUR_MIN = 768;
@@ -17,6 +17,7 @@ const LARGEUR_MIN = 768;
 export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
   const fenetre = useRef<HTMLDivElement>(null);
   const [chargee, setChargee] = useState(false);
+  const [prete, setPrete] = useState(false);
 
   useEffect(() => {
     const element = fenetre.current;
@@ -53,7 +54,8 @@ export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
           <iframe
             src={SOURCE_DEMO}
             title="Démo interactive : suivi de marchés de travaux"
-            className="block h-[720px] w-full bg-surface"
+            onLoad={() => setPrete(true)}
+            className={`block h-[720px] w-full bg-surface transition-opacity duration-300 ${prete ? "opacity-100" : "opacity-0"}`}
           />
         ) : (
           <Image

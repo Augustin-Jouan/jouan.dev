@@ -39,6 +39,22 @@ test.describe("ordinateur", () => {
     await expect(apercu.getByTestId("mandate")).toHaveText(/^3\s021,00\s€$/);
     expect(erreurs).toEqual([]);
   });
+
+  test("dans l'iframe, la démo est en thème sombre", async ({ page }) => {
+    await page.goto("/realisations/suivi-de-marches");
+    await page.getByRole("img", { name: /Écran des marchés de la démo/ }).scrollIntoViewIfNeeded();
+    const iframe = page.locator('iframe[title^="Démo interactive"]');
+    await expect(iframe).toHaveClass(/opacity-100/);
+    const cadre = page.frames().find((f) => f.url().includes("/demo/suivi-de-marches/"))!;
+    expect(await cadre.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe("dark");
+    // Les couleurs affichées, pas seulement color-scheme : LightningCSS compile light-dark()
+    // en variables que seule une règle CSS `color-scheme: dark` fait basculer.
+    const corps = await cadre.evaluate(() => {
+      const s = getComputedStyle(document.body);
+      return { fond: s.backgroundColor, texte: s.color };
+    });
+    expect(corps).toEqual({ fond: "rgb(20, 32, 43)", texte: "rgb(233, 239, 245)" });
+  });
 });
 
 test("en plein écran : onglet Planning et détail d'un lot, sans débordement de page", async ({ page }) => {

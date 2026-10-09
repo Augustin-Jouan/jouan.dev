@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FenetreDemo, SOURCE_DEMO } from "./FenetreDemo";
 
@@ -40,6 +40,11 @@ describe("FenetreDemo", () => {
     act(() => declencher(true));
     const iframe = screen.getByTitle("Démo interactive : suivi de marchés de travaux");
     expect(iframe).toHaveAttribute("src", SOURCE_DEMO);
+    expect(SOURCE_DEMO).toContain("?theme=sombre");
+    // Invisible jusqu'à son chargement : pas d'éclair clair avant le passage en sombre.
+    expect(iframe).toHaveClass("opacity-0");
+    fireEvent.load(iframe);
+    expect(iframe).toHaveClass("opacity-100");
     expect(screen.queryByAltText(apercu.alt)).toBeNull();
   });
 

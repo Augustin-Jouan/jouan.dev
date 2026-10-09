@@ -31,7 +31,7 @@ test("sans JavaScript, l'aperçu et le lien plein écran restent", async ({ brow
   const page = await contexte.newPage();
   await page.goto("/realisations/suivi-de-marches");
   await expect(page.getByRole("img", { name: /Écran des marchés de la démo/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Ouvrir la démo en plein écran/ })).toHaveAttribute("href", "/demo/suivi-de-marches/index.html");
+  await expect(page.getByRole("link", { name: /Ouvrir la démo en plein écran/ })).toHaveAttribute("href", "/demo/suivi-de-marches/index.html?theme=sombre");
   await contexte.close();
 });
 
