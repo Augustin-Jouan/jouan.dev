@@ -249,4 +249,57 @@ describe("IntroEncre", () => {
     expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
     expect(creerMoteur).not.toHaveBeenCalled();
   });
+
+  describe("pointeur", () => {
+    let cadre: ReturnType<typeof vi.spyOn>;
+    beforeEach(() => {
+      cadre = vi.spyOn(HTMLCanvasElement.prototype, "getBoundingClientRect").mockReturnValue({
+        left: 0, top: 0, width: 200, height: 100, right: 200, bottom: 100, x: 0, y: 0, toJSON: () => ({}),
+      } as DOMRect);
+    });
+    afterEach(() => cadre.mockRestore());
+
+    async function monter() {
+      navigateur();
+      render(<IntroEncre />);
+      await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
+    }
+
+    function pointeur(type: string, x: number, y: number) {
+      const evenement = new MouseEvent("pointermove", { clientX: x, clientY: y });
+      Object.defineProperty(evenement, "pointerType", { value: type });
+      window.dispatchEvent(evenement);
+    }
+
+    it("suit la souris en fractions du canvas", async () => {
+      await monter();
+      pointeur("mouse", 50, 25);
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith({ x: 0.25, y: 0.25 });
+    });
+
+    // Review Focus 3
+    it("oublie la souris quand elle quitte la fenêtre : le nuage revient à sa place", async () => {
+      await monter();
+      pointeur("mouse", 50, 25);
+      fireEvent.mouseLeave(document.documentElement);
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith(null);
+    });
+
+    // Review Focus 2
+    it("suit le doigt pendant le toucher et le glisser, puis revient au lâcher", async () => {
+      await monter();
+      fireEvent.touchStart(window, { touches: [{ clientX: 100, clientY: 50 }] });
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith({ x: 0.5, y: 0.5 });
+      fireEvent.touchMove(window, { touches: [{ clientX: 150, clientY: 75 }] });
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith({ x: 0.75, y: 0.75 });
+      fireEvent.touchEnd(window, { touches: [] });
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith(null);
+    });
+
+    it("ignore les événements de pointeur tactiles (le doigt passe par les événements touch)", async () => {
+      await monter();
+      pointeur("touch", 50, 25);
+      expect(moteur.suivrePointeur).not.toHaveBeenCalled();
+    });
+  });
 });
