@@ -49,9 +49,12 @@ export function reposHalo(largeur: number, hauteur: number): Repos {
   };
 }
 
-const FIN_ETALEMENT = 450;
-const FIN_NOM = 800;
-export const DUREE_INTRO = 1500;
+const FIN_ETALEMENT = 900;
+/** Le nom apparaît en 300 ms, reste lisible jusqu'à FIN_NOM, puis s'efface en 400 ms. */
+const FONDU_NOM = 300;
+const EFFACEMENT_NOM = 400;
+const FIN_NOM = 2000;
+export const DUREE_INTRO = 3200;
 /** Bord net de la goutte, avant qu'elle ne se floute en halo. */
 const FLOU_NET = 0.004;
 const CENTRE: Point = { x: 0.5, y: 0.5 };
@@ -98,7 +101,7 @@ export function etatEncre(t: number, couverture: number, repos: Repos): EtatEncr
       flou: FLOU_NET,
       couleur: GOUTTE,
       melange: 0,
-      opaciteNom: borner((t - FIN_ETALEMENT) / 150),
+      opaciteNom: borner((t - FIN_ETALEMENT) / FONDU_NOM),
       terminee: false,
     };
   }
@@ -110,7 +113,7 @@ export function etatEncre(t: number, couverture: number, repos: Repos): EtatEncr
     flou: mix(FLOU_NET, repos.flou, k),
     couleur: [mix(GOUTTE[0], LUEUR[0], k), mix(GOUTTE[1], LUEUR[1], k), mix(GOUTTE[2], LUEUR[2], k)],
     melange: k,
-    opaciteNom: 1 - borner((t - FIN_NOM) / 200),
+    opaciteNom: 1 - borner((t - FIN_NOM) / EFFACEMENT_NOM),
     terminee: false,
   };
 }

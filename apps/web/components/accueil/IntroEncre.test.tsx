@@ -74,6 +74,16 @@ describe("IntroEncre", () => {
     expect(window.sessionStorage.getItem(CLE_INTRO_VUE)).toBe("1");
   });
 
+  it("affiche le nom et, dessous, le métier, qui apparaissent et s'effacent ensemble", async () => {
+    navigateur();
+    const { container } = render(<IntroEncre />);
+    await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
+    const nom = options().nom!;
+    expect(nom).toBe(container.querySelector(".fond-accueil__nom"));
+    expect(nom.firstChild?.textContent).toBe("Augustin Jouan");
+    expect(nom.querySelector(".fond-accueil__metier")).toHaveTextContent("Développeur full stack");
+  });
+
   it("ne ramène jamais l'intro en arrière si elle se termine avant la première image", async () => {
     navigateur();
     const { container } = render(<IntroEncre />);

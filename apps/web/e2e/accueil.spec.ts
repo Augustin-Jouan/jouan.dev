@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { accroche, sections } from "../data/accueil";
-import { simulerGpu, surveillerErreurs } from "./outils";
+import { FIN_INTRO_MS, simulerGpu, surveillerErreurs } from "./outils";
 
 test("affiche tous les blocs, sans erreur dans la console", async ({ page }) => {
   const erreurs = surveillerErreurs(page);
@@ -12,7 +12,7 @@ test("affiche tous les blocs, sans erreur dans la console", async ({ page }) => 
     await expect(page.getByRole("heading", { level: 2, name: titre })).toBeAttached();
   }
   await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", {
-    timeout: 5000,
+    timeout: FIN_INTRO_MS,
   });
   expect(erreurs).toEqual([]);
 });
