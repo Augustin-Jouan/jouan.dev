@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { HaloCss } from "./HaloCss";
-import { siteName } from "@/data/site";
+import { siteMetier, siteName } from "@/data/site";
 import { EVENEMENT_REJOUER_INTRO } from "@/lib/commandes/evenements";
 import {
   deciderMode,
@@ -182,6 +182,7 @@ export function IntroEncre() {
       {mode === "intro" && (
         <p ref={nomRef} className="fond-accueil__nom">
           {siteName}
+          <span className="fond-accueil__metier">{siteMetier}</span>
         </p>
       )}
     </div>

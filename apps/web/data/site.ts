@@ -8,6 +8,9 @@ export const hoteSite = new URL(siteUrl).host;
 
 export const siteName = "Augustin Jouan";
 
+/** Affiché sous le nom pendant l'intro de l'accueil. */
+export const siteMetier = "Développeur full stack";
+
 export const siteDescription =
   "Développeur full stack indépendant : applications métier sur mesure et sites vitrines, conçus, développés et hébergés de A à Z.";
 
