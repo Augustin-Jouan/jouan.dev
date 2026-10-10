@@ -6,6 +6,7 @@ import { siteUrl } from "@/data/site";
 const pages = [
   "",
   "/contact",
+  "/realisations",
   ...etudesDeCas.map((etude) => cheminEtude(etude.slug)),
   "/coulisses",
   "/mentions-legales",

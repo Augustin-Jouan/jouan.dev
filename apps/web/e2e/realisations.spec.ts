@@ -10,6 +10,24 @@ test("depuis l'accueil, une carte ouvre son étude de cas", async ({ page }) => 
   expect(erreurs).toEqual([]);
 });
 
+test("« Réalisations » dans l'en-tête ouvre la page : le suivi de marchés, puis le site d'artisan", async ({ page }) => {
+  const erreurs = surveillerErreurs(page);
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Navigation principale" }).getByRole("link", { name: "Réalisations" }).click();
+  await expect(page).toHaveURL(/\/realisations$/);
+  await expect(page.getByRole("heading", { level: 2 })).toHaveText(["Suivi de marchés de travaux", "Site vitrine d'artisan"]);
+  await expect(page.getByRole("link", { name: "Voir le site" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
+  await page.getByRole("link", { name: "Site vitrine d'artisan" }).click();
+  await expect(page).toHaveURL(/\/realisations\/site-artisan$/);
+  expect(erreurs).toEqual([]);
+});
+
+test("l'accueil renvoie vers toutes les réalisations", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Toutes les réalisations" }).click();
+  await expect(page).toHaveURL(/\/realisations$/);
+});
+
 test("l'étude du site vitrine montre ses captures et renvoie vers l'autre étude", async ({ page }) => {
   const erreurs = surveillerErreurs(page);
   await page.goto("/realisations/site-artisan");
@@ -20,7 +38,7 @@ test("l'étude du site vitrine montre ses captures et renvoie vers l'autre étud
 });
 
 test("pas de débordement horizontal", async ({ page }) => {
-  for (const chemin of ["/realisations/suivi-de-marches", "/realisations/site-artisan"]) {
+  for (const chemin of ["/realisations", "/realisations/suivi-de-marches", "/realisations/site-artisan"]) {
     await page.goto(chemin);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
   }

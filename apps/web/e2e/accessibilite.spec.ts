@@ -9,6 +9,7 @@ import { FIN_INTRO_MS, simulerGpu } from "./outils";
 const NORMES = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 const PAGES = [
   "/",
+  "/realisations",
   "/realisations/suivi-de-marches",
   "/realisations/site-artisan",
   "/contact",

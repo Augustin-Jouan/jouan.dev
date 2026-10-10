@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { cheminEtude, etudesDeCas } from "@/data/realisations";
 
@@ -59,6 +59,16 @@ describe("page d'étude de cas", () => {
       expect(meta.twitter).toMatchObject({ title: etude.titre, description: etude.sousTitre });
     });
   }
+
+  it("donne le lien du site d'artisan, et aucun pour le suivi de marchés", async () => {
+    render(await EtudeDeCasPage({ params: Promise.resolve({ slug: "site-artisan" }) }));
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.getByText("Site vitrine · SARL Dufourd Jérôme, électricien-plombier à Châteaubriant")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Voir le site" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
+    cleanup();
+    render(await EtudeDeCasPage({ params: Promise.resolve({ slug: "suivi-de-marches" }) }));
+    expect(screen.queryByRole("link", { name: "Voir le site" })).toBeNull();
+  });
 
   it("appelle notFound pour un slug inconnu", async () => {
     await expect(EtudeDeCasPage({ params: Promise.resolve({ slug: "inconnu" }) })).rejects.toThrow(

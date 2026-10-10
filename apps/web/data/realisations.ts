@@ -14,11 +14,22 @@ export type EtudeDeCas = {
   stack: string[];
   choix: { titre: string; texte: string }[];
   media: { type: "demo"; apercu: Image } | { type: "captures"; images: Image[] };
+  /** Adresse du site en ligne, quand le client accepte d'être cité. */
+  site?: string;
 };
 
 export const cheminEtude = (slug: SlugEtude) => `/realisations/${slug}`;
 
-/** Réalisations anonymisées : ni nom de client, ni lieu, ni montant réel. */
+/**
+ * Site du client artisan : sa prévisualisation, jusqu'à la bascule de son
+ * domaine (www.sdj-elec.fr affiche encore l'ancien site).
+ */
+export const SITE_ARTISAN = "https://sdj-elec.jouan.dev/";
+
+/**
+ * Le suivi de marchés reste anonyme (ni nom de client, ni lieu, ni montant réel) ;
+ * le site d'artisan est nommé, avec l'accord de son client.
+ */
 export const etudesDeCas: EtudeDeCas[] = [
   {
     slug: "suivi-de-marches",
@@ -55,7 +66,8 @@ export const etudesDeCas: EtudeDeCas[] = [
   },
   {
     slug: "site-artisan",
-    surtitre: "Site vitrine · Artisan",
+    surtitre: "Site vitrine · SARL Dufourd Jérôme, électricien-plombier à Châteaubriant",
+    site: SITE_ARTISAN,
     titre: "Un site d'artisan rapide, bien référencé, et enfin entre ses mains",
     sousTitre:
       "La refonte complète du site d'un électricien-plombier : design sur mesure, formulaire de contact fiable, mesure d'audience sans cookie et hébergement maîtrisé.",

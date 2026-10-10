@@ -4,11 +4,11 @@ export type NavLink = {
 };
 
 /**
- * Liens de l'en-tête vers les sections de l'accueil. Des ancres absolues
- * (`/#offre`) : elles ramènent aussi à l'accueil depuis les pages légales.
+ * Liens de l'en-tête : la page des réalisations, puis des sections de l'accueil
+ * en ancres absolues (`/#offre`), qui y ramènent aussi depuis les autres pages.
  */
 export const navLinks: NavLink[] = [
-  { href: "/#realisations", label: "Réalisations" },
+  { href: "/realisations", label: "Réalisations" },
   { href: "/#offre", label: "Offre" },
   { href: "/#contact", label: "Contact" },
 ];

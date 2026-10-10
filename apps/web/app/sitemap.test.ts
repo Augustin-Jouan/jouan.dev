@@ -7,6 +7,7 @@ describe("sitemap", () => {
     const urls = sitemap().map((entree) => entree.url);
     expect(urls).toContain(`${siteUrl}`);
     expect(urls).toContain(`${siteUrl}/contact`);
+    expect(urls).toContain(`${siteUrl}/realisations`);
     expect(urls).toContain(`${siteUrl}/realisations/suivi-de-marches`);
     expect(urls).toContain(`${siteUrl}/realisations/site-artisan`);
     expect(urls).toContain(`${siteUrl}/mentions-legales`);

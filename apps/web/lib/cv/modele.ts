@@ -5,7 +5,7 @@
  * Toutes les adresses sont absolues, construites depuis l'URL du site : elles
  * suivent un changement de domaine sans retouche.
  */
-import { accroche, offres, parcours, realisations } from "@/data/accueil";
+import { accroche, offres, parcours, realisations, texteParcours } from "@/data/accueil";
 import { competences, type GroupeCompetences } from "@/data/competences";
 import { contact } from "@/data/contact";
 import { cheminEtude } from "@/data/realisations";
@@ -44,7 +44,7 @@ export function construireCv(url: string = siteUrl): CvModele {
       stack: r.stack,
       url: `${url}${cheminEtude(r.slug)}`,
     })),
-    parcours,
+    parcours: parcours.map(texteParcours),
     contact: {
       email: contact.email,
       github: contact.github,

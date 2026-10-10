@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { offres, parcours, realisations } from "@/data/accueil";
+import { offres, parcours, realisations, texteParcours } from "@/data/accueil";
 import { competences } from "@/data/competences";
 import { contact } from "@/data/contact";
 import { siteUrl } from "@/data/site";
@@ -13,7 +13,7 @@ describe("construireCv", () => {
     expect(cv.accroche.titre).toBe("Moins de tâches répétitives, plus\u00a0de\u00a0temps pour votre cœur de métier.");
     expect(cv.offres.map((o) => o.titre)).toEqual(offres.map((o) => o.titre));
     expect(cv.realisations.map((r) => r.titre)).toEqual(realisations.map((r) => r.titre));
-    expect(cv.parcours).toEqual(parcours);
+    expect(cv.parcours).toEqual(parcours.map(texteParcours));
     expect(cv.competences).toEqual(competences);
     expect(cv.contact.email).toBe(contact.email);
     expect(cv.contact.utilisateurGithub).toBe("Augustin-Jouan");

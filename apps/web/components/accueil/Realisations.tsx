@@ -1,44 +1,20 @@
 import Link from "next/link";
 import { Section } from "./Section";
+import { CarteRealisation } from "@/components/realisations/CarteRealisation";
 import { ANCRES, realisationsPour, sections, type Angle } from "@/data/accueil";
-import { cheminEtude } from "@/data/realisations";
 
-/** Réalisations anonymisées : besoin, livrable, technologies. */
+/** Aperçu des réalisations, avec un lien vers leur page. */
 export function Realisations({ angle = "application" }: { angle?: Angle }) {
   return (
     <Section id={ANCRES.realisations} {...sections.realisations}>
       <div className="grid gap-5 md:grid-cols-2">
         {realisationsPour(angle).map((r) => (
-          <article key={r.titre} className="relative flex flex-col gap-5 rounded-3xl border border-trait p-8">
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{r.contexte}</p>
-            <h3 className="font-serif text-3xl">
-              <Link href={cheminEtude(r.slug)} className="after:absolute after:inset-0">
-                {r.titre}
-              </Link>
-            </h3>
-            <dl className="flex flex-col gap-4 text-texte-doux">
-              <div>
-                <dt className="text-sm font-medium text-texte">Le besoin</dt>
-                <dd className="mt-1">{r.besoin}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-texte">Ce que j&apos;ai livré</dt>
-                <dd className="mt-1">{r.livre}</dd>
-              </div>
-            </dl>
-            <ul aria-label="Technologies" className="mt-auto flex flex-wrap gap-2">
-              {r.stack.map((techno) => (
-                <li key={techno} className="rounded-full border border-trait px-3 py-1 text-xs">
-                  {techno}
-                </li>
-              ))}
-            </ul>
-            <p aria-hidden="true" className="text-sm font-medium text-accent">
-              Voir l&apos;étude de cas →
-            </p>
-          </article>
+          <CarteRealisation key={r.slug} realisation={r} niveau="h3" />
         ))}
       </div>
+      <Link href="/realisations" className="mt-8 inline-block font-medium text-accent underline-offset-4 hover:underline">
+        Toutes les réalisations<span aria-hidden="true"> →</span>
+      </Link>
     </Section>
   );
 }

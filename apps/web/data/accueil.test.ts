@@ -11,6 +11,7 @@ import {
   realisationsPour,
   salutation,
   sections,
+  texteParcours,
 } from "./accueil";
 import { navLinks } from "./navigation";
 
@@ -52,13 +53,34 @@ describe("contenu de l'accueil", () => {
     expect(parcours).toHaveLength(3);
   });
 
+  it("cite l'employeur et l'école, avec un lien vers leur site", () => {
+    expect(parcours.map(texteParcours)).toEqual([
+      "Développeur full stack chez SCR Informatique, en alternance",
+      "Actuellement en Master of Science à Epitech",
+      "Indépendant : applications métier et sites vitrines",
+    ]);
+    expect(parcours[0].lien).toEqual({ libelle: "SCR Informatique", href: "https://www.scrinfo.net/" });
+    expect(parcours[1].lien).toEqual({ libelle: "Epitech", href: "https://www.epitech.eu/" });
+    expect(parcours[2].lien).toBeUndefined();
+  });
+
+  it("nomme le site d'artisan et donne son lien, mais garde le suivi de marchés anonyme", () => {
+    const [marches, artisan] = realisations;
+    expect(marches.slug).toBe("suivi-de-marches");
+    expect(marches.site).toBeUndefined();
+    expect(artisan.slug).toBe("site-artisan");
+    expect(artisan.contexte).toBe("SARL Dufourd Jérôme · Électricien-plombier à Châteaubriant");
+    expect(artisan.site).toBe("https://sdj-elec.jouan.dev/");
+  });
+
   it("fait pointer les actions de l'accroche vers des sections existantes", () => {
     expect(ancres.has(accroche.actionPrincipale.href)).toBe(true);
     expect(ancres.has(accroche.actionSecondaire.href)).toBe(true);
   });
 
-  it("fait pointer la navigation de l'en-tête vers des sections existantes", () => {
-    for (const lien of navLinks) expect(ancres.has(lien.href.replace(/^\//, ""))).toBe(true);
+  it("fait pointer la navigation de l'en-tête vers la page des réalisations et des sections existantes", () => {
+    expect(navLinks[0]).toEqual({ href: "/realisations", label: "Réalisations" });
+    for (const lien of navLinks.slice(1)) expect(ancres.has(lien.href.replace(/^\//, ""))).toBe(true);
   });
 
   it("ne laisse aucun placeholder entre crochets", () => {

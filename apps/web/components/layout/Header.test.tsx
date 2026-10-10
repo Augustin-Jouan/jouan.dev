@@ -8,10 +8,7 @@ describe("Header", () => {
     render(<Header />);
     expect(screen.getByRole("link", { name: siteName })).toHaveAttribute("href", "/");
     const nav = screen.getByRole("navigation", { name: "Navigation principale" });
-    expect(within(nav).getByRole("link", { name: "Réalisations" })).toHaveAttribute(
-      "href",
-      "/#realisations"
-    );
+    expect(within(nav).getByRole("link", { name: "Réalisations" })).toHaveAttribute("href", "/realisations");
     expect(within(nav).getByRole("link", { name: "Offre" })).toHaveAttribute("href", "/#offre");
     expect(within(nav).getByRole("link", { name: "Contact" })).toHaveAttribute("href", "/#contact");
   });

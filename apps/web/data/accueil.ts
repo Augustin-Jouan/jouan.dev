@@ -1,9 +1,10 @@
 /**
  * Contenu de la page d'accueil, première version : textes à relire et
- * valider. Réalisations anonymisées : ni nom de client ni détail identifiant.
+ * valider. Le suivi de marchés reste anonyme ; le site d'artisan est nommé,
+ * avec l'accord de son client.
  */
 
-import type { SlugEtude } from "./realisations";
+import { SITE_ARTISAN, type SlugEtude } from "./realisations";
 
 /** Identifiants des sections de l'accueil, cibles des ancres (`/#offre`). */
 export const ANCRES = {
@@ -94,11 +95,13 @@ export const offres: Offre[] = [
 export type Realisation = {
   slug: SlugEtude;
   titre: string;
-  /** Secteur ou métier du client, sans le nommer. */
+  /** Secteur ou métier du client ; son nom seulement s'il a accepté d'être cité. */
   contexte: string;
   besoin: string;
   livre: string;
   stack: string[];
+  /** Adresse du site en ligne, quand le client accepte d'être cité. */
+  site?: string;
 };
 
 export const realisations: Realisation[] = [
@@ -115,12 +118,13 @@ export const realisations: Realisation[] = [
   {
     slug: "site-artisan",
     titre: "Site vitrine d'artisan",
-    contexte: "Électricien-plombier",
+    contexte: "SARL Dufourd Jérôme · Électricien-plombier à Châteaubriant",
     besoin:
       "Reprendre la main sur son site et sur son référencement, jusque-là gérés par un ancien prestataire.",
     livre:
       "Un site rapide et bien référencé, avec un formulaire de contact fiable, une mesure d'audience sans cookie et un hébergement maîtrisé.",
     stack: ["Next.js", "TypeScript", "Tailwind CSS", "Docker"],
+    site: SITE_ARTISAN,
   },
 ];
 
@@ -150,11 +154,25 @@ export const etapes: Etape[] = [
   },
 ];
 
-export const parcours: string[] = [
-  "Développeur full stack en alternance",
-  "Master of Science à Epitech, en cours",
-  "Indépendant : applications métier et sites vitrines",
+/** Une ligne du parcours ; le nom d'un employeur ou d'une école renvoie vers son site. */
+export type LigneParcours = {
+  avant: string;
+  lien?: { libelle: string; href: string };
+  apres?: string;
+};
+
+export const parcours: LigneParcours[] = [
+  {
+    avant: "Développeur full stack chez ",
+    lien: { libelle: "SCR Informatique", href: "https://www.scrinfo.net/" },
+    apres: ", en alternance",
+  },
+  { avant: "Actuellement en Master of Science à ", lien: { libelle: "Epitech", href: "https://www.epitech.eu/" } },
+  { avant: "Indépendant : applications métier et sites vitrines" },
 ];
+
+/** La ligne en texte seul (CV). */
+export const texteParcours = ({ avant, lien, apres = "" }: LigneParcours) => `${avant}${lien?.libelle ?? ""}${apres}`;
 
 /** Angle d'un lien personnalisé : l'offre mise en avant pour ce prospect. */
 export type Angle = "application" | "vitrine";

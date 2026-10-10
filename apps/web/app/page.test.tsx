@@ -9,6 +9,7 @@ import {
   parcours,
   realisations,
   sections,
+  texteParcours,
 } from "@/data/accueil";
 import { contact } from "@/data/contact";
 
@@ -59,7 +60,12 @@ describe("HomePage", () => {
     for (const etape of etapes) {
       expect(screen.getByRole("heading", { level: 3, name: etape.titre })).toBeInTheDocument();
     }
-    for (const ligne of parcours) expect(screen.getByText(ligne)).toBeInTheDocument();
+    const lignes = within(document.getElementById(ANCRES.parcours)!).getAllByRole("listitem");
+    expect(lignes.map((li) => li.textContent)).toEqual(parcours.map(texteParcours));
+    expect(screen.getByRole("link", { name: "SCR Informatique" })).toHaveAttribute("href", "https://www.scrinfo.net/");
+    expect(screen.getByRole("link", { name: "Epitech" })).toHaveAttribute("href", "https://www.epitech.eu/");
+    expect(screen.getByRole("link", { name: "Toutes les réalisations" })).toHaveAttribute("href", "/realisations");
+    expect(screen.getByRole("link", { name: "Voir le site" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
   });
 
   it("intègre le formulaire et l'e-mail direct dans la section contact", () => {

@@ -51,6 +51,11 @@ export default async function EtudeDeCasPage({ params }: Props) {
         <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{etude.surtitre}</p>
         <h1 className="max-w-4xl font-serif text-4xl leading-[1.05] sm:text-6xl">{etude.titre}</h1>
         <p className="mt-6 max-w-3xl text-lg text-texte-doux">{etude.sousTitre}</p>
+        {etude.site && (
+          <a href={etude.site} className="mt-6 inline-block font-medium text-accent underline underline-offset-4">
+            Voir le site<span aria-hidden="true"> ↗</span>
+          </a>
+        )}
         <dl className="mt-10 grid gap-6 sm:grid-cols-3">
           {etude.chiffres.map((chiffre) => (
             <div key={chiffre.libelle} className="flex flex-col-reverse gap-1 border-t border-trait pt-4">
