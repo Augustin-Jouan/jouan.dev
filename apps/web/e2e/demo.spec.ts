@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { surveillerErreurs } from "./outils";
 
@@ -121,6 +122,11 @@ test("« Télécharger le tableur » télécharge le récapitulatif en CSV", asy
   await page.getByRole("button", { name: "Exporter le récap" }).click();
   const [fichier] = await Promise.all([page.waitForEvent("download"), page.locator("#r-dl").click()]);
   expect(fichier.suggestedFilename()).toMatch(/\.csv$/);
+  // Une seule marque d'ordre des octets (BOM) en tête, pour que les tableurs lisent les accents.
+  const contenu = readFileSync((await fichier.path())!, "utf8");
+  const bom = String.fromCharCode(0xfeff);
+  expect(contenu.startsWith(bom) && !contenu.startsWith(bom + bom)).toBe(true);
+  expect(contenu).toContain("RÉCAPITULATIF DES MARCHÉS");
 });
 
 test("sur mobile, la page propose d'ouvrir la démo au lieu d'une iframe", async ({ page, isMobile }) => {
