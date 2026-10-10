@@ -1,5 +1,8 @@
 /**
- * Deux rôles, et seulement sur ces adresses (voir `config.matcher`) :
+ * Trois rôles, et seulement sur ces adresses (voir `config.matcher`) :
+ * - `/` demandé par un client en ligne de commande (`curl -L jouan.dev`) est
+ *   réécrit vers le CV coloré `/cv.ansi`, y compris avec `?pour=` ; les
+ *   navigateurs ne passent pas par ici et l'accueil reste statique ;
  * - `/?pour=<jeton>` est réécrit vers la page personnalisée `/pour/<jeton>`,
  *   l'adresse affichée ne change pas ; l'accueil sans paramètre reste statique ;
  * - `/admin/*` exige une session valide, sauf la page de connexion. Chaque page
@@ -7,10 +10,18 @@
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { NOM_COOKIE, secretSession, verifierSession } from "@/lib/admin/session";
+import { estClientTerminal } from "@/lib/cv/client-terminal";
 import { estJetonValide } from "@/lib/liens/jeton";
 
 export function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  if (pathname === "/" && estClientTerminal(request.headers.get("user-agent"))) {
+    const cv = request.nextUrl.clone();
+    cv.pathname = "/cv.ansi";
+    cv.search = "";
+    return NextResponse.rewrite(cv);
+  }
 
   if (pathname.startsWith("/admin")) {
     if (pathname === "/admin/connexion") return NextResponse.next();
@@ -30,5 +41,11 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [{ source: "/", has: [{ type: "query", key: "pour" }] }, "/admin/:path*"],
+  // Valeurs littérales seulement (lues au build) : le motif du User-Agent est
+  // celui de MOTIF_CLIENT_TERMINAL (lib/cv/client-terminal.ts), vérifié par proxy.test.ts.
+  matcher: [
+    { source: "/", has: [{ type: "header", key: "user-agent", value: "(curl|Wget|HTTPie|xh)/.*" }] },
+    { source: "/", has: [{ type: "query", key: "pour" }] },
+    "/admin/:path*",
+  ],
 };

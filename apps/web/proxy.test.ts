@@ -2,13 +2,15 @@
 import { NextRequest } from "next/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { NOM_COOKIE, signerSession } from "@/lib/admin/session";
-import { proxy } from "./proxy";
+import { MOTIF_CLIENT_TERMINAL } from "@/lib/cv/client-terminal";
+import { config, proxy } from "./proxy";
 
 const SECRET = "s".repeat(32);
-const requete = (chemin: string, cookie?: string) =>
+const requete = (chemin: string, cookie?: string, userAgent?: string) =>
   new NextRequest(new URL(chemin, "http://localhost:3000"), {
-    headers: cookie ? { cookie: `${NOM_COOKIE}=${cookie}` } : {},
+    headers: { ...(cookie ? { cookie: `${NOM_COOKIE}=${cookie}` } : {}), ...(userAgent ? { "user-agent": userAgent } : {}) },
   });
+const NAVIGATEUR = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 const reecriture = (r: Response) => r.headers.get("x-middleware-rewrite");
 
 describe("proxy", () => {
@@ -57,5 +59,27 @@ describe("proxy", () => {
     const jeton45 = `${"a".repeat(40)}-k7f3`;
     expect(reecriture(proxy(requete(`/?pour=${jeton45}`)))).not.toBeNull();
     expect(reecriture(proxy(requete(`/?pour=${jeton45}x`)))).toBeNull();
+  });
+
+  it("réécrit / vers le CV coloré pour curl, même avec un lien personnalisé", () => {
+    expect(new URL(reecriture(proxy(requete("/", undefined, "curl/8.5.0")))!).pathname).toBe("/cv.ansi");
+    const r = proxy(requete("/?pour=boulangerie-martin-k7f3", undefined, "curl/8.5.0"));
+    expect(new URL(reecriture(r)!).pathname).toBe("/cv.ansi");
+    expect(new URL(reecriture(r)!).search).toBe("");
+  });
+  it("garde la page personnalisée pour un navigateur", () => {
+    const r = proxy(requete("/?pour=boulangerie-martin-k7f3", undefined, NAVIGATEUR));
+    expect(new URL(reecriture(r)!).pathname).toBe("/pour/boulangerie-martin-k7f3");
+  });
+  it("protège toujours l'administration, même pour curl", () => {
+    expect(proxy(requete("/admin", undefined, "curl/8.5.0")).headers.get("location")).toBe(
+      "http://localhost:3000/admin/connexion",
+    );
+  });
+  it("le matcher porte le même motif de User-Agent que estClientTerminal", () => {
+    expect(config.matcher[0]).toEqual({
+      source: "/",
+      has: [{ type: "header", key: "user-agent", value: MOTIF_CLIENT_TERMINAL }],
+    });
   });
 });
