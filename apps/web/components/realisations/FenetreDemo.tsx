@@ -69,7 +69,7 @@ export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
         )}
       </div>
       <figcaption className="flex flex-wrap items-center justify-between gap-3 text-sm text-texte-doux">
-        <span>Chantier, entreprises et montants entièrement fictifs. Rien n&apos;est enregistré.</span>
+        <span>Chantiers, entreprises et montants fictifs. Vos modifications sont oubliées à la fermeture de l&apos;onglet.</span>
         <a
           href={SOURCE_DEMO}
           target="_blank"
