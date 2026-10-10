@@ -11,7 +11,7 @@ import { couleur } from "../charte";
 export type Rvb = [number, number, number];
 export type Point = { x: number; y: number };
 
-const rvb = (hex: string): Rvb => {
+export const rvb = (hex: string): Rvb => {
   const n = parseInt(hex.slice(1), 16);
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 };
