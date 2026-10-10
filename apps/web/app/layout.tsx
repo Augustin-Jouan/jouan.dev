@@ -64,7 +64,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${inter.variable} ${instrument.variable}`}>
+    // suppressHydrationWarning : le script du voile ajoute `data-voile-intro` à
+    // <html> avant l'hydratation ; ne vaut que pour les attributs de <html>.
+    <html lang="fr" className={`${inter.variable} ${instrument.variable}`} suppressHydrationWarning>
       {/* Avant le premier affichage : voile de l'intro (lib/encre/voile.ts). */}
       <head>
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_VOILE }} />
