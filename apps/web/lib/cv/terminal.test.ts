@@ -53,7 +53,7 @@ describe("rendreCvTerminal", () => {
     for (const section of ["OFFRE", "RÉALISATIONS", "COMPÉTENCES", "PARCOURS", "CONTACT"]) {
       expect(brut).toContain(`── ${section} ─`);
     }
-    expect(brut).toContain("https://jouan.dev/realisations/suivi-de-marches");
+    expect(brut).toContain("https://jouan.dev/realisations#suivi-de-marches");
     expect(brut).toContain(contact.email);
     expect(brut).toContain("curl -L jouan.dev/api/me");
     expect(brut).toContain("curl -L jouan.dev/cv.txt");

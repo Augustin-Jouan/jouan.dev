@@ -11,4 +11,8 @@ export type Redirection = {
   permanent: true;
 };
 
-export const redirections: Redirection[] = [];
+export const redirections: Redirection[] = [
+  // Les études avaient chacune leur page ; elles se suivent maintenant sur /realisations.
+  { source: "/realisations/suivi-de-marches", destination: "/realisations#suivi-de-marches", permanent: true },
+  { source: "/realisations/site-artisan", destination: "/realisations#site-vitrine", permanent: true },
+];

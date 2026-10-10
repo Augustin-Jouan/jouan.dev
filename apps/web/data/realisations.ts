@@ -18,7 +18,13 @@ export type EtudeDeCas = {
   site?: string;
 };
 
-export const cheminEtude = (slug: SlugEtude) => `/realisations/${slug}`;
+/** Ancre de chaque étude sur /realisations, où elles se suivent. */
+export const ancresEtudes: Record<SlugEtude, string> = {
+  "suivi-de-marches": "suivi-de-marches",
+  "site-artisan": "site-vitrine",
+};
+
+export const cheminEtude = (slug: SlugEtude) => `/realisations#${ancresEtudes[slug]}`;
 
 /**
  * Site du client artisan : sa prévisualisation, jusqu'à la bascule de son

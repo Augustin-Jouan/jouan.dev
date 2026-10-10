@@ -9,7 +9,8 @@ describe("études de cas", () => {
   });
   it("chaque carte de l'accueil mène à une étude existante", () => {
     for (const carte of realisations) expect(trouverEtude(carte.slug)).toBeDefined();
-    expect(cheminEtude("site-artisan")).toBe("/realisations/site-artisan");
+    expect(cheminEtude("suivi-de-marches")).toBe("/realisations#suivi-de-marches");
+    expect(cheminEtude("site-artisan")).toBe("/realisations#site-vitrine");
   });
   it("une seule étude porte la démo", () => {
     expect(etudesDeCas.filter((e) => e.media.type === "demo")).toHaveLength(1);

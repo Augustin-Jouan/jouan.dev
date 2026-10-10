@@ -8,8 +8,8 @@ describe("sitemap", () => {
     expect(urls).toContain(`${siteUrl}`);
     expect(urls).toContain(`${siteUrl}/contact`);
     expect(urls).toContain(`${siteUrl}/realisations`);
-    expect(urls).toContain(`${siteUrl}/realisations/suivi-de-marches`);
-    expect(urls).toContain(`${siteUrl}/realisations/site-artisan`);
+    expect(urls).not.toContain(`${siteUrl}/realisations/suivi-de-marches`);
+    expect(urls).not.toContain(`${siteUrl}/realisations/site-artisan`);
     expect(urls).toContain(`${siteUrl}/mentions-legales`);
     expect(urls).toContain(`${siteUrl}/politique-de-confidentialite`);
     expect(urls).toContain(`${siteUrl}/coulisses`);

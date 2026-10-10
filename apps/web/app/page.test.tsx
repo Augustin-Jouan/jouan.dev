@@ -12,6 +12,7 @@ import {
   texteParcours,
 } from "@/data/accueil";
 import { contact } from "@/data/contact";
+import { cheminEtude } from "@/data/realisations";
 
 describe("HomePage", () => {
   it("affiche l'accroche et ses deux actions", () => {
@@ -52,10 +53,7 @@ describe("HomePage", () => {
     }
     for (const r of realisations) {
       expect(screen.getByRole("heading", { level: 3, name: r.titre })).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: r.titre })).toHaveAttribute(
-        "href",
-        `/realisations/${r.slug}`
-      );
+      expect(screen.getByRole("link", { name: r.titre })).toHaveAttribute("href", cheminEtude(r.slug));
     }
     for (const etape of etapes) {
       expect(screen.getByRole("heading", { level: 3, name: etape.titre })).toBeInTheDocument();

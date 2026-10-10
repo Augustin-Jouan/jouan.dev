@@ -23,8 +23,8 @@ describe("construireCv", () => {
     expect(cv.hote).toBe("exemple.dev");
     expect(cv.contact.page).toBe("https://exemple.dev/contact");
     expect(cv.realisations.map((r) => r.url)).toEqual([
-      "https://exemple.dev/realisations/suivi-de-marches",
-      "https://exemple.dev/realisations/site-artisan",
+      "https://exemple.dev/realisations#suivi-de-marches",
+      "https://exemple.dev/realisations#site-vitrine",
     ]);
   });
 

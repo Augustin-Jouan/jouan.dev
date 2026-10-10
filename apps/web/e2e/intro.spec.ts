@@ -155,3 +155,88 @@ test.describe("moteur en retard", () => {
     expect(etats.map((e) => e.zIndex)).not.toContain("50");
   });
 });
+
+// Voile de l'intro (lib/encre/voile.ts) : la page ne s'affiche pas avant l'intro.
+const VOILE = "data-voile-intro";
+
+/** Note chaque pose ou levée du voile, avec l'état de l'intro à ce moment-là. */
+async function enregistrerVoile(page: Page) {
+  await page.addInitScript((attribut) => {
+    const w = window as unknown as { voile: { voile: boolean; intro: string | null }[] };
+    w.voile = [];
+    new MutationObserver(() =>
+      w.voile.push({
+        voile: document.documentElement.hasAttribute(attribut),
+        intro: document.querySelector<HTMLElement>(".fond-accueil")?.dataset.intro ?? null,
+      }),
+      // <html> n'existe pas encore quand ce script s'exécute : on observe le document.
+    ).observe(document, { attributes: true, subtree: true, attributeFilter: [attribut] });
+  }, VOILE);
+}
+
+const etatsVoile = (page: Page) =>
+  page.evaluate(() => (window as unknown as { voile: { voile: boolean; intro: string | null }[] }).voile);
+
+test.describe("voile avant l'intro", () => {
+  test("la nuit cache la page dès le premier affichage, jusqu'à ce que la goutte la couvre", async ({ page }) => {
+    await enregistrerVoile(page);
+    await retarderMoteur(page);
+    await page.goto("/");
+    const racine = page.locator("html");
+    await expect(racine).toHaveAttribute(VOILE, "");
+    const voile = await page.evaluate(() => {
+      const style = getComputedStyle(document.body, "::after");
+      return { position: style.position, zIndex: style.zIndex, fond: style.backgroundColor };
+    });
+    expect(voile).toEqual({ position: "fixed", zIndex: "40", fond: "rgb(42, 33, 39)" });
+    await expect(racine).not.toHaveAttribute(VOILE, { timeout: 5000 });
+    expect(await etatsVoile(page)).toEqual([
+      { voile: true, intro: null },
+      { voile: false, intro: "en-cours" },
+    ]);
+    await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: FIN_INTRO_MS });
+  });
+
+  test("un geste avant l'arrivée du moteur lève le voile tout de suite", async ({ page }) => {
+    await retarderMoteur(page);
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute(VOILE, "");
+    // Hydraté, intro décidée, moteur encore en route.
+    await expect(page.locator(".fond-accueil")).toHaveAttribute("data-mode", "intro");
+    await page.mouse.click(5, 5);
+    await expect(page.locator("html")).not.toHaveAttribute(VOILE, { timeout: 300 });
+    // Laisse arriver le moteur retardé avant de fermer la page.
+    await expect(page.locator(".fond-accueil")).toHaveAttribute("data-encre", "actif", { timeout: 5000 });
+  });
+
+  test("moteur introuvable : le voile se lève et le nuage figé reste", async ({ page }) => {
+    await page.route("**/_next/static/chunks/**/*.js", async (route) => {
+      const reponse = await route.fetch();
+      const corps = await reponse.text();
+      if (corps.includes(MARQUEUR_MOTEUR)) await route.abort();
+      else await route.fulfill({ response: reponse, body: corps });
+    });
+    await page.goto("/");
+    await expect(page.locator("html")).not.toHaveAttribute(VOILE, { timeout: 5000 });
+    await expect(page.locator(".fond-accueil")).toHaveAttribute("data-mode", "nuage-fige");
+  });
+
+  test("aucun voile quand l'intro ne se jouera pas", async ({ page }) => {
+    await enregistrerVoile(page);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    await expect(page.locator(".fond-accueil")).toHaveAttribute("data-mode", "nuage-fige");
+    expect(await etatsVoile(page)).toEqual([]);
+
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("/#contact");
+    await expect(page.locator(".fond-accueil")).toHaveAttribute("data-mode", /nuage/);
+    expect(await etatsVoile(page)).toEqual([]);
+
+    await page.goto("/");
+    await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: FIN_INTRO_MS });
+    await page.reload();
+    await expect(page.locator(".fond-accueil")).toHaveAttribute("data-mode", "nuage-anime");
+    expect(await etatsVoile(page)).toEqual([]);
+  });
+});

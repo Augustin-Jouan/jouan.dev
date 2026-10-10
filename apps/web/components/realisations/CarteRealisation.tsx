@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LienAuSurvol } from "@/components/layout/LienAuSurvol";
 import type { Realisation } from "@/data/accueil";
 import { cheminEtude } from "@/data/realisations";
 
@@ -11,9 +11,10 @@ export function CarteRealisation({ realisation: r, niveau: Titre }: { realisatio
     <article className="relative flex flex-col gap-5 rounded-3xl border border-trait p-8">
       <p className="text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{r.contexte}</p>
       <Titre className="font-serif text-3xl">
-        <Link href={cheminEtude(r.slug)} className="after:absolute after:inset-0">
+        {/* Préchargé à l'intention seulement : le JS de /realisations hors du budget de l'accueil. */}
+        <LienAuSurvol href={cheminEtude(r.slug)} className="after:absolute after:inset-0">
           {r.titre}
-        </Link>
+        </LienAuSurvol>
       </Titre>
       <dl className="flex flex-col gap-4 text-texte-doux">
         <div>

@@ -5,8 +5,7 @@
       "startServerReadyPattern": "Ready",
       "url": [
         "http://127.0.0.1:3000/",
-        "http://127.0.0.1:3000/realisations/suivi-de-marches",
-        "http://127.0.0.1:3000/realisations/site-artisan",
+        "http://127.0.0.1:3000/realisations",
         "http://127.0.0.1:3000/?pour=exemple-0000",
         "http://127.0.0.1:3000/coulisses"
       ],

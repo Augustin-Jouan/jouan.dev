@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import { cheminEtude, etudesDeCas } from "@/data/realisations";
 import { siteUrl } from "@/data/site";
 
 /** Ajouter ici chaque page créée. Les pages légales restent en priorité basse. */
@@ -7,7 +6,6 @@ const pages = [
   "",
   "/contact",
   "/realisations",
-  ...etudesDeCas.map((etude) => cheminEtude(etude.slug)),
   "/coulisses",
   "/mentions-legales",
   "/politique-de-confidentialite",
