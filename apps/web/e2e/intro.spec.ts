@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { simulerGpu } from "./outils";
+import { FIN_INTRO_MS, simulerGpu } from "./outils";
 
 const CLE = "jouan.dev:intro-vue";
 
@@ -13,7 +13,7 @@ test("première visite : l'intro se joue puis devient le halo", async ({ page })
   const fond = page.locator(".fond-accueil");
   await expect(fond).toHaveAttribute("data-mode", "intro");
   await expect(fond).toHaveAttribute("data-encre", "actif");
-  await expect(fond).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
+  await expect(fond).toHaveAttribute("data-intro", "terminee", { timeout: FIN_INTRO_MS });
   expect(await page.evaluate((cle) => sessionStorage.getItem(cle), CLE)).toBe("1");
 });
 
@@ -54,7 +54,7 @@ test("dans le même onglet (rechargement, retour à l'accueil) : pas d'intro, ha
 
 test("nouvelle visite (nouvel onglet) : l'intro se rejoue", async ({ page, context }) => {
   await page.goto("/");
-  await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
+  await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: FIN_INTRO_MS });
 
   const onglet = await context.newPage();
   await simulerGpu(onglet);
@@ -62,14 +62,14 @@ test("nouvelle visite (nouvel onglet) : l'intro se rejoue", async ({ page, conte
   await onglet.addInitScript((cle) => localStorage.setItem(cle, "1"), CLE);
   await onglet.goto("/");
   await expect(onglet.locator(".fond-accueil")).toHaveAttribute("data-mode", "intro");
-  await expect(onglet.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
+  await expect(onglet.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: FIN_INTRO_MS });
 });
 
 test("« Rejouer l'intro » depuis la palette, page défilée : l'intro repart du haut", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Raccourci clavier : ordinateur seulement.");
   await page.goto("/");
   const fond = page.locator(".fond-accueil");
-  await expect(fond).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
+  await expect(fond).toHaveAttribute("data-intro", "terminee", { timeout: FIN_INTRO_MS });
   await page.mouse.move(400, 400);
   await page.mouse.wheel(0, 800);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
@@ -78,7 +78,7 @@ test("« Rejouer l'intro » depuis la palette, page défilée : l'intro repart d
   await page.keyboard.press("Enter");
   await expect(fond).toHaveAttribute("data-intro", "en-cours");
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
-  await expect(fond).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
+  await expect(fond).toHaveAttribute("data-intro", "terminee", { timeout: FIN_INTRO_MS });
 });
 
 // Revue finale, Important 1 : sur un téléphone lent, le moteur arrive plusieurs

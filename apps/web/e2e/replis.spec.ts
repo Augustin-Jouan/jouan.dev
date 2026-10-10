@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { simulerGpu, surveillerErreurs } from "./outils";
+import { FIN_INTRO_MS, simulerGpu, surveillerErreurs } from "./outils";
 
 test.describe("mouvement réduit", () => {
   test.use({ reducedMotion: "reduce" });
@@ -90,7 +90,7 @@ test("stockage inaccessible : l'intro se joue sans erreur", async ({ page }) => 
   });
   await page.goto("/");
   await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", {
-    timeout: 5000,
+    timeout: FIN_INTRO_MS,
   });
   expect(erreurs).toEqual([]);
 });

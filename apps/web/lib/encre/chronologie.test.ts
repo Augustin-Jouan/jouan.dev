@@ -29,13 +29,22 @@ describe("etatEncre", () => {
     expect(etat.terminee).toBe(false);
   });
 
-  it("couvre l'écran à 450 ms puis affiche le nom", () => {
-    expect(etatEncre(450, COUVERTURE, REPOS).rayon).toBeCloseTo(COUVERTURE);
-    expect(etatEncre(650, COUVERTURE, REPOS).opaciteNom).toBe(1);
+  it("s'étale encore à 600 ms et couvre l'écran à 900 ms", () => {
+    expect(etatEncre(600, COUVERTURE, REPOS).rayon).toBeLessThan(COUVERTURE);
+    expect(etatEncre(900, COUVERTURE, REPOS).rayon).toBeCloseTo(COUVERTURE);
   });
 
-  it("se rétracte vers le halo entre 800 et 1500 ms en se réchauffant", () => {
-    const milieu = etatEncre(1150, COUVERTURE, REPOS);
+  it("affiche le nom en 300 ms puis le laisse lisible jusqu'à 2000 ms", () => {
+    expect(etatEncre(1050, COUVERTURE, REPOS).opaciteNom).toBeCloseTo(0.5);
+    for (let t = 1200; t < 2000; t += 100) {
+      expect(etatEncre(t, COUVERTURE, REPOS).opaciteNom).toBe(1);
+      expect(etatEncre(t, COUVERTURE, REPOS).rayon).toBe(COUVERTURE);
+    }
+  });
+
+  it("se rétracte vers le halo entre 2000 et 3200 ms en se réchauffant", () => {
+    expect(etatEncre(2200, COUVERTURE, REPOS).opaciteNom).toBeCloseTo(0.5);
+    const milieu = etatEncre(2600, COUVERTURE, REPOS);
     expect(milieu.rayon).toBeLessThan(COUVERTURE);
     expect(milieu.rayon).toBeGreaterThan(REPOS.rayon);
     expect(milieu.centre.x).toBeGreaterThan(0.5);
@@ -47,14 +56,16 @@ describe("etatEncre", () => {
 
   it("a un rayon qui ne fait que décroître pendant le retrait", () => {
     let precedent = Infinity;
-    for (let t = 800; t <= 1500; t += 50) {
+    for (let t = 2000; t <= 3200; t += 50) {
       const { rayon } = etatEncre(t, COUVERTURE, REPOS);
       expect(rayon).toBeLessThanOrEqual(precedent);
       precedent = rayon;
     }
   });
 
-  it("se termine en halo à 1500 ms et au-delà", () => {
+  it("se termine en halo à 3200 ms et au-delà", () => {
+    expect(DUREE_INTRO).toBe(3200);
+    expect(etatEncre(3150, COUVERTURE, REPOS).terminee).toBe(false);
     const fin = etatEncre(DUREE_INTRO, COUVERTURE, REPOS);
     expect(fin).toEqual(etatHalo(REPOS.centre, REPOS));
     expect(fin.terminee).toBe(true);
@@ -139,8 +150,8 @@ describe("couleurs de l'intro", () => {
   });
 
   it("passe de la goutte au halo pendant le resserrement", () => {
-    // 1150 ms : entre la fin du nom (800 ms) et la fin de l'intro (1500 ms).
-    const milieu = etatEncre(1150, COUVERTURE, REPOS);
+    // 2600 ms : entre la fin du nom (2000 ms) et la fin de l'intro (3200 ms).
+    const milieu = etatEncre(2600, COUVERTURE, REPOS);
     for (let i = 0; i < 3; i++) {
       const [bas, haut] = [GOUTTE[i]!, LUEUR[i]!].sort((x, y) => x - y);
       expect(milieu.couleur[i]).toBeGreaterThanOrEqual(bas!);

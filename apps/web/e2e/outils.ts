@@ -1,5 +1,8 @@
 import type { Page } from "@playwright/test";
 
+/** Attente de la fin de l'intro (3,2 s), chargement du moteur compris, avec de la marge pour la CI. */
+export const FIN_INTRO_MS = 8000;
+
 /**
  * Les navigateurs de test dessinent WebGL au processeur (SwiftShader, sans
  * carte graphique) : le moteur de l'encre reconnaît ce rendu logiciel et garde

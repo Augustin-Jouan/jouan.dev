@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { simulerGpu } from "./outils";
+import { FIN_INTRO_MS, simulerGpu } from "./outils";
 
 /**
  * Charte « Nuit mauve » : chaque page publique passe les règles WCAG 2.0, 2.1 et
@@ -44,7 +44,7 @@ test.describe("mouvement réduit (page posée)", () => {
 test("accueil après l'intro, sans mouvement réduit : aucune violation WCAG A/AA", async ({ page }) => {
   await simulerGpu(page);
   await page.goto("/");
-  await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
+  await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: FIN_INTRO_MS });
   expect(await violations(page)).toEqual([]);
 });
 
