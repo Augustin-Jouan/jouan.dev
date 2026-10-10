@@ -12,7 +12,8 @@ async function creerLien(page: Page, nom: string, angle: "Application métier" |
   await page.getByLabel("Nom du prospect").fill(nom);
   await page.getByLabel(angle).check();
   await page.getByRole("button", { name: "Créer le lien" }).click();
-  const url = await page.locator("code").first().textContent();
+  // Dans la page seulement : le pied de page a aussi un `<code>` (curl -L …).
+  const url = await page.getByRole("main").locator("code").first().textContent();
   return new URL(url!).searchParams.get("pour")!;
 }
 

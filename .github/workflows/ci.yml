@@ -146,6 +146,8 @@ jobs:
 
       - run: pnpm --filter web verifier-taille-3d
 
+      - run: pnpm --filter web verifier-taille-commandes
+
       # Playwright a arrêté son service temps réel : Lighthouse mesure l'accueil
       # avec un service démarré, comme en production.
       - name: Service temps réel pour Lighthouse

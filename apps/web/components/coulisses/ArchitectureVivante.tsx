@@ -63,6 +63,16 @@ export function ArchitectureVivante() {
       .catch(surPerte3d);
   };
 
+  // `/coulisses?vue=3d` (commande « Voir l'architecture en 3D ») : la 3D s'ouvre
+  // d'elle-même, une fois WebGL connu ; sans WebGL, le schéma 2D reste.
+  const vueDemandee = useRef(false);
+  useEffect(() => {
+    if (!webgl || vueDemandee.current) return;
+    vueDemandee.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- l'adresse et WebGL ne se lisent qu'au navigateur
+    if (new URLSearchParams(window.location.search).get("vue") === "3d") basculer3d();
+  });
+
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_DIRECT_URL;
     const sonde = url ? new SondeTempsReel(adresseSonde(url)) : null;

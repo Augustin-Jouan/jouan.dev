@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { HaloCss } from "./HaloCss";
 import { siteName } from "@/data/site";
+import { EVENEMENT_REJOUER_INTRO } from "@/lib/commandes/evenements";
 import {
   deciderMode,
   introDejaVue,
@@ -34,6 +35,10 @@ const DELAI_MAX_INTRO_MS = 3000;
  * - data-mode : intro | halo-anime | halo-css
  * - data-intro : en-cours | terminee (absent hors intro)
  * - data-encre : actif (canvas affiché) | repli (WebGL a échoué)
+ *
+ * La commande « Rejouer l'intro » (palette, sous-projet 7) émet
+ * `jouan:rejouer-intro` : retour en haut, puis l'intro repart sur un canvas neuf
+ * (l'arrêt du moteur libère le contexte WebGL de l'ancien).
  */
 export function IntroEncre() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -43,6 +48,8 @@ export function IntroEncre() {
   const [mode, setMode] = useState<ModeEncre>("halo-css");
   const [intro, setIntro] = useState<"en-cours" | "terminee">();
   const [encre, setEncre] = useState<"actif" | "repli">();
+  /** Numéro de l'intro jouée : change à chaque « Rejouer l'intro ». */
+  const [tour, setTour] = useState(0);
 
   useEffect(() => {
     montageRef.current = performance.now();
@@ -55,6 +62,27 @@ export function IntroEncre() {
         defilee: window.scrollY > 0,
       })
     );
+  }, []);
+
+  useEffect(() => {
+    let image = 0;
+    const rejouer = () => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      // Le `scroll` de ce retour en haut part avant la prochaine image : l'intro
+      // ne repart qu'après, sinon elle se sauterait elle-même.
+      cancelAnimationFrame(image);
+      image = requestAnimationFrame(() => {
+        montageRef.current = performance.now();
+        setIntro(undefined);
+        setMode((actuel) => (actuel === "halo-css" ? actuel : "intro"));
+        setTour((n) => n + 1);
+      });
+    };
+    window.addEventListener(EVENEMENT_REJOUER_INTRO, rejouer);
+    return () => {
+      cancelAnimationFrame(image);
+      window.removeEventListener(EVENEMENT_REJOUER_INTRO, rejouer);
+    };
   }, []);
 
   useEffect(() => {
@@ -139,7 +167,7 @@ export function IntroEncre() {
       retirerSaut();
       window.removeEventListener("pointermove", suivre);
     };
-  }, [mode]);
+  }, [mode, tour]);
 
   return (
     <div
@@ -150,7 +178,7 @@ export function IntroEncre() {
       aria-hidden="true"
     >
       <HaloCss />
-      {mode !== "halo-css" && <canvas ref={canvasRef} />}
+      {mode !== "halo-css" && <canvas key={tour} ref={canvasRef} />}
       {mode === "intro" && (
         <p ref={nomRef} className="fond-accueil__nom">
           {siteName}

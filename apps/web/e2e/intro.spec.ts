@@ -65,6 +65,22 @@ test("nouvelle visite (nouvel onglet) : l'intro se rejoue", async ({ page, conte
   await expect(onglet.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
 });
 
+test("« Rejouer l'intro » depuis la palette, page défilée : l'intro repart du haut", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Raccourci clavier : ordinateur seulement.");
+  await page.goto("/");
+  const fond = page.locator(".fond-accueil");
+  await expect(fond).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
+  await page.mouse.move(400, 400);
+  await page.mouse.wheel(0, 800);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  await page.keyboard.press("Control+k");
+  await page.getByRole("combobox").fill("rejouer");
+  await page.keyboard.press("Enter");
+  await expect(fond).toHaveAttribute("data-intro", "en-cours");
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await expect(fond).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
+});
+
 // Revue finale, Important 1 : sur un téléphone lent, le moteur arrive plusieurs
 // centaines de ms après l'hydratation. Un geste fait pendant ce délai ne doit
 // pas être perdu, et l'encre ne doit jamais recouvrir une page déjà défilée.

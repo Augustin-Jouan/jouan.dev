@@ -7,6 +7,7 @@ import { useDirect } from "./contexte";
  * hauteur fixe rendue par le serveur, vide sans service ou quand on est seul,
  * pour que son apparition ne décale rien. Le bouton apparaît dès la connexion,
  * sur pointeur fin seulement : on peut refuser avant que quiconque arrive.
+ * `data-presence` indique son état à la palette de commandes (lib/commandes/contexte.ts).
  */
 export function CompteurPresents() {
   const { etat, pointeurFin, partage, basculerPartage } = useDirect();
@@ -25,6 +26,7 @@ export function CompteurPresents() {
         <button
           type="button"
           onClick={basculerPartage}
+          data-presence={partage ? "connectee" : "masquee"}
           className="underline decoration-trait-fort underline-offset-4 transition-[color] hover:text-texte"
         >
           {partage ? "Masquer mon curseur" : "Montrer mon curseur"}

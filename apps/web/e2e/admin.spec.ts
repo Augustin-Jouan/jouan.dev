@@ -29,7 +29,7 @@ test("connexion, création, désactivation et suppression d'un lien", async ({ p
   await page.getByRole("button", { name: "Créer le lien" }).click();
   await expect(page.getByText(`Lien de ${nom} :`)).toBeVisible();
 
-  const jeton = new URL((await page.locator("code").first().textContent())!).searchParams.get("pour")!;
+  const jeton = new URL((await page.getByRole("main").locator("code").first().textContent())!).searchParams.get("pour")!;
 
   const carte = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: nom }) });
   await carte.getByRole("button", { name: "Désactiver" }).click();
