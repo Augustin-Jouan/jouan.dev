@@ -48,4 +48,3 @@ test("la source de la page cache les indices dans un commentaire", async ({ requ
   const html = await (await request.get("/", { headers: { "User-Agent": NAVIGATEUR } })).text();
   expect(html).toMatch(/<!--\nBonjour, curieux ![\s\S]*curl -L [\s\S]*\/api\/me[\s\S]*⌘K ou Ctrl\+K[\s\S]*-->/);
 });
-
