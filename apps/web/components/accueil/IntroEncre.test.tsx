@@ -277,6 +277,24 @@ describe("IntroEncre", () => {
       expect(moteur.suivrePointeur).toHaveBeenLastCalledWith({ x: 0.25, y: 0.25 });
     });
 
+    // Relecture finale (M4) : défiler à la molette sans bouger la souris ne
+    // doit pas emporter le nuage avec la page.
+    it("reste sous la souris pendant le défilement", async () => {
+      await monter();
+      pointeur("mouse", 50, 25);
+      cadre.mockReturnValue({
+        left: 0, top: -100, width: 200, height: 100, right: 200, bottom: 0, x: 0, y: -100, toJSON: () => ({}),
+      } as DOMRect);
+      fireEvent.scroll(window);
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith({ x: 0.25, y: 1.25 });
+    });
+
+    it("ne vise rien au défilement tant que la souris n'a pas bougé", async () => {
+      await monter();
+      fireEvent.scroll(window);
+      expect(moteur.suivrePointeur).not.toHaveBeenCalled();
+    });
+
     // Review Focus 3
     it("oublie la souris quand elle quitte la fenêtre : le nuage revient à sa place", async () => {
       await monter();

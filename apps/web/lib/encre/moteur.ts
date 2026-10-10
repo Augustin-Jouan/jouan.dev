@@ -146,11 +146,18 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
   let arrete = false;
   /** Le haut de page est à l'écran ; sinon, inutile de dessiner. */
   let aLEcran = true;
+  /**
+   * Seule la goutte est à l'écran (intro avant l'éclatement) : son shader
+   * calcule un bruit fractal sur chaque pixel, à densité 1 pour ménager la
+   * carte graphique (son bord est adouci). Les traits, eux, suivent la densité.
+   */
+  let goutteSeule = options.intro;
 
   function redimensionner() {
     const largeurCss = canvas.clientWidth || 1;
     const hauteurCss = canvas.clientHeight || 1;
-    const { largeur, hauteur } = tailleRendu(largeurCss, hauteurCss, window.devicePixelRatio || 1);
+    const densite = goutteSeule ? 1 : window.devicePixelRatio || 1;
+    const { largeur, hauteur } = tailleRendu(largeurCss, hauteurCss, densite);
     if (canvas.width !== largeur || canvas.height !== hauteur) {
       canvas.width = largeur;
       canvas.height = hauteur;
@@ -201,6 +208,7 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
 
   function terminerIntro() {
     introFinie = true;
+    goutteSeule = false;
     nuage = repos.centre;
     if (options.nom) options.nom.style.opacity = "0";
     options.surFinIntro?.();
@@ -214,6 +222,7 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     if (!introFinie) {
       const etat = etatEncre(maintenant - (debut ??= maintenant), rayonCouverture(canvas.width, canvas.height), repos);
       if (options.nom) options.nom.style.opacity = String(etat.opaciteNom);
+      goutteSeule = etat.eclat === 0;
       // Pendant l'éclatement, le nuage naît à sa place de repos.
       dessiner(etat, repos.centre, maintenant);
       if (etat.terminee) terminerIntro();

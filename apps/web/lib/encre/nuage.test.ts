@@ -30,6 +30,22 @@ describe("semerTraits", () => {
     }
   });
 
+  // Relecture finale (I1) : le plafond ne doit pas tronquer la dernière rangée.
+  it.each([
+    [1440, 900],
+    [1680, 939],
+    [2560, 1305],
+    [719, 1756],
+    [3840, 2160],
+  ])("couvre tout l'écran %i × %i jusqu'au coin bas droit, sans dépasser le plafond", (largeur, hauteur) => {
+    const traits = semerTraits(largeur, hauteur);
+    expect(traits.length).toBeLessThanOrEqual(TRAITS_MAX);
+    const pas = Math.max(PAS, Math.sqrt((largeur * hauteur) / TRAITS_MAX));
+    const dernier = traits[traits.length - 1]!;
+    expect(dernier.x).toBeGreaterThan(largeur - 2 * pas);
+    expect(dernier.y).toBeGreaterThan(hauteur - 2 * pas);
+  });
+
   it("ne sème rien sur une surface vide", () => {
     expect(semerTraits(0, 0)).toEqual([]);
   });
@@ -59,7 +75,7 @@ describe("nuageFige", () => {
 
   it("reste dans le repère du SVG", () => {
     for (const g of nuageFige()) {
-      for (const n of g.chemin.match(/-?\d+(\.\d+)?/g)!.map(Number)) expect(Math.abs(n)).toBeLessThanOrEqual(200);
+      for (const n of g.chemin.match(/-?\d+(\.\d+)?/g)!.map(Number)) expect(Math.abs(n)).toBeLessThanOrEqual(400);
     }
   });
 });

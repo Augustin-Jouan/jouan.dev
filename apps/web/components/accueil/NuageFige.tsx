@@ -9,7 +9,7 @@ import { nuageFige } from "@/lib/encre/nuage";
  */
 export function NuageFige() {
   return (
-    <svg className="nuage-fige" viewBox="-200 -200 400 400" aria-hidden="true" focusable="false">
+    <svg className="nuage-fige" viewBox="-400 -400 800 800" aria-hidden="true" focusable="false">
       {nuageFige().map((groupe) => (
         <path
           key={`${groupe.couleur}-${groupe.opacite}`}
@@ -17,7 +17,7 @@ export function NuageFige() {
           fill="none"
           stroke={groupe.couleur}
           strokeOpacity={groupe.opacite}
-          strokeWidth={1.25}
+          strokeWidth={2.5}
           strokeLinecap="round"
         />
       ))}

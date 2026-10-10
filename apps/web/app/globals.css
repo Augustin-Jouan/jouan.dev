@@ -128,7 +128,7 @@ body::before {
 /* Nuage figé (components/accueil/NuageFige.tsx), à la place de repos du
    nuage : même calcul que reposNuage dans lib/encre/chronologie.ts. Centré à
    80 % de la colonne de contenu (90rem au plus) ; son rayon (0,2 de la hauteur
-   d'écran, plafonnée à 61rem) vaut 100 unités du SVG, qui en couvre 400. */
+   d'écran, plafonnée à 61rem) vaut 200 unités du SVG, qui en couvre 800. */
 .nuage-fige {
   position: absolute;
   left: calc((100% - min(100%, 90rem)) / 2 + 0.8 * min(100%, 90rem));

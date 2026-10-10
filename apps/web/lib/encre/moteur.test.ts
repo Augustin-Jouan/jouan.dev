@@ -127,6 +127,26 @@ describe("dessin du nuage", () => {
     moteur.arreter();
   });
 
+  // Relecture finale (I2) : la goutte plein écran (bruit fractal par pixel) ne
+  // se calcule pas à la densité de l'écran ; les traits, si.
+  it("dessine la goutte de l'intro à densité 1, puis le nuage à la densité de l'écran", async () => {
+    fauxContexte();
+    vi.stubGlobal("devicePixelRatio", 2);
+    const avecIntro = canvasDe(1280, 800);
+    const intro = creerMoteur({ canvas: avecIntro, intro: true })!;
+    intro.demarrer();
+    await image();
+    expect(avecIntro.width).toBe(1280);
+    intro.arreter();
+    const sansIntro = canvasDe(1280, 800);
+    const nuage = creerMoteur({ canvas: sansIntro, intro: false })!;
+    nuage.demarrer();
+    await image();
+    expect(sansIntro.width).toBe(2560);
+    nuage.arreter();
+    vi.unstubAllGlobals();
+  });
+
   // Review Focus 1 : rotation ou redimensionnement pendant le nuage.
   it("ressème quand la taille change", async () => {
     const appels = fauxContexte();

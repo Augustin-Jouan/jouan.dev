@@ -108,15 +108,27 @@ export function IntroEncre({ repli }: { repli?: ReactNode }) {
     };
     // Le doigt passe par `touchstart` / `touchmove`, qui continuent pendant le
     // défilement (les événements de pointeur s'y arrêtent : `pointercancel`).
+    /** Dernière position de la souris dans la fenêtre : le défilement la redonne au moteur. */
+    let souris: { x: number; y: number } | null = null;
     const suivreSouris = (evenement: PointerEvent) => {
-      if (evenement.pointerType !== "touch") viser(evenement.clientX, evenement.clientY);
+      if (evenement.pointerType === "touch") return;
+      souris = { x: evenement.clientX, y: evenement.clientY };
+      viser(souris.x, souris.y);
+    };
+    // Défiler sans bouger la souris déplace le canvas sous elle : le nuage
+    // reste sous le curseur au lieu de partir avec la page.
+    const suivreDefilement = () => {
+      if (souris) viser(souris.x, souris.y);
     };
     const suivreDoigt = (evenement: TouchEvent) => {
       const doigt = evenement.touches[0];
       if (doigt) viser(doigt.clientX, doigt.clientY);
     };
     /** Souris sortie de la fenêtre, doigt levé : le nuage revient à sa place. */
-    const oublier = () => moteur?.suivrePointeur(null);
+    const oublier = () => {
+      souris = null;
+      moteur?.suivrePointeur(null);
+    };
 
     const echouer = () => {
       moteur?.arreter();
@@ -167,6 +179,7 @@ export function IntroEncre({ repli }: { repli?: ReactNode }) {
       EVENEMENTS_SAUT.forEach((nom) => window.addEventListener(nom, sauter, { passive: true }));
     }
     window.addEventListener("pointermove", suivreSouris, { passive: true });
+    window.addEventListener("scroll", suivreDefilement, { passive: true });
     window.addEventListener("touchstart", suivreDoigt, { passive: true });
     window.addEventListener("touchmove", suivreDoigt, { passive: true });
     window.addEventListener("touchend", oublier);
@@ -178,6 +191,7 @@ export function IntroEncre({ repli }: { repli?: ReactNode }) {
       moteur?.arreter();
       retirerSaut();
       window.removeEventListener("pointermove", suivreSouris);
+      window.removeEventListener("scroll", suivreDefilement);
       window.removeEventListener("touchstart", suivreDoigt);
       window.removeEventListener("touchmove", suivreDoigt);
       window.removeEventListener("touchend", oublier);
