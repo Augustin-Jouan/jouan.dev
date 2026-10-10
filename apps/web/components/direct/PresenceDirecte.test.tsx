@@ -108,6 +108,65 @@ describe("PresenceDirecte", () => {
       expect(screen.getByText("3 personnes regardent cette page")).toBeInTheDocument();
     });
 
+    describe("seul sur la page", () => {
+      const copier = vi.fn<(texte: string) => Promise<void>>();
+      beforeEach(() => {
+        copier.mockReset();
+        vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText: copier } });
+        window.history.replaceState(null, "", "/?pour=exemple-0000");
+      });
+      afterEach(() => window.history.replaceState(null, "", "/"));
+
+      it("invite à copier le lien de l'accueil public, jamais celui du prospect", async () => {
+        copier.mockResolvedValue();
+        rendre();
+        await demarrer();
+        recevoir(bienvenue(1));
+        expect(screen.getByText("Vous êtes seul ici.")).toBeInTheDocument();
+        await act(async () => {
+          fireEvent.click(screen.getByRole("button", { name: "Inviter quelqu'un" }));
+        });
+        expect(copier).toHaveBeenCalledWith(`${window.location.origin}/`);
+        expect(screen.getByText("Lien copié : envoyez-le, son curseur apparaîtra ici.")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Inviter quelqu'un" })).toBeNull();
+      });
+
+      it("copie refusée : affiche le lien, à sélectionner", async () => {
+        copier.mockRejectedValue(new Error("refusé"));
+        rendre();
+        await demarrer();
+        recevoir(bienvenue(1));
+        await act(async () => {
+          fireEvent.click(screen.getByRole("button", { name: "Inviter quelqu'un" }));
+        });
+        expect(screen.getByText(`${window.location.origin}/`)).toBeInTheDocument();
+      });
+
+      it("plus d'invitation dès qu'une autre personne arrive, de nouveau proposée quand elle part", async () => {
+        copier.mockResolvedValue();
+        rendre();
+        await demarrer();
+        recevoir(bienvenue(1));
+        await act(async () => {
+          fireEvent.click(screen.getByRole("button", { name: "Inviter quelqu'un" }));
+        });
+        recevoir({ type: "presents", nombre: 2 });
+        expect(screen.getByText("2 personnes regardent cette page")).toBeInTheDocument();
+        expect(screen.queryByText(/seul ici|Lien copié/)).toBeNull();
+        recevoir({ type: "presents", nombre: 1 });
+        expect(screen.getByRole("button", { name: "Inviter quelqu'un" })).toBeInTheDocument();
+      });
+
+      it("sans pointeur fin (téléphone) : pas d'invitation", async () => {
+        pointeur(false);
+        rendre();
+        await demarrer();
+        recevoir(bienvenue(1));
+        expect(screen.queryByText("Vous êtes seul ici.")).toBeNull();
+        expect(screen.queryByRole("button", { name: "Inviter quelqu'un" })).toBeNull();
+      });
+    });
+
     it("bouton visible dès la connexion, même seul, et absent avant", async () => {
       rendre();
       await demarrer();

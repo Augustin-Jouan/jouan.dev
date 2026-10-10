@@ -29,6 +29,30 @@ test("deux visiteurs se voient : compteur et curseur", async ({ browser }) => {
   expect(erreurs.flat()).toEqual([]);
 });
 
+test("seul, on copie le lien de l'accueil ; la personne invitée arrive et on voit son curseur", async ({ browser, baseURL }) => {
+  const a = await browser.newContext({ viewport: { width: 1280, height: 800 }, permissions: ["clipboard-read", "clipboard-write"] });
+  const pageA = await a.newPage();
+  const erreurs = surveillerErreurs(pageA);
+  await pageA.goto("/?pour=inconnu-0000");
+  await expect(pageA.getByText("Vous êtes seul ici.")).toBeVisible({ timeout: 10_000 });
+  await pageA.getByRole("button", { name: "Inviter quelqu'un" }).click();
+  await expect(pageA.getByText("Lien copié : envoyez-le, son curseur apparaîtra ici.")).toBeVisible();
+  const lien = await pageA.evaluate(() => navigator.clipboard.readText());
+  expect(lien).toBe(`${new URL(baseURL!).origin}/`);
+
+  const b = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const pageB = await b.newPage();
+  await pageB.goto(lien);
+  await expect(pageA.getByText("2 personnes regardent cette page")).toBeVisible({ timeout: 10_000 });
+  const titre = await pageB.getByRole("heading", { level: 1 }).boundingBox();
+  for (let i = 0; i < 5; i++) await pageB.mouse.move(titre!.x + 40 + i * 20, titre!.y + 20);
+  await expect(pageA.locator("[data-curseur]")).toHaveCount(1);
+  await b.close();
+  await expect(pageA.getByRole("button", { name: "Inviter quelqu'un" })).toBeVisible({ timeout: 10_000 });
+  await a.close();
+  expect(erreurs).toEqual([]);
+});
+
 test("sur mobile : compteur seul, ni bouton ni curseur envoyé", async ({ browser }) => {
   const ordinateur = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const mobile = await browser.newContext({ ...devices["Pixel 7"] });
