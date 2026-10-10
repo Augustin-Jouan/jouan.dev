@@ -70,7 +70,7 @@ const securityHeaders = [
       ]),
 ];
 
-// La démo (public/demo, construite depuis apps/demo-marches) s'affiche dans
+// La démo (public/demo, fichier statique commité) s'affiche dans
 // une iframe des études de cas : elle seule accepte d'être incluse, et
 // seulement par le site lui-même. La dernière règle qui pose un en-tête l'emporte.
 const entetesDemo = [

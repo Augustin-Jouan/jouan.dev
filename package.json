@@ -4,8 +4,7 @@
   "packageManager": "pnpm@10.34.6",
   "scripts": {
     "dev": "pnpm --filter web dev",
-    "build": "pnpm --filter demo-marches build && pnpm --filter web build",
-    "dev:demo": "pnpm --filter demo-marches dev",
+    "build": "pnpm --filter web build",
     "dev:direct": "pnpm --filter realtime dev",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",

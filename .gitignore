@@ -44,9 +44,6 @@ next-env.d.ts
 # internal scratch dir (sdd workflow)
 .superpowers/
 
-# Sortie du build de la démo (apps/demo-marches)
-apps/web/public/demo/
-
 # Bundle CommonJS du service temps réel
 apps/realtime/dist
 

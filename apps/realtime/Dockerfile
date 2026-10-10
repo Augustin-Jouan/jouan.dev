@@ -18,7 +18,6 @@ WORKDIR /app
 # Tous les package.json du workspace : le lockfile les référence tous.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
-COPY apps/demo-marches/package.json apps/demo-marches/
 COPY apps/realtime/package.json apps/realtime/
 RUN pnpm install --frozen-lockfile --filter realtime
 COPY apps/realtime apps/realtime
