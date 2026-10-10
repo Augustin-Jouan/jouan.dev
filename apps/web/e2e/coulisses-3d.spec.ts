@@ -43,3 +43,13 @@ test("la 3D se charge au clic seulement, puis revient en 2D", async ({ page }) =
   await expect(page.getByTestId("scene-3d")).toHaveCount(0);
   expect(erreurs).toEqual([]);
 });
+
+test("/coulisses?vue=3d ouvre directement la vue 3D", async ({ page }) => {
+  const erreurs = surveillerErreurs(page);
+  await page.goto("/coulisses?vue=3d");
+  const webgl = await page.evaluate(() => Boolean(document.createElement("canvas").getContext("webgl2")));
+  test.skip(!webgl, "WebGL indisponible dans ce navigateur de test.");
+  await expect(page.getByTestId("scene-3d").locator("canvas")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Revenir en 2D" })).toBeVisible();
+  expect(erreurs).toEqual([]);
+});

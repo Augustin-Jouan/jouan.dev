@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore, type ComponentType, type ReactNode } from "react";
 import type { ConnexionDirecte } from "@/lib/direct/connexion";
 import type { CurseurAffiche, EtatDirect, MagasinDirect } from "@/lib/direct/magasin";
+import { EVENEMENT_BASCULER_CURSEUR } from "@/lib/commandes/evenements";
 import { quandLibre } from "@/lib/quand-libre";
 import { ContexteDirect } from "./contexte";
 
@@ -132,6 +133,13 @@ export function PresenceDirecte({ children }: { children: ReactNode }) {
     ecrirePartage(suivant);
     setPartage(suivant);
   };
+
+  // Commande « Masquer / Montrer mon curseur » de la palette : même effet que le bouton.
+  // Sans dépendances : réinscrit à chaque rendu, l'écouteur voit l'état courant.
+  useEffect(() => {
+    window.addEventListener(EVENEMENT_BASCULER_CURSEUR, basculerPartage);
+    return () => window.removeEventListener(EVENEMENT_BASCULER_CURSEUR, basculerPartage);
+  });
 
   return (
     <ContexteDirect.Provider value={{ etat, pointeurFin, partage, basculerPartage }}>

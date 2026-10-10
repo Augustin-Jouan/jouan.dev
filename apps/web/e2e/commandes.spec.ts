@@ -56,6 +56,17 @@ test.describe("ordinateur", () => {
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("contact@jouan.dev");
   });
 
+  test("« Voir l'architecture en 3D » ouvre les coulisses en 3D", async ({ page }) => {
+    await page.goto("/");
+    const webgl = await page.evaluate(() => Boolean(document.createElement("canvas").getContext("webgl2")));
+    test.skip(!webgl, "WebGL indisponible dans ce navigateur de test.");
+    await page.keyboard.press("Control+k");
+    await page.getByRole("combobox").fill("3d");
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/coulisses\?vue=3d$/);
+    await expect(page.getByTestId("scene-3d").locator("canvas")).toBeVisible();
+  });
+
   test("palette ouverte : aucune violation WCAG A/AA", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");

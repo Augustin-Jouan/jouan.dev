@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { EVENEMENT_BASCULER_CURSEUR } from "@/lib/commandes/evenements";
 import type { MessageServeur } from "@/lib/direct/protocole";
 
 const fausse = vi.hoisted(() => ({
@@ -123,6 +124,17 @@ describe("PresenceDirecte", () => {
       expect(fausse.envoyer).toHaveBeenCalledWith({ type: "masque" });
       expect(window.localStorage.getItem("direct:partage")).toBe("non");
       expect(screen.getByRole("button", { name: "Montrer mon curseur" })).toBeInTheDocument();
+    });
+
+    it("la commande de la palette bascule le curseur, comme le bouton", async () => {
+      rendre();
+      await demarrer();
+      recevoir(bienvenue(1));
+      expect(screen.getByRole("button", { name: "Masquer mon curseur" })).toHaveAttribute("data-presence", "connectee");
+      act(() => void window.dispatchEvent(new Event(EVENEMENT_BASCULER_CURSEUR)));
+      expect(fausse.envoyer).toHaveBeenCalledWith({ type: "masque" });
+      expect(window.localStorage.getItem("direct:partage")).toBe("non");
+      expect(screen.getByRole("button", { name: "Montrer mon curseur" })).toHaveAttribute("data-presence", "masquee");
     });
 
     it("partage actif : la souris dans une section envoie une position", async () => {

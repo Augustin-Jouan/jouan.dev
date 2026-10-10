@@ -1,6 +1,7 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import type { OptionsMoteur } from "@/lib/encre/moteur";
+import { EVENEMENT_REJOUER_INTRO } from "@/lib/commandes/evenements";
 import { CLE_INTRO_VUE } from "@/lib/encre/decision";
 
 const { creerMoteur, moteur } = vi.hoisted(() => ({
@@ -206,5 +207,36 @@ describe("IntroEncre", () => {
       expect(fond(container)).not.toHaveAttribute("data-intro");
       expect(container.querySelector("canvas")).toBeNull();
     });
+  });
+
+  it("« Rejouer l'intro » : retour en haut, puis l'intro repart sur un canvas neuf", async () => {
+    navigateur();
+    const defilerVers = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const { container } = render(<IntroEncre />);
+    await waitFor(() => expect(creerMoteur).toHaveBeenCalledTimes(1));
+    act(() => options().surFinIntro?.());
+    const ancien = container.querySelector("canvas");
+
+    act(() => void window.dispatchEvent(new Event(EVENEMENT_REJOUER_INTRO)));
+    expect(defilerVers).toHaveBeenCalledWith({ top: 0, behavior: "instant" });
+    await waitFor(() => expect(creerMoteur).toHaveBeenCalledTimes(2));
+    expect(moteur.arreter).toHaveBeenCalled();
+    expect(creerMoteur.mock.calls[1][0]).toMatchObject({ intro: true });
+    expect(container.querySelector("canvas")).not.toBe(ancien);
+    expect(fond(container)).toHaveAttribute("data-mode", "intro");
+    expect(fond(container)).not.toHaveAttribute("data-intro");
+  });
+
+  it("ne rejoue rien avec le mouvement réduit", async () => {
+    navigateur({ mouvementReduit: true });
+    vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const { container } = render(<IntroEncre />);
+    await act(async () => {});
+    await act(async () => {
+      window.dispatchEvent(new Event(EVENEMENT_REJOUER_INTRO));
+      await new Promise((fin) => requestAnimationFrame(() => fin(undefined)));
+    });
+    expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
+    expect(creerMoteur).not.toHaveBeenCalled();
   });
 });

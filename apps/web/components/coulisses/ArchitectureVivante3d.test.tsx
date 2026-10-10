@@ -169,4 +169,29 @@ describe("ArchitectureVivante, vue 3D", () => {
     await waitFor(() => expect(scene.creerScene).toHaveBeenCalledTimes(2));
     expect(scene.creerScene.mock.calls[1]![0]).toMatchObject({ mouvementReduit: true, choisi: "base" });
   });
+
+  it("avec ?vue=3d, la 3D s'ouvre d'elle-même", async () => {
+    window.history.replaceState(null, "", "/coulisses?vue=3d");
+    try {
+      webgl(true);
+      render(<ArchitectureVivante />);
+      await waitFor(() => expect(scene.creerScene).toHaveBeenCalledTimes(1));
+      expect(screen.getByRole("button", { name: "Revenir en 2D" })).toBeInTheDocument();
+    } finally {
+      window.history.replaceState(null, "", "/");
+    }
+  });
+
+  it("avec ?vue=3d mais sans WebGL, le schéma 2D reste", async () => {
+    window.history.replaceState(null, "", "/coulisses?vue=3d");
+    try {
+      webgl(false);
+      render(<ArchitectureVivante />);
+      await act(async () => {});
+      expect(scene.creerScene).not.toHaveBeenCalled();
+      expect(screen.getAllByRole("group", { name: "Schéma de l'architecture" }).length).toBeGreaterThan(0);
+    } finally {
+      window.history.replaceState(null, "", "/");
+    }
+  });
 });

@@ -75,6 +75,24 @@ fond nuit `#2a2127`, texte papier, accent pêche, alerte corail, « en direct »
   contraste reste suffisant ; `e2e/accessibilite.spec.ts` passe chaque page à axe-core.
 - La démo de l'étude de cas est intégrée en thème sombre (`?theme=sombre`).
 
+## Easter eggs
+
+Pour les curieux (spec : `docs/superpowers/specs/2026-10-09-easter-eggs-design.md`) :
+
+- `curl -L jouan.dev` : le CV en couleurs, en 80 colonnes. `proxy.ts` réécrit `/` vers `/cv.ansi`
+  pour les clients en ligne de commande (`curl`, `Wget`, `HTTPie`, `xh`) ; `/cv.txt` donne le même
+  CV sans couleur. Les couleurs sont les codes 256 couleurs les plus proches des rôles de la charte
+  (`lib/cv/couleurs-terminal.ts`).
+- `/api/me` : le même CV au format JSON Resume. Les trois routes sont pré-rendues au build, à
+  partir des données du site (`lib/cv/modele.ts`, `data/competences.ts`).
+- Cmd+K (Ctrl+K), ou « ⌘K pour naviguer » dans le pied de page : une palette de commandes chargée
+  au premier appel (`components/commandes/`, 8 Ko au plus, `verifier-taille-commandes`). Pour
+  ajouter une commande : une entrée dans `data/commandes.ts`.
+- Indices : le pied de page, la console du navigateur et un commentaire en tête de la page.
+
+Le raccourci et les indices ajoutent environ 1 Ko au JavaScript de chaque page : le budget des
+scripts de l'accueil (`lighthouserc.json`) est passé de 160 à 165 Ko pour eux.
+
 ## Déploiement
 
 Comme les sites vitrines (voir `docs/deploiement-site.md`) : la CI construit
