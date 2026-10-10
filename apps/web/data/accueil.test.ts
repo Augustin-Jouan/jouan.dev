@@ -75,12 +75,19 @@ describe("contenu de l'accueil", () => {
 
   it("fait pointer les actions de l'accroche vers des sections existantes", () => {
     expect(ancres.has(accroche.actionPrincipale.href)).toBe(true);
-    expect(ancres.has(accroche.actionSecondaire.href)).toBe(true);
+    expect(accroche.actionSecondaire).toEqual({ libelle: "Voir mes réalisations", href: "/realisations" });
   });
 
   it("fait pointer la navigation de l'en-tête vers la page des réalisations et des sections existantes", () => {
-    expect(navLinks[0]).toEqual({ href: "/realisations", label: "Réalisations" });
-    for (const lien of navLinks.slice(1)) expect(ancres.has(lien.href.replace(/^\//, ""))).toBe(true);
+    expect(navLinks).toEqual([
+      { href: "/realisations", label: "Réalisations" },
+      { href: "/#offre", label: "Offre" },
+      { href: "/coulisses", label: "Coulisses" },
+      { href: "/#contact", label: "Contact" },
+    ]);
+    for (const lien of navLinks.filter((l) => l.href.startsWith("/#"))) {
+      expect(ancres.has(lien.href.replace(/^\//, ""))).toBe(true);
+    }
   });
 
   it("ne laisse aucun placeholder entre crochets", () => {

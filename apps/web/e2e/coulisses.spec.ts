@@ -10,6 +10,13 @@ test("le pied de page mène aux coulisses", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Coulisses" })).toBeVisible();
 });
 
+test("l'en-tête mène aux coulisses", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Navigation principale" }).getByRole("link", { name: "Coulisses" }).click();
+  await expect(page).toHaveURL(/\/coulisses$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Coulisses" })).toBeVisible();
+});
+
 test("les mesures arrivent en direct", async ({ page }) => {
   const erreurs = surveillerErreurs(page);
   await page.goto("/coulisses");

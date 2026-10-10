@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { surveillerErreurs } from "./outils";
 
-const ETUDE = "/realisations/suivi-de-marches";
+const ETUDE = "/realisations";
 const DEMO = "/demo/suivi-de-marches/index.html";
 const CHANTIER = "LEFÈVRE — Rivebourg";
 

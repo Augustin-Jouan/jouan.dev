@@ -49,7 +49,7 @@ export const accroche: Accroche = {
   sousTitre:
     "Je conçois, développe et héberge vos outils, du premier échange à la mise en ligne.",
   actionPrincipale: { libelle: "Parler de votre projet", href: `#${ANCRES.contact}` },
-  actionSecondaire: { libelle: "Voir mes réalisations", href: `#${ANCRES.realisations}` },
+  actionSecondaire: { libelle: "Voir mes réalisations", href: "/realisations" },
 };
 
 export type Offre = {

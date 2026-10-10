@@ -36,7 +36,7 @@ test.describe("ordinateur", () => {
 
   test("Échap ferme la palette et rend le focus", async ({ page }) => {
     await page.goto("/contact");
-    const lien = page.getByRole("link", { name: "Coulisses" });
+    const lien = page.getByRole("contentinfo").getByRole("link", { name: "Coulisses" });
     await lien.focus();
     await page.keyboard.press("Control+k");
     await expect(palette(page)).toBeVisible();
