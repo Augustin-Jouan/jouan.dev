@@ -147,6 +147,29 @@ describe("dessin du nuage", () => {
     vi.unstubAllGlobals();
   });
 
+  // Le voile de l'intro se lève sous la goutte, une fois l'écran couvert.
+  it("signale une seule fois que la goutte couvre l'écran, à la fin de l'étalement", () => {
+    fauxContexte();
+    const images: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (rappel: FrameRequestCallback) => images.push(rappel));
+    const surCouvert = vi.fn();
+    const moteur = creerMoteur({ canvas: canvasDe(1280, 800), intro: true, surCouvert })!;
+    try {
+      moteur.demarrer();
+      const avancer = (t: number) => images.shift()?.(t);
+      avancer(1000);
+      avancer(1500);
+      expect(surCouvert).not.toHaveBeenCalled();
+      avancer(1950);
+      expect(surCouvert).toHaveBeenCalledTimes(1);
+      avancer(2500);
+      expect(surCouvert).toHaveBeenCalledTimes(1);
+    } finally {
+      moteur.arreter();
+      vi.unstubAllGlobals();
+    }
+  });
+
   // Review Focus 1 : rotation ou redimensionnement pendant le nuage.
   it("ressème quand la taille change", async () => {
     const appels = fauxContexte();

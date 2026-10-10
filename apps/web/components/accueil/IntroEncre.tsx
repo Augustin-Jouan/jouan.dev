@@ -11,6 +11,7 @@ import {
   type ModeEncre,
 } from "@/lib/encre/decision";
 import type { Moteur } from "@/lib/encre/moteur";
+import { leverVoile } from "@/lib/encre/voile";
 
 /**
  * Un geste du visiteur termine l'intro immédiatement. `scroll` couvre aussi
@@ -52,15 +53,24 @@ export function IntroEncre({ repli }: { repli?: ReactNode }) {
 
   useEffect(() => {
     montageRef.current = performance.now();
+    const decision = deciderMode({
+      mouvementReduit: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+      webgl2: typeof WebGL2RenderingContext !== "undefined",
+      dejaVu: introDejaVue(stockageSession()),
+      defilee: window.scrollY > 0,
+    });
+    // Le voile du script de tête ne cache la page que pour l'intro.
+    if (decision !== "intro") leverVoile();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- la décision dépend du navigateur : impossible au rendu serveur
-    setMode(
-      deciderMode({
-        mouvementReduit: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-        webgl2: typeof WebGL2RenderingContext !== "undefined",
-        dejaVu: introDejaVue(stockageSession()),
-        defilee: window.scrollY > 0,
-      })
-    );
+    setMode(decision);
+    // Départ vers une autre page avant que la goutte couvre l'écran : le voile ne
+    // doit pas la cacher. Le démontage-remontage du mode strict (développement)
+    // laisse le fond en place : le voile reste alors.
+    return () => {
+      setTimeout(() => {
+        if (!document.querySelector(".fond-accueil")) leverVoile();
+      });
+    };
   }, []);
 
   useEffect(() => {
@@ -96,6 +106,7 @@ export function IntroEncre({ repli }: { repli?: ReactNode }) {
     const sauter = () => {
       if (moteur) moteur.sauter();
       else sautDemande = true;
+      leverVoile();
     };
     const retirerSaut = () =>
       EVENEMENTS_SAUT.forEach((nom) => window.removeEventListener(nom, sauter));
@@ -131,6 +142,7 @@ export function IntroEncre({ repli }: { repli?: ReactNode }) {
     };
 
     const echouer = () => {
+      leverVoile();
       moteur?.arreter();
       setEncre("repli");
       setIntro(undefined);
@@ -153,6 +165,7 @@ export function IntroEncre({ repli }: { repli?: ReactNode }) {
           retirerSaut();
           setIntro("terminee");
         }
+        if (!introEffective) leverVoile();
         moteur = creerMoteur({
           canvas: canvasRef.current,
           intro: introEffective,
@@ -161,7 +174,10 @@ export function IntroEncre({ repli }: { repli?: ReactNode }) {
             setEncre("actif");
             if (introEffective) setIntro((etat) => etat ?? "en-cours");
           },
+          // La goutte cache maintenant la page : le voile peut partir sans se voir.
+          surCouvert: leverVoile,
           surFinIntro: () => {
+            leverVoile();
             retirerSaut();
             setIntro("terminee");
             marquerIntroVue(stockageSession());

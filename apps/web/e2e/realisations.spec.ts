@@ -31,6 +31,20 @@ test("« Réalisations » dans l'en-tête et le lien de l'accueil ouvrent /reali
   await expect(page).toHaveURL(/\/realisations$/);
 });
 
+// Budget Lighthouse de l'accueil : le JS de /realisations (démo comprise) ne se
+// charge qu'à l'intention (survol, focus, toucher), pas parce que le lien est visible.
+test("l'accueil ne précharge pas /realisations", async ({ page }) => {
+  const prechargements: string[] = [];
+  page.on("request", (r) => {
+    if (new URL(r.url()).pathname === "/realisations") prechargements.push(r.url());
+  });
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("link", { name: "Toutes les réalisations" }).scrollIntoViewIfNeeded();
+  await page.waitForLoadState("networkidle");
+  expect(prechargements).toEqual([]);
+});
+
 test("les anciennes pages d'étude redirigent vers leur ancre", async ({ page, request }) => {
   const reponse = await request.get("/realisations/site-artisan", { maxRedirects: 0 });
   expect(reponse.status()).toBe(308);

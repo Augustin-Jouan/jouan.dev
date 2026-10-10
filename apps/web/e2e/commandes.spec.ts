@@ -36,6 +36,8 @@ test.describe("ordinateur", () => {
 
   test("Échap ferme la palette et rend le focus", async ({ page }) => {
     await page.goto("/contact");
+    // Raccourci branché à l'hydratation : un visiteur n'appuie pas avant.
+    await page.waitForLoadState("networkidle");
     const lien = page.getByRole("contentinfo").getByRole("link", { name: "Coulisses" });
     await lien.focus();
     await page.keyboard.press("Control+k");
@@ -49,6 +51,8 @@ test.describe("ordinateur", () => {
   test("« Copier l'e-mail » copie l'adresse et l'annonce", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto("/");
+    // Raccourci branché à l'hydratation : un visiteur n'appuie pas avant.
+    await page.waitForLoadState("networkidle");
     await page.keyboard.press("Control+k");
     await page.getByRole("combobox").fill("copier e-mail");
     await page.keyboard.press("Enter");
@@ -58,6 +62,8 @@ test.describe("ordinateur", () => {
 
   test("« Voir l'architecture en 3D » ouvre les coulisses en 3D", async ({ page }) => {
     await page.goto("/");
+    // Raccourci branché à l'hydratation : un visiteur n'appuie pas avant.
+    await page.waitForLoadState("networkidle");
     const webgl = await page.evaluate(() => Boolean(document.createElement("canvas").getContext("webgl2")));
     test.skip(!webgl, "WebGL indisponible dans ce navigateur de test.");
     await page.keyboard.press("Control+k");
@@ -70,6 +76,8 @@ test.describe("ordinateur", () => {
   test("palette ouverte : aucune violation WCAG A/AA", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
+    // Raccourci branché à l'hydratation : un visiteur n'appuie pas avant.
+    await page.waitForLoadState("networkidle");
     await page.keyboard.press("Control+k");
     await expect(palette(page)).toBeVisible();
     const resultat = await new AxeBuilder({ page })

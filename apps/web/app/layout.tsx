@@ -12,6 +12,7 @@ import { commandes } from "@/data/commandes";
 import { hoteSite, siteUrl, siteName, siteDescription } from "@/data/site";
 import { couleur } from "@/lib/charte";
 import { texteIndices } from "@/lib/commandes/indices";
+import { SCRIPT_VOILE } from "@/lib/encre/voile";
 
 // next/font sert les fichiers depuis le domaine : la CSP n'a pas besoin de
 // Google Fonts.
@@ -64,6 +65,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${inter.variable} ${instrument.variable}`}>
+      {/* Avant le premier affichage : voile de l'intro (lib/encre/voile.ts). */}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_VOILE }} />
+      </head>
       {/* `relative` : le fond de l'accueil se positionne par rapport au corps. */}
       <body className="relative flex min-h-screen flex-col font-sans text-texte">
         <div hidden dangerouslySetInnerHTML={{ __html: COMMENTAIRE_SOURCE }} />

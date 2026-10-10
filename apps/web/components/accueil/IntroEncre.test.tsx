@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import type { OptionsMoteur } from "@/lib/encre/moteur";
 import { EVENEMENT_REJOUER_INTRO } from "@/lib/commandes/evenements";
 import { CLE_INTRO_VUE } from "@/lib/encre/decision";
+import { ATTRIBUT_VOILE } from "@/lib/encre/voile";
 
 const { creerMoteur, moteur } = vi.hoisted(() => ({
   creerMoteur: vi.fn(),
@@ -216,6 +217,65 @@ describe("IntroEncre", () => {
       expect(fond(container)).toHaveAttribute("data-mode", "nuage-fige");
       expect(fond(container)).not.toHaveAttribute("data-intro");
       expect(container.querySelector("canvas")).toBeNull();
+    });
+  });
+
+  describe("voile posé par le script de tête", () => {
+    const voile = () => document.documentElement.hasAttribute(ATTRIBUT_VOILE);
+    beforeEach(() => document.documentElement.setAttribute(ATTRIBUT_VOILE, ""));
+    afterEach(() => document.documentElement.removeAttribute(ATTRIBUT_VOILE));
+
+    it("reste pendant l'intro jusqu'à ce que la goutte couvre l'écran", async () => {
+      navigateur();
+      render(<IntroEncre />);
+      await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
+      act(() => options().surPret?.());
+      expect(voile()).toBe(true);
+      act(() => options().surCouvert?.());
+      expect(voile()).toBe(false);
+    });
+
+    it("se lève à la fin de l'intro, même passée avant que la goutte couvre l'écran", async () => {
+      navigateur();
+      render(<IntroEncre />);
+      await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
+      act(() => options().surFinIntro?.());
+      expect(voile()).toBe(false);
+    });
+
+    it("se lève dès un geste fait avant l'arrivée du moteur", async () => {
+      navigateur();
+      render(<IntroEncre />);
+      await act(async () => {});
+      fireEvent.pointerDown(window);
+      expect(voile()).toBe(false);
+    });
+
+    it("se lève quand il n'y aura pas d'intro : mouvement réduit, intro déjà vue, moteur en échec", async () => {
+      navigateur({ mouvementReduit: true });
+      const { unmount } = render(<IntroEncre />);
+      await act(async () => {});
+      expect(voile()).toBe(false);
+      unmount();
+
+      document.documentElement.setAttribute(ATTRIBUT_VOILE, "");
+      vi.unstubAllGlobals();
+      navigateur();
+      window.sessionStorage.setItem(CLE_INTRO_VUE, "1");
+      const deja = render(<IntroEncre />);
+      await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
+      expect(voile()).toBe(false);
+      deja.unmount();
+
+      document.documentElement.setAttribute(ATTRIBUT_VOILE, "");
+      window.sessionStorage.clear();
+      creerMoteur.mockImplementation((o: OptionsMoteur) => {
+        o.surEchec?.("shader");
+        return null;
+      });
+      const { container } = render(<IntroEncre />);
+      await waitFor(() => expect(fond(container)).toHaveAttribute("data-encre", "repli"));
+      expect(voile()).toBe(false);
     });
   });
 

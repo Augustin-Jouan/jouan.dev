@@ -22,6 +22,8 @@ export type OptionsMoteur = {
   nom?: HTMLElement | null;
   /** Première image dessinée : le canvas peut remplacer le nuage figé. */
   surPret?: () => void;
+  /** La goutte de l'intro couvre tout l'écran : ce qui est dessous ne se voit plus. */
+  surCouvert?: () => void;
   surFinIntro?: () => void;
   surEchec?: (raison: RaisonEchec) => void;
 };
@@ -143,6 +145,8 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
   let semis = { largeur: 0, hauteur: 0, nombre: 0 };
   let image = 0;
   let pret = false;
+  /** `surCouvert` déjà signalé. */
+  let couvert = false;
   let arrete = false;
   /** Le haut de page est à l'écran ; sinon, inutile de dessiner. */
   let aLEcran = true;
@@ -220,11 +224,16 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     redimensionner();
 
     if (!introFinie) {
-      const etat = etatEncre(maintenant - (debut ??= maintenant), rayonCouverture(canvas.width, canvas.height), repos);
+      const couverture = rayonCouverture(canvas.width, canvas.height);
+      const etat = etatEncre(maintenant - (debut ??= maintenant), couverture, repos);
       if (options.nom) options.nom.style.opacity = String(etat.opaciteNom);
       goutteSeule = etat.eclat === 0;
       // Pendant l'éclatement, le nuage naît à sa place de repos.
       dessiner(etat, repos.centre, maintenant);
+      if (!couvert && etat.rayon >= couverture) {
+        couvert = true;
+        options.surCouvert?.();
+      }
       if (etat.terminee) terminerIntro();
       demanderImage();
       return;
