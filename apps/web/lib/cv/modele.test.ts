@@ -10,7 +10,7 @@ describe("construireCv", () => {
 
   it("reprend les données du site, sans les recopier", () => {
     expect(cv.nom).toBe("Augustin Jouan");
-    expect(cv.accroche.titre).toBe("Des applications métier sur mesure, qui remplacent vos tableurs.");
+    expect(cv.accroche.titre).toBe("Moins de tâches répétitives, plus de temps pour votre cœur de métier.");
     expect(cv.offres.map((o) => o.titre)).toEqual(offres.map((o) => o.titre));
     expect(cv.realisations.map((r) => r.titre)).toEqual(realisations.map((r) => r.titre));
     expect(cv.parcours).toEqual(parcours);
