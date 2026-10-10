@@ -41,9 +41,9 @@ export type Accroche = {
 
 export const accroche: Accroche = {
   surtitre: "Développeur full stack · indépendant",
-  titreAvant: "Des applications métier ",
-  titreAccent: "sur mesure",
-  titreApres: ", qui remplacent vos tableurs.",
+  titreAvant: "Moins de tâches informatiques répétitives, ",
+  titreAccent: "plus de temps",
+  titreApres: " pour votre métier.",
   sousTitre:
     "Je conçois, développe et héberge vos outils, du premier échange à la mise en ligne.",
   actionPrincipale: { libelle: "Parler de votre projet", href: `#${ANCRES.contact}` },
