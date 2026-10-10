@@ -35,8 +35,8 @@ describe("executerAction", () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", { clipboard: { writeText } });
     const o = outils();
-    await executerAction({ type: "copier", texte: "contact@jouan.dev", confirmation: "E-mail copié" }, o);
-    expect(writeText).toHaveBeenCalledWith("contact@jouan.dev");
+    await executerAction({ type: "copier", texte: "augustin@jouan.dev", confirmation: "E-mail copié" }, o);
+    expect(writeText).toHaveBeenCalledWith("augustin@jouan.dev");
     expect(o.annoncer).toHaveBeenCalledWith("E-mail copié");
   });
 

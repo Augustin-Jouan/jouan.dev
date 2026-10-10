@@ -53,7 +53,7 @@ test.describe("ordinateur", () => {
     await page.getByRole("combobox").fill("copier e-mail");
     await page.keyboard.press("Enter");
     await expect(page.getByRole("status").filter({ hasText: "E-mail copié" })).toBeVisible();
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("contact@jouan.dev");
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("augustin@jouan.dev");
   });
 
   test("« Voir l'architecture en 3D » ouvre les coulisses en 3D", async ({ page }) => {

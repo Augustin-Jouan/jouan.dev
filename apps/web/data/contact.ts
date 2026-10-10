@@ -6,6 +6,6 @@ export type Contact = {
 };
 
 export const contact: Contact = {
-  email: "contact@jouan.dev",
+  email: "augustin@jouan.dev",
   github: "https://github.com/Augustin-Jouan",
 };
