@@ -11,6 +11,13 @@ test.describe("mouvement réduit", () => {
     await expect(fond.locator("canvas")).toHaveCount(0);
     await expect(fond.locator(".halo-css")).toBeVisible();
   });
+
+  test("halo CSS aux couleurs de la charte (corail bordé de rose)", async ({ page }) => {
+    await page.goto("/");
+    const halo = await page.locator(".halo-css").evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(halo).toContain("rgb(216, 127, 129)"); // lueur (corail)
+    expect(halo).toContain("rgb(174, 99, 120)"); // lueur chaude (rose)
+  });
 });
 
 test("WebGL2 absent : halo CSS", async ({ page }) => {
@@ -71,12 +78,15 @@ test("stockage inaccessible : l'intro se joue sans erreur", async ({ page }) => 
   const erreurs = surveillerErreurs(page);
   await simulerGpu(page);
   await page.addInitScript(() => {
-    Object.defineProperty(window, "localStorage", {
-      configurable: true,
-      get() {
-        throw new DOMException("refusé", "SecurityError");
-      },
-    });
+    // Navigation privée stricte : les deux stockages refusés (intro : session ; curseur : local).
+    for (const nom of ["localStorage", "sessionStorage"]) {
+      Object.defineProperty(window, nom, {
+        configurable: true,
+        get() {
+          throw new DOMException("refusé", "SecurityError");
+        },
+      });
+    }
   });
   await page.goto("/");
   await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", {

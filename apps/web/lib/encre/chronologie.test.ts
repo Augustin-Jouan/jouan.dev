@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
-  BRAISE,
   COLONNE_MAX,
   DUREE_INTRO,
-  ENCRE,
+  GOUTTE,
   HALO,
   HAUTEUR_MAX,
+  LUEUR,
+  LUEUR_CHAUDE,
   cibleHalo,
   etatEncre,
   etatHalo,
@@ -23,7 +24,7 @@ describe("etatEncre", () => {
     const etat = etatEncre(0, COUVERTURE, REPOS);
     expect(etat.centre).toEqual({ x: 0.5, y: 0.5 });
     expect(etat.rayon).toBe(0);
-    expect(etat.couleur).toEqual(ENCRE);
+    expect(etat.couleur).toEqual(GOUTTE);
     expect(etat.opaciteNom).toBe(0);
     expect(etat.terminee).toBe(false);
   });
@@ -57,7 +58,7 @@ describe("etatEncre", () => {
     const fin = etatEncre(DUREE_INTRO, COUVERTURE, REPOS);
     expect(fin).toEqual(etatHalo(REPOS.centre, REPOS));
     expect(fin.terminee).toBe(true);
-    expect(fin.couleur).toEqual(BRAISE);
+    expect(fin.couleur).toEqual(LUEUR);
     expect(etatEncre(60_000, COUVERTURE, REPOS).terminee).toBe(true);
   });
 
@@ -125,5 +126,27 @@ describe("halo", () => {
     expect(point.x).toBeLessThan(1);
     for (let i = 0; i < 200; i += 1) point = suivre(point, cible);
     expect(point.x).toBeCloseTo(1, 3);
+  });
+});
+
+describe("couleurs de l'intro", () => {
+  const rvb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+
+  it("part d'une goutte pêche et finit en halo corail, bordé de rose", () => {
+    expect(GOUTTE).toEqual(rvb("#eab595"));
+    expect(LUEUR).toEqual(rvb("#d87f81"));
+    expect(LUEUR_CHAUDE).toEqual(rvb("#ae6378"));
+  });
+
+  it("passe de la goutte au halo pendant le resserrement", () => {
+    // 1150 ms : entre la fin du nom (800 ms) et la fin de l'intro (1500 ms).
+    const milieu = etatEncre(1150, COUVERTURE, REPOS);
+    for (let i = 0; i < 3; i++) {
+      const [bas, haut] = [GOUTTE[i]!, LUEUR[i]!].sort((x, y) => x - y);
+      expect(milieu.couleur[i]).toBeGreaterThanOrEqual(bas!);
+      expect(milieu.couleur[i]).toBeLessThanOrEqual(haut!);
+    }
+    expect(milieu.melange).toBeGreaterThan(0);
+    expect(milieu.melange).toBeLessThan(1);
   });
 });

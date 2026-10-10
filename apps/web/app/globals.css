@@ -1,25 +1,51 @@
 @import "tailwindcss";
 
 /*
- * Direction « Atelier clair » : papier chaud, encre noire, un seul accent.
- * Chaque jeton `--color-x` donne les utilitaires `bg-x`, `text-x`, `border-x`.
- * `brique` ne sert qu'aux grands textes (contraste 4,1:1 sur le papier).
+ * Charte « Nuit mauve » (docs/superpowers/specs/2026-10-09-charte-design.md).
+ *
+ * Deux étages :
+ * - les teintes brutes, `--teinte-*` sur `:root`, hors de `@theme` : elles ne
+ *   donnent aucune classe Tailwind ;
+ * - les rôles, seuls jetons `--color-*` de `@theme` : `bg-fond`, `text-texte`,
+ *   `text-accent`… Les composants n'emploient que ces rôles, sans opacité.
+ * Mêmes valeurs dans lib/charte.ts (moteur de l'intro, vignettes, curseurs),
+ * vérifiées par lib/charte.test.ts, comme les contrastes.
  *
  * `--font-inter` et `--font-instrument` sont posées par next/font dans
  * app/layout.tsx. Ne pas nommer un jeton comme une variable next/font : la
  * déclaration serait circulaire.
  */
+:root {
+  --teinte-nuit: #2a2127;
+  --teinte-nuit-haute: #352a31;
+  --teinte-mauve: #79616f;
+  --teinte-mauve-clair: #b9a3b0;
+  --teinte-rose: #ae6378;
+  --teinte-corail: #d87f81;
+  --teinte-peche: #eab595;
+  --teinte-sauge: #7e9680;
+  --teinte-papier: #f3efe7;
+  --teinte-trait-nuit: #4a3b44;
+  --teinte-trait-mauve: #8a7480;
+}
 @theme {
-  --color-papier: #f3efe7;
-  --color-encre: #1b1a17;
-  --color-encre-douce: #5b574f;
-  --color-brique: #c84a1f;
-  --color-braise: #e0582b;
-  --color-braise-claire: #ef9c62;
-  --color-terre: #8a5a3c;
-  --color-trait: #c9c1b2;
+  /* Seuls les rôles ci-dessous existent : pas de palette par défaut (bg-white…). */
+  --color-*: initial;
+  --color-fond: var(--teinte-nuit);
+  --color-surface: var(--teinte-nuit-haute);
+  --color-texte: var(--teinte-papier);
+  --color-texte-doux: var(--teinte-mauve-clair);
+  --color-accent: var(--teinte-peche);
+  --color-sur-accent: var(--teinte-nuit);
+  --color-alerte: var(--teinte-corail);
+  --color-vivant: var(--teinte-sauge);
+  --color-trait: var(--teinte-trait-nuit);
+  --color-trait-fort: var(--teinte-trait-mauve);
+  --color-lueur: var(--teinte-corail);
+  --color-lueur-chaude: var(--teinte-rose);
+  --color-goutte: var(--teinte-peche);
 
-  --shadow-fenetre: 0 30px 80px -40px rgb(27 26 23 / 0.45);
+  --shadow-fenetre: 0 30px 80px -40px rgb(0 0 0 / 0.6);
 
   /* Colonne de contenu des grands écrans (classe `max-w-page`, à partir de 2xl). */
   --container-page: 90rem;
@@ -29,9 +55,32 @@
 }
 
 html {
-  background-color: var(--color-papier);
-  color: var(--color-encre);
+  color-scheme: dark;
+  background-color: var(--color-fond);
+  color: var(--color-texte);
   scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-sur-accent);
+}
+
+/* Anneau de focus pêche partout (3:1 au moins sur le fond et les cartes). */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* Champs pré-remplis par le navigateur : Chrome y pose un fond clair que
+   `color-scheme` ne corrige pas. */
+input:autofill,
+textarea:autofill,
+input:-webkit-autofill,
+textarea:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-texte);
+  caret-color: var(--color-texte);
+  box-shadow: 0 0 0 1000px var(--color-surface) inset;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -40,7 +89,7 @@ html {
   }
 }
 
-/* Grain de papier : bruit SVG très léger, fixe, sous tout le contenu. */
+/* Grain : bruit SVG très léger, fixe, sous tout le contenu. */
 body::before {
   content: "";
   position: fixed;
@@ -89,8 +138,8 @@ body::before {
   border-radius: 9999px;
   background: radial-gradient(
     circle at 45% 45%,
-    var(--color-braise) 0%,
-    var(--color-braise-claire) 40%,
+    var(--color-lueur) 0%,
+    var(--color-lueur-chaude) 40%,
     transparent 70%
   );
   filter: blur(28px);
@@ -112,7 +161,7 @@ body::before {
   margin: 0;
   font-family: var(--font-serif);
   font-size: clamp(2.5rem, 7vw, 5rem);
-  color: var(--color-papier);
+  color: var(--color-sur-accent);
   opacity: 0;
 }
 

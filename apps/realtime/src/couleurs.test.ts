@@ -18,8 +18,8 @@ describe("palette", () => {
   it("compte six teintes distinctes", () => {
     expect(new Set(PALETTE).size).toBe(6);
   });
-  it("reste lisible sur le papier (contraste ≥ 3:1)", () => {
-    for (const c of PALETTE) expect(contraste(c, "#f3efe7")).toBeGreaterThanOrEqual(3);
+  it("reste lisible sur la nuit du site (contraste ≥ 3:1)", () => {
+    for (const c of PALETTE) expect(contraste(c, "#2a2127")).toBeGreaterThanOrEqual(3);
   });
 });
 

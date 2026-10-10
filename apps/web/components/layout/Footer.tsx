@@ -6,34 +6,34 @@ import { siteName } from "@/data/site";
 export function Footer() {
   return (
     <footer className="border-t border-trait">
-      <div className="mx-auto flex max-w-6xl 2xl:max-w-page flex-col gap-4 px-5 py-8 text-sm text-encre-douce sm:flex-row sm:items-center sm:justify-between sm:px-8">
+      <div className="mx-auto flex max-w-6xl 2xl:max-w-page flex-col gap-4 px-5 py-8 text-sm text-texte-doux sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <p>
           © {new Date().getFullYear()} {siteName}
         </p>
         <nav aria-label="Pied de page">
           <ul className="flex flex-wrap gap-x-5 gap-y-2">
             <li>
-              <a href={`mailto:${contact.email}`} className="hover:text-encre">
+              <a href={`mailto:${contact.email}`} className="hover:text-texte">
                 {contact.email}
               </a>
             </li>
             <li>
-              <a href={contact.github} rel="me" className="hover:text-encre">
+              <a href={contact.github} rel="me" className="hover:text-texte">
                 GitHub
               </a>
             </li>
             <li>
-              <Link href="/coulisses" className="hover:text-encre">
+              <Link href="/coulisses" className="hover:text-texte">
                 Coulisses
               </Link>
             </li>
             <li>
-              <Link href="/mentions-legales" className="hover:text-encre">
+              <Link href="/mentions-legales" className="hover:text-texte">
                 Mentions légales
               </Link>
             </li>
             <li>
-              <Link href="/politique-de-confidentialite" className="hover:text-encre">
+              <Link href="/politique-de-confidentialite" className="hover:text-texte">
                 Politique de confidentialité
               </Link>
             </li>

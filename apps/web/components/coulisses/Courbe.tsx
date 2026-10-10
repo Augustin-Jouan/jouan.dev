@@ -13,7 +13,7 @@ export function Courbe({ valeurs }: { valeurs: readonly number[] }) {
   return (
     <svg viewBox={`0 0 ${LARGEUR} ${HAUTEUR}`} preserveAspectRatio="none" aria-hidden="true" className="h-7 w-full">
       {valeurs.length >= 2 && (
-        <polyline points={points} fill="none" strokeWidth={1.5} vectorEffect="non-scaling-stroke" className="stroke-brique" />
+        <polyline points={points} fill="none" strokeWidth={1.5} vectorEffect="non-scaling-stroke" className="stroke-accent" />
       )}
     </svg>
   );

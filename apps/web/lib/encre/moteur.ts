@@ -1,5 +1,5 @@
 import {
-  BRAISE_CLAIRE,
+  LUEUR_CHAUDE,
   cibleHalo,
   etatEncre,
   etatHalo,
@@ -122,7 +122,7 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     melange: u("uMelange"),
     temps: u("uTemps"),
   };
-  gl.uniform3fv(uniformes.couleurClaire, BRAISE_CLAIRE);
+  gl.uniform3fv(uniformes.couleurClaire, LUEUR_CHAUDE);
 
   /** Instant (horloge rAF) de la première image d'intro ; posé à ce moment-là. */
   let debut: number | null = null;

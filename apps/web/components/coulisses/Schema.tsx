@@ -51,7 +51,7 @@ function VarianteSchema({ variante, className, choisi, choisir, mesures }: Props
               y2={b.y}
               strokeWidth={2}
               strokeDasharray={!serie && noeudDe(liaison.de).groupe === "deploiement" ? "2 6" : undefined}
-              className={serie ? "liaison-mesuree stroke-brique" : "stroke-trait"}
+              className={serie ? "liaison-mesuree stroke-accent" : "stroke-trait"}
               style={style}
             />
             {serie && (
@@ -60,9 +60,9 @@ function VarianteSchema({ variante, className, choisi, choisir, mesures }: Props
                 y={(a.y + b.y) / 2 - 8}
                 textAnchor="middle"
                 paintOrder="stroke"
-                stroke="var(--color-papier)"
+                stroke="var(--color-fond)"
                 strokeWidth={5}
-                className="fill-encre text-[13px] tabular-nums"
+                className="fill-texte text-[13px] tabular-nums"
               >
                 {texteSerie(serie)}
               </text>
@@ -91,9 +91,9 @@ function VarianteSchema({ variante, className, choisi, choisir, mesures }: Props
               height={h}
               rx={10}
               strokeWidth={actif ? 2.5 : 1.5}
-              className={`${actif ? "fill-brique/10 stroke-brique" : "fill-papier stroke-encre-douce"} group-focus-visible:stroke-brique group-focus-visible:[stroke-width:3]`}
+              className={`${actif ? "fill-surface stroke-accent" : "fill-fond stroke-trait-fort"} group-focus-visible:stroke-accent group-focus-visible:[stroke-width:3]`}
             />
-            <text x={p.x} y={p.y + 5} textAnchor="middle" className="fill-encre text-[15px] font-semibold">
+            <text x={p.x} y={p.y + 5} textAnchor="middle" className="fill-texte text-[15px] font-semibold">
               {n.nom}
             </text>
           </g>

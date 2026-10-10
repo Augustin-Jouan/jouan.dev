@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { Image as ImageEtude } from "@/data/realisations";
 
-export const SOURCE_DEMO = "/demo/suivi-de-marches/index.html";
+export const SOURCE_DEMO = "/demo/suivi-de-marches/index.html?theme=sombre";
 
 /** Sous cette largeur, une iframe à défilement interne se manie mal : on ouvre la démo en plein écran. */
 const LARGEUR_MIN = 768;
@@ -17,6 +17,7 @@ const LARGEUR_MIN = 768;
 export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
   const fenetre = useRef<HTMLDivElement>(null);
   const [chargee, setChargee] = useState(false);
+  const [prete, setPrete] = useState(false);
 
   useEffect(() => {
     const element = fenetre.current;
@@ -42,18 +43,19 @@ export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
 
   return (
     <figure className="flex flex-col gap-4">
-      <div ref={fenetre} className="overflow-hidden rounded-3xl border border-trait bg-papier shadow-fenetre">
+      <div ref={fenetre} className="overflow-hidden rounded-3xl border border-trait bg-surface shadow-fenetre">
         <div aria-hidden="true" className="flex items-center gap-2 border-b border-trait px-5 py-3">
           <span className="size-3 rounded-full bg-trait" />
           <span className="size-3 rounded-full bg-trait" />
           <span className="size-3 rounded-full bg-trait" />
-          <span className="ml-3 text-xs text-encre-douce">Suivi de marchés — démo</span>
+          <span className="ml-3 text-xs text-texte-doux">Suivi de marchés — démo</span>
         </div>
         {chargee ? (
           <iframe
             src={SOURCE_DEMO}
             title="Démo interactive : suivi de marchés de travaux"
-            className="block h-[720px] w-full bg-white"
+            onLoad={() => setPrete(true)}
+            className={`block h-[720px] w-full bg-surface transition-opacity duration-300 ${prete ? "opacity-100" : "opacity-0"}`}
           />
         ) : (
           <Image
@@ -66,13 +68,13 @@ export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
           />
         )}
       </div>
-      <figcaption className="flex flex-wrap items-center justify-between gap-3 text-sm text-encre-douce">
+      <figcaption className="flex flex-wrap items-center justify-between gap-3 text-sm text-texte-doux">
         <span>Chantier, entreprises et montants entièrement fictifs. Rien n&apos;est enregistré.</span>
         <a
           href={SOURCE_DEMO}
           target="_blank"
           rel="noopener"
-          className="rounded-full bg-encre px-5 py-2.5 font-medium text-papier transition-opacity hover:opacity-85"
+          className="rounded-full bg-accent px-5 py-2.5 font-medium text-sur-accent transition-opacity hover:opacity-85"
         >
           Ouvrir la démo en plein écran<span className="sr-only"> (nouvel onglet)</span>
         </a>

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { couleur } from "./charte";
 
 export const tailleVignette = { width: 1200, height: 630 };
 
@@ -18,7 +19,7 @@ export async function chargerInstrumentSerif(): Promise<ArrayBuffer> {
 
 type Contenu = { surtitre: string; titre: string; sousTitre: string };
 
-// Couleurs de l'Atelier clair, en dur : le CSS du site n'existe pas ici.
+// Couleurs de lib/charte.ts : le CSS du site n'existe pas ici.
 // Une seule police est chargée (Instrument Serif) : Satori l'applique à tout le texte.
 export async function vignette({ surtitre, titre, sousTitre }: Contenu) {
   const police = await chargerInstrumentSerif();
@@ -34,8 +35,8 @@ export async function vignette({ surtitre, titre, sousTitre }: Contenu) {
           justifyContent: "flex-end",
           gap: 20,
           padding: "72px",
-          background: "#f3efe7",
-          color: "#1b1a17",
+          background: couleur("fond"),
+          color: couleur("texte"),
           fontFamily: "serif",
           overflow: "hidden",
         }}
@@ -49,14 +50,14 @@ export async function vignette({ surtitre, titre, sousTitre }: Contenu) {
             height: 620,
             borderRadius: 9999,
             background:
-              "radial-gradient(circle, #e0582b 0%, #ef9c62 40%, rgba(243,239,231,0) 70%)",
+              `radial-gradient(circle, ${couleur("lueur")} 0%, ${couleur("lueur-chaude")} 40%, rgba(42,33,39,0) 70%)`,
           }}
         />
-        <div style={{ fontSize: 22, letterSpacing: 4, textTransform: "uppercase", color: "#8a5a3c" }}>
+        <div style={{ fontSize: 22, letterSpacing: 4, textTransform: "uppercase", color: couleur("accent") }}>
           {surtitre}
         </div>
         <div style={{ fontSize: 84, lineHeight: 1.02, fontFamily: "Instrument Serif" }}>{titre}</div>
-        <div style={{ fontSize: 30, color: "#5b574f", maxWidth: 960 }}>
+        <div style={{ fontSize: 30, color: couleur("texte-doux"), maxWidth: 960 }}>
           {sousTitre}
         </div>
       </div>

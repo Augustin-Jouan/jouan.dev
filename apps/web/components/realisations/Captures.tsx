@@ -8,7 +8,7 @@ export function Captures({ images }: { images: ImageEtude[] }) {
   return (
     <div className="flex flex-col items-center gap-8 md:flex-row md:items-end">
       {ordinateur && (
-        <figure className="w-full overflow-hidden rounded-3xl border border-trait bg-papier shadow-fenetre md:flex-1">
+        <figure className="w-full overflow-hidden rounded-3xl border border-trait bg-surface shadow-fenetre md:flex-1">
           <div aria-hidden="true" className="flex items-center gap-2 border-b border-trait px-5 py-3">
             <span className="size-3 rounded-full bg-trait" />
             <span className="size-3 rounded-full bg-trait" />
@@ -25,7 +25,7 @@ export function Captures({ images }: { images: ImageEtude[] }) {
         </figure>
       )}
       {mobile && (
-        <figure className="w-56 shrink-0 overflow-hidden rounded-[2.5rem] border-8 border-encre bg-encre shadow-fenetre">
+        <figure className="w-56 shrink-0 overflow-hidden rounded-[2.5rem] border-8 border-trait bg-trait shadow-fenetre">
           <Image
             src={mobile.src}
             alt={mobile.alt}

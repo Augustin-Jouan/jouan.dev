@@ -1,7 +1,7 @@
 /**
  * Capture l'aperçu de la démo « suivi de marchés » (vignette de la page
  * d'étude de cas) : sert la build standalone sur le port 3200, ouvre la démo
- * en 1280 × 720 et enregistre un WebP qualité 80.
+ * en thème sombre, en 1280 × 720 et enregistre un WebP qualité 80.
  *
  * Prérequis : `pnpm build`. Usage : `pnpm capturer-apercu-demo`.
  */
@@ -42,7 +42,7 @@ try {
       viewport: { width: 1280, height: 720 },
       deviceScaleFactor: 1,
     });
-    await page.goto(`http://127.0.0.1:${port}/demo/suivi-de-marches/index.html`);
+    await page.goto(`http://127.0.0.1:${port}/demo/suivi-de-marches/index.html?theme=sombre`);
     await page.locator("table").first().waitFor();
     await page.evaluate(() => document.fonts.ready);
     const png = await page.screenshot({ type: "png" });

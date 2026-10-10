@@ -29,7 +29,7 @@ const fond = (container: HTMLElement) => container.querySelector(".fond-accueil"
 const options = (): OptionsMoteur => creerMoteur.mock.calls[0][0];
 
 beforeEach(() => {
-  window.localStorage.clear();
+  window.sessionStorage.clear();
   creerMoteur.mockReset();
   creerMoteur.mockImplementation(() => moteur);
   Object.values(moteur).forEach((fn) => fn.mockReset());
@@ -70,7 +70,7 @@ describe("IntroEncre", () => {
 
     act(() => options().surFinIntro?.());
     expect(fond(container)).toHaveAttribute("data-intro", "terminee");
-    expect(window.localStorage.getItem(CLE_INTRO_VUE)).toBe("1");
+    expect(window.sessionStorage.getItem(CLE_INTRO_VUE)).toBe("1");
   });
 
   it("ne ramène jamais l'intro en arrière si elle se termine avant la première image", async () => {
@@ -90,9 +90,9 @@ describe("IntroEncre", () => {
     expect(moteur.sauter).toHaveBeenCalled();
   });
 
-  it("pose directement le halo animé quand l'intro a déjà été vue", async () => {
+  it("pose directement le halo animé quand l'intro a déjà été vue dans cet onglet", async () => {
     navigateur();
-    window.localStorage.setItem(CLE_INTRO_VUE, "1");
+    window.sessionStorage.setItem(CLE_INTRO_VUE, "1");
     const { container } = render(<IntroEncre />);
     await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
     expect(options()).toMatchObject({ intro: false });

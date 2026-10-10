@@ -6,7 +6,7 @@ export type Contexte = {
   mouvementReduit: boolean;
   /** Le navigateur expose WebGL2 (la création du contexte peut encore échouer). */
   webgl2: boolean;
-  /** L'intro a déjà été vue sur ce navigateur. */
+  /** L'intro a déjà été vue pendant cette visite (dans cet onglet). */
   dejaVu: boolean;
   /** La page n'est pas en haut (défilement restauré) : l'intro ne couvrirait pas l'écran. */
   defilee: boolean;
@@ -20,10 +20,14 @@ export function deciderMode(contexte: Contexte): ModeEncre {
 
 export const CLE_INTRO_VUE = "jouan.dev:intro-vue";
 
-/** `localStorage`, ou null quand le navigateur en refuse l'accès. */
-export function stockageLocal(): Storage | null {
+/**
+ * `sessionStorage`, ou null quand le navigateur en refuse l'accès. L'intro se
+ * joue à chaque visite (chaque nouvel onglet), mais pas au rechargement ni au
+ * retour à l'accueil dans le même onglet.
+ */
+export function stockageSession(): Storage | null {
   try {
-    return window.localStorage;
+    return window.sessionStorage;
   } catch {
     return null;
   }
@@ -42,6 +46,6 @@ export function marquerIntroVue(stockage: Pick<Storage, "setItem"> | null): void
   try {
     stockage?.setItem(CLE_INTRO_VUE, "1");
   } catch {
-    // Stockage plein ou refusé : l'intro se rejouera à la prochaine visite.
+    // Stockage plein ou refusé : l'intro se rejouera au prochain affichage de l'accueil.
   }
 }

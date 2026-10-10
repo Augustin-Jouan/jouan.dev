@@ -53,7 +53,7 @@ export function CalqueCurseurs({ curseurs }: { curseurs: CurseurAffiche[] }) {
             <path
               d="M1 1 L1 18 L6 13.5 L9.5 21 L12.5 19.6 L9 12.3 L16 12.3 Z"
               fill={c.couleur}
-              stroke="#f3efe7"
+              stroke="var(--color-fond)"
               strokeWidth="1.5"
               strokeLinejoin="round"
             />

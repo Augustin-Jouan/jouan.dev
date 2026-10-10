@@ -7,7 +7,7 @@ import { creerLienAction, type EtatCreation } from "./actions";
 
 // Mêmes classes de champ que le formulaire de connexion.
 const champ =
-  "rounded-xl border border-encre-douce/80 bg-papier px-4 py-3 outline-none transition-colors focus:border-encre focus-visible:ring-2 focus-visible:ring-encre focus-visible:ring-offset-2 focus-visible:ring-offset-papier";
+  "rounded-xl border border-trait-fort bg-surface px-4 py-3 outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-fond";
 
 export function NouveauLien() {
   const [etat, action, enCours] = useActionState<EtatCreation, FormData>(creerLienAction, {});
@@ -34,7 +34,7 @@ export function NouveauLien() {
         <button
           type="submit"
           disabled={enCours}
-          className="self-start rounded-full bg-encre px-6 py-3 text-sm font-medium text-papier transition-opacity hover:opacity-85 disabled:opacity-60"
+          className="self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-sur-accent transition-opacity hover:opacity-85 disabled:opacity-60"
         >
           {enCours ? "Création…" : "Créer le lien"}
         </button>
@@ -47,7 +47,7 @@ export function NouveauLien() {
       {etat.lien && (
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <span className="break-words">Lien de {etat.lien.nom} :</span>
-          <code className="select-all break-all rounded bg-trait/40 px-2 py-1">{etat.lien.url}</code>
+          <code className="select-all break-all rounded bg-surface px-2 py-1">{etat.lien.url}</code>
           <BoutonCopier texte={etat.lien.url} />
         </div>
       )}

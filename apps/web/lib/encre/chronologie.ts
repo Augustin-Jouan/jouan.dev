@@ -1,20 +1,25 @@
 /**
- * Chronologie de l'intro « goutte d'encre », sans WebGL ni DOM : le moteur
+ * Chronologie de l'intro « goutte de lumière », sans WebGL ni DOM : le moteur
  * l'interroge à chaque image et transmet le résultat au shader.
  *
  * Unités : positions en fractions de l'écran (y depuis le haut) ; rayons et
  * flou en hauteurs d'écran.
  */
 
+import { couleur } from "../charte";
+
 export type Rvb = [number, number, number];
 export type Point = { x: number; y: number };
 
-const rvb = (hex: number): Rvb => [((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255];
+const rvb = (hex: string): Rvb => {
+  const n = parseInt(hex.slice(1), 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+};
 
-/** Mêmes valeurs que les jetons de app/globals.css. */
-export const ENCRE = rvb(0x1b1a17);
-export const BRAISE = rvb(0xe0582b);
-export const BRAISE_CLAIRE = rvb(0xef9c62);
+/** Goutte pêche, puis halo corail bordé de rose : rôles de lib/charte.ts. */
+export const GOUTTE = rvb(couleur("goutte"));
+export const LUEUR = rvb(couleur("lueur"));
+export const LUEUR_CHAUDE = rvb(couleur("lueur-chaude"));
 
 /**
  * État final de l'intro, partagé avec le halo CSS (`.halo-css` dans
@@ -57,7 +62,7 @@ export type EtatEncre = {
   /** Demi-largeur du bord adouci. */
   flou: number;
   couleur: Rvb;
-  /** 0 : encre unie ; 1 : dégradé braise du halo. */
+  /** 0 : goutte unie ; 1 : dégradé du halo. */
   melange: number;
   opaciteNom: number;
   terminee: boolean;
@@ -79,7 +84,7 @@ export function etatEncre(t: number, couverture: number, repos: Repos): EtatEncr
       centre: CENTRE,
       rayon: couverture * lisser(borner(t / FIN_ETALEMENT)),
       flou: FLOU_NET,
-      couleur: ENCRE,
+      couleur: GOUTTE,
       melange: 0,
       opaciteNom: 0,
       terminee: false,
@@ -91,7 +96,7 @@ export function etatEncre(t: number, couverture: number, repos: Repos): EtatEncr
       centre: CENTRE,
       rayon: couverture,
       flou: FLOU_NET,
-      couleur: ENCRE,
+      couleur: GOUTTE,
       melange: 0,
       opaciteNom: borner((t - FIN_ETALEMENT) / 150),
       terminee: false,
@@ -103,7 +108,7 @@ export function etatEncre(t: number, couverture: number, repos: Repos): EtatEncr
     centre: { x: mix(CENTRE.x, repos.centre.x, k), y: mix(CENTRE.y, repos.centre.y, k) },
     rayon: mix(couverture, repos.rayon, k),
     flou: mix(FLOU_NET, repos.flou, k),
-    couleur: [mix(ENCRE[0], BRAISE[0], k), mix(ENCRE[1], BRAISE[1], k), mix(ENCRE[2], BRAISE[2], k)],
+    couleur: [mix(GOUTTE[0], LUEUR[0], k), mix(GOUTTE[1], LUEUR[1], k), mix(GOUTTE[2], LUEUR[2], k)],
     melange: k,
     opaciteNom: 1 - borner((t - FIN_NOM) / 200),
     terminee: false,
@@ -116,7 +121,7 @@ export function etatHalo(centre: Point, repos: Repos): EtatEncre {
     centre: { x: centre.x, y: centre.y },
     rayon: repos.rayon,
     flou: repos.flou,
-    couleur: BRAISE,
+    couleur: LUEUR,
     melange: 1,
     opaciteNom: 0,
     terminee: true,

@@ -7,7 +7,7 @@ import {
   deciderMode,
   introDejaVue,
   marquerIntroVue,
-  stockageLocal,
+  stockageSession,
   type ModeEncre,
 } from "@/lib/encre/decision";
 import type { Moteur } from "@/lib/encre/moteur";
@@ -27,7 +27,7 @@ const DELAI_MAX_INTRO_MS = 3000;
 
 /**
  * Fond de l'accueil. Rendu côté serveur, c'est un simple halo CSS ; une fois
- * monté, il décide s'il faut jouer l'intro « goutte d'encre », puis importe
+ * monté, il décide s'il faut jouer l'intro (une fois par visite), puis importe
  * le moteur WebGL dans son propre morceau de JS, après l'affichage.
  *
  * Attributs lus par le CSS et les tests de bout en bout :
@@ -51,7 +51,7 @@ export function IntroEncre() {
       deciderMode({
         mouvementReduit: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
         webgl2: typeof WebGL2RenderingContext !== "undefined",
-        dejaVu: introDejaVue(stockageLocal()),
+        dejaVu: introDejaVue(stockageSession()),
         defilee: window.scrollY > 0,
       })
     );
@@ -117,7 +117,7 @@ export function IntroEncre() {
           surFinIntro: () => {
             retirerSaut();
             setIntro("terminee");
-            marquerIntroVue(stockageLocal());
+            marquerIntroVue(stockageSession());
           },
           surEchec: echouer,
         });

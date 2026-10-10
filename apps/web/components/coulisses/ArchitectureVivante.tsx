@@ -97,7 +97,7 @@ export function ArchitectureVivante() {
           aria-disabled={vue === "chargement" || undefined}
           aria-hidden={!webgl || undefined}
           tabIndex={webgl ? undefined : -1}
-          className={`rounded-full border border-encre px-4 py-2 text-sm font-semibold transition-colors hover:bg-encre hover:text-papier aria-disabled:opacity-60 ${webgl ? "" : "invisible"}`}
+          className={`rounded-full border border-trait-fort px-4 py-2 text-sm font-semibold transition-[color,background-color] hover:bg-accent hover:text-sur-accent aria-disabled:opacity-60 ${webgl ? "" : "invisible"}`}
         >
           {vue === "3d" ? "Revenir en 2D" : vue === "chargement" ? "Chargement…" : "Voir en 3D"}
         </button>
@@ -113,10 +113,10 @@ export function ArchitectureVivante() {
               </div>
             )}
             {/* Toujours présente, vide hors échec : une zone d'état qui apparaît déjà remplie n'est souvent pas annoncée. */}
-            <p role="status" data-testid="etat-3d" className={vue === "echec" ? "text-sm text-encre-douce" : "sr-only"}>
+            <p role="status" data-testid="etat-3d" className={vue === "echec" ? "text-sm text-texte-doux" : "sr-only"}>
               {vue === "echec" ? "3D indisponible sur cet appareil." : ""}
             </p>
-            <figcaption className="text-sm text-encre-douce">
+            <figcaption className="text-sm text-texte-doux">
               Choisissez un élément pour voir son rôle. Les temps sont mesurés depuis votre navigateur.
             </figcaption>
           </figure>

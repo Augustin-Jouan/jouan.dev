@@ -15,36 +15,34 @@ export function Offre({ angle = "application" }: { angle?: Angle }) {
 }
 
 function CarteOffre({ offre }: { offre: OffreType }) {
-  const sombre = offre.miseEnAvant;
+  const enAvant = offre.miseEnAvant;
 
   return (
     <article
       className={`flex flex-col gap-6 rounded-3xl p-8 sm:p-10 ${
-        sombre ? "bg-encre text-papier" : "border border-trait"
+        enAvant ? "bg-surface ring-1 ring-accent" : "border border-trait"
       }`}
     >
       <div>
-        {sombre && (
-          <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-braise-claire">
+        {enAvant && (
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-accent">
             Mon cœur de métier
           </p>
         )}
         <h3 className="font-serif text-3xl sm:text-4xl">{offre.titre}</h3>
-        <p className={`mt-3 ${sombre ? "text-papier/75" : "text-encre-douce"}`}>{offre.pourQui}</p>
+        <p className="mt-3 text-texte-doux">{offre.pourQui}</p>
       </div>
       <ul className="flex flex-col gap-2">
         {offre.livrables.map((livrable) => (
           <li key={livrable} className="flex gap-3">
-            <span aria-hidden="true" className={sombre ? "text-braise-claire" : "text-brique"}>
+            <span aria-hidden="true" className="text-accent">
               —
             </span>
             {livrable}
           </li>
         ))}
       </ul>
-      <p className={`mt-auto text-sm ${sombre ? "text-papier/70" : "text-encre-douce"}`}>
-        {offre.exemple}
-      </p>
+      <p className="mt-auto text-sm text-texte-doux">{offre.exemple}</p>
     </article>
   );
 }
