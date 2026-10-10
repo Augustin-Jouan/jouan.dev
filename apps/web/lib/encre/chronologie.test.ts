@@ -1,31 +1,30 @@
 import { describe, it, expect } from "vitest";
 import {
   COLONNE_MAX,
+  DEBUT_ECLAT,
   DUREE_INTRO,
   GOUTTE,
-  HALO,
   HAUTEUR_MAX,
-  LUEUR,
-  LUEUR_CHAUDE,
-  cibleHalo,
+  PLACE,
+  cibleNuage,
   etatEncre,
-  etatHalo,
+  etatNuage,
   rayonCouverture,
-  reposHalo,
+  reposNuage,
   suivre,
 } from "./chronologie";
 
 const COUVERTURE = 1.2;
 /** Écran d'ordinateur portable : plus petit que le cadre de référence. */
-const REPOS = reposHalo(1280, 800);
+const REPOS = reposNuage(1280, 800);
 
 describe("etatEncre", () => {
-  it("part d'une goutte invisible au centre, sans nom", () => {
+  it("part d'une goutte invisible au centre, sans nom ni traits", () => {
     const etat = etatEncre(0, COUVERTURE, REPOS);
     expect(etat.centre).toEqual({ x: 0.5, y: 0.5 });
     expect(etat.rayon).toBe(0);
-    expect(etat.couleur).toEqual(GOUTTE);
     expect(etat.opaciteNom).toBe(0);
+    expect(etat.eclat).toBe(0);
     expect(etat.terminee).toBe(false);
   });
 
@@ -42,19 +41,31 @@ describe("etatEncre", () => {
     }
   });
 
-  it("se rétracte vers le halo entre 2000 et 3200 ms en se réchauffant", () => {
+  it("se rétracte vers la place du nuage entre 2000 et 2700 ms, sans traits", () => {
     expect(etatEncre(2200, COUVERTURE, REPOS).opaciteNom).toBeCloseTo(0.5);
-    const milieu = etatEncre(2600, COUVERTURE, REPOS);
+    const milieu = etatEncre(2350, COUVERTURE, REPOS);
     expect(milieu.rayon).toBeLessThan(COUVERTURE);
-    expect(milieu.rayon).toBeGreaterThan(REPOS.rayon);
     expect(milieu.centre.x).toBeGreaterThan(0.5);
     expect(milieu.centre.y).toBeLessThan(0.5);
-    expect(milieu.melange).toBeGreaterThan(0);
-    expect(milieu.melange).toBeLessThan(1);
-    expect(milieu.opaciteNom).toBe(0);
+    expect(milieu.eclat).toBe(0);
+    const fin = etatEncre(DEBUT_ECLAT - 1, COUVERTURE, REPOS);
+    expect(fin.centre.x).toBeCloseTo(REPOS.centre.x, 2);
+    expect(fin.centre.y).toBeCloseTo(REPOS.centre.y, 2);
+    expect(fin.rayon).toBeLessThan(REPOS.rayon);
   });
 
-  it("a un rayon qui ne fait que décroître pendant le retrait", () => {
+  it("éclate en traits de 2700 à 3200 ms, pendant que la goutte disparaît", () => {
+    expect(DEBUT_ECLAT).toBe(2700);
+    const debut = etatEncre(2700, COUVERTURE, REPOS);
+    expect(debut.eclat).toBe(0);
+    const milieu = etatEncre(2950, COUVERTURE, REPOS);
+    expect(milieu.eclat).toBeCloseTo(0.5);
+    expect(milieu.centre).toEqual(REPOS.centre);
+    expect(etatEncre(2950, COUVERTURE, REPOS).rayon).toBe(0);
+    expect(etatEncre(3150, COUVERTURE, REPOS).terminee).toBe(false);
+  });
+
+  it("a un rayon qui ne fait que décroître de 2000 ms à la fin", () => {
     let precedent = Infinity;
     for (let t = 2000; t <= 3200; t += 50) {
       const { rayon } = etatEncre(t, COUVERTURE, REPOS);
@@ -63,23 +74,25 @@ describe("etatEncre", () => {
     }
   });
 
-  it("se termine en halo à 3200 ms et au-delà", () => {
+  it("se termine à 3200 ms : nuage posé, plus de goutte", () => {
     expect(DUREE_INTRO).toBe(3200);
-    expect(etatEncre(3150, COUVERTURE, REPOS).terminee).toBe(false);
     const fin = etatEncre(DUREE_INTRO, COUVERTURE, REPOS);
-    expect(fin).toEqual(etatHalo(REPOS.centre, REPOS));
-    expect(fin.terminee).toBe(true);
-    expect(fin.couleur).toEqual(LUEUR);
+    expect(fin).toEqual(etatNuage(REPOS));
+    expect(fin).toMatchObject({ rayon: 0, eclat: 1, opaciteNom: 0, terminee: true });
     expect(etatEncre(60_000, COUVERTURE, REPOS).terminee).toBe(true);
   });
 
   it("traite un temps négatif comme le début", () => {
     expect(etatEncre(-20, COUVERTURE, REPOS).rayon).toBe(0);
   });
+
+  it("garde la goutte pêche de la charte", () => {
+    expect(GOUTTE).toEqual([0xea / 255, 0xb5 / 255, 0x95 / 255]);
+  });
 });
 
 describe("rayonCouverture", () => {
-  // Review Focus 2 : l'encre doit couvrir les coins en paysage comme en portrait.
+  // Review Focus 2 (sous-projet 1) : l'encre doit couvrir les coins en paysage comme en portrait.
   it.each([
     [1920, 1080],
     [390, 844],
@@ -91,73 +104,36 @@ describe("rayonCouverture", () => {
   });
 });
 
-describe("reposHalo", () => {
-  it("reprend les fractions de l'écran quand l'écran tient dans le cadre", () => {
-    expect(REPOS).toEqual({ centre: { x: HALO.x, y: HALO.y }, rayon: HALO.rayon, flou: HALO.flou });
-    expect(reposHalo(390, 844).centre.x).toBeCloseTo(HALO.x);
+describe("reposNuage", () => {
+  it("se pose à la place de l'ancien halo, en fractions de l'écran quand il tient dans le cadre", () => {
+    expect(REPOS).toEqual({ centre: { x: 0.8, y: 0.24 }, rayon: 0.2 });
+    expect(PLACE).toEqual({ x: 0.8, y: 0.24, rayon: 0.2 });
+    expect(reposNuage(390, 844).centre.x).toBeCloseTo(0.8);
   });
 
   it("reste au-dessus de la colonne de contenu sur un très grand écran", () => {
-    const repos = reposHalo(2560, 1300);
+    const repos = reposNuage(2560, 1300);
     const marge = (2560 - COLONNE_MAX) / 2;
-    expect(repos.centre.x * 2560).toBeCloseTo(marge + HALO.x * COLONNE_MAX);
-    // Taille et hauteur figées à celles d'un écran de HAUTEUR_MAX px.
-    expect(repos.rayon * 1300).toBeCloseTo(HALO.rayon * HAUTEUR_MAX);
-    expect(repos.centre.y * 1300).toBeCloseTo(HALO.y * HAUTEUR_MAX);
-    expect(repos.flou * 1300).toBeCloseTo(HALO.flou * HAUTEUR_MAX);
+    expect(repos.centre.x * 2560).toBeCloseTo(marge + PLACE.x * COLONNE_MAX);
+    expect(repos.rayon * 1300).toBeCloseTo(PLACE.rayon * HAUTEUR_MAX);
+    expect(repos.centre.y * 1300).toBeCloseTo(PLACE.y * HAUTEUR_MAX);
   });
 });
 
-describe("halo", () => {
-  const place = { x: 0.7, y: 0.2 };
+describe("nuage", () => {
+  const place = { x: 0.8, y: 0.24 };
 
-  it("reste à sa place sans souris", () => {
-    expect(cibleHalo(null, 0, false, place)).toEqual(place);
+  it("vise le pointeur (souris ou doigt), sinon sa place", () => {
+    expect(cibleNuage({ x: 0.1, y: 0.9 }, place)).toEqual({ x: 0.1, y: 0.9 });
+    expect(cibleNuage(null, place)).toEqual(place);
   });
 
-  it("est attiré d'un quart vers la souris", () => {
-    const cible = cibleHalo({ x: 0, y: 0.2 }, 0, false, place);
-    expect(cible.x).toBeCloseTo(0.7 * 0.75);
-    expect(cible.y).toBeCloseTo(0.2);
-  });
-
-  it("dérive seul, faiblement, sur écran tactile", () => {
-    const a = cibleHalo(null, 0, true, place);
-    const b = cibleHalo(null, 5000, true, place);
-    expect(a).not.toEqual(b);
-    expect(Math.abs(b.x - place.x)).toBeLessThanOrEqual(0.03);
-    expect(Math.abs(b.y - place.y)).toBeLessThanOrEqual(0.03);
-  });
-
-  it("rejoint sa cible avec inertie", () => {
+  it("rejoint sa cible avec un léger retard", () => {
     let point = { x: 0, y: 0 };
-    const cible = { x: 1, y: 1 };
+    const cible = { x: 1, y: 0 };
     point = suivre(point, cible);
-    expect(point.x).toBeGreaterThan(0);
-    expect(point.x).toBeLessThan(1);
+    expect(point.x).toBeCloseTo(0.07);
     for (let i = 0; i < 200; i += 1) point = suivre(point, cible);
     expect(point.x).toBeCloseTo(1, 3);
-  });
-});
-
-describe("couleurs de l'intro", () => {
-  const rvb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
-
-  it("part d'une goutte pêche et finit en halo corail, bordé de rose", () => {
-    expect(GOUTTE).toEqual(rvb("#eab595"));
-    expect(LUEUR).toEqual(rvb("#d87f81"));
-    expect(LUEUR_CHAUDE).toEqual(rvb("#ae6378"));
-  });
-
-  it("passe de la goutte au halo pendant le resserrement", () => {
-    // 2600 ms : entre la fin du nom (2000 ms) et la fin de l'intro (3200 ms).
-    const milieu = etatEncre(2600, COUVERTURE, REPOS);
-    for (let i = 0; i < 3; i++) {
-      const [bas, haut] = [GOUTTE[i]!, LUEUR[i]!].sort((x, y) => x - y);
-      expect(milieu.couleur[i]).toBeGreaterThanOrEqual(bas!);
-      expect(milieu.couleur[i]).toBeLessThanOrEqual(haut!);
-    }
-    expect(milieu.melange).toBeGreaterThan(0);
-    expect(milieu.melange).toBeLessThan(1);
   });
 });

@@ -104,7 +104,7 @@ export function IntroEncre() {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const cadre = canvas.getBoundingClientRect();
-      moteur?.suivreSouris({
+      moteur?.suivrePointeur({
         x: (evenement.clientX - cadre.left) / cadre.width,
         y: (evenement.clientY - cadre.top) / cadre.height,
       });
@@ -137,7 +137,6 @@ export function IntroEncre() {
           canvas: canvasRef.current,
           intro: introEffective,
           nom: nomRef.current,
-          tactile: window.matchMedia("(pointer: coarse)").matches,
           surPret: () => {
             setEncre("actif");
             if (introEffective) setIntro((etat) => etat ?? "en-cours");

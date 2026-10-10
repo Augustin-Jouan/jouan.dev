@@ -1,9 +1,10 @@
 /**
- * Chronologie de l'intro « goutte de lumière », sans WebGL ni DOM : le moteur
- * l'interroge à chaque image et transmet le résultat au shader.
+ * Chronologie de l'intro « goutte de lumière » et du nuage de traits qui lui
+ * succède, sans WebGL ni DOM : le moteur l'interroge à chaque image et
+ * transmet le résultat aux shaders.
  *
- * Unités : positions en fractions de l'écran (y depuis le haut) ; rayons et
- * flou en hauteurs d'écran.
+ * Unités : positions en fractions de l'écran (y depuis le haut) ; rayons en
+ * hauteurs d'écran.
  */
 
 import { couleur } from "../charte";
@@ -16,36 +17,33 @@ export const rvb = (hex: string): Rvb => {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 };
 
-/** Goutte pêche, puis halo corail bordé de rose : rôles de lib/charte.ts. */
+/** Goutte pêche de l'intro : rôle de lib/charte.ts. */
 export const GOUTTE = rvb(couleur("goutte"));
-export const LUEUR = rvb(couleur("lueur"));
-export const LUEUR_CHAUDE = rvb(couleur("lueur-chaude"));
 
 /**
- * État final de l'intro, partagé avec le halo CSS (`.halo-css` dans
- * app/globals.css). Le halo est posé dans un cadre de référence : la colonne
- * de contenu (au plus `COLONNE_MAX` px de large, centrée) sur le premier
- * écran (au plus `HAUTEUR_MAX` px de haut). `x` est une fraction de la
- * colonne ; `y`, `rayon` et `flou` sont des fractions de cette hauteur. Sur un
- * écran plus petit que le cadre, ce sont simplement des fractions de l'écran.
+ * Place de repos du nuage de traits (celle de l'ancien halo), dans un cadre de
+ * référence : la colonne de contenu (au plus `COLONNE_MAX` px de large,
+ * centrée) sur le premier écran (au plus `HAUTEUR_MAX` px de haut). `x` est
+ * une fraction de la colonne ; `y` et `rayon` (rayon du nuage) des fractions de
+ * cette hauteur. Sur un écran plus petit que le cadre, ce sont simplement des
+ * fractions de l'écran. `.nuage-fige` (app/globals.css) fait le même calcul.
  */
-export const HALO = { x: 0.8, y: 0.24, rayon: 0.32, flou: 0.2 } as const;
+export const PLACE = { x: 0.8, y: 0.24, rayon: 0.2 } as const;
 /** `--container-page` (90rem) de app/globals.css. */
 export const COLONNE_MAX = 1440;
 /** Hauteur maximale de l'accroche et de l'en-tête (56rem + 5rem, components/accueil/Accroche.tsx). */
 export const HAUTEUR_MAX = 976;
 
-/** Halo au repos, dans les unités du shader. */
-export type Repos = { centre: Point; rayon: number; flou: number };
+/** Nuage au repos, dans les unités du shader. */
+export type Repos = { centre: Point; rayon: number };
 
-/** Position et taille du halo au repos sur un écran de `largeur` × `hauteur` px (CSS). */
-export function reposHalo(largeur: number, hauteur: number): Repos {
+/** Place et rayon du nuage au repos sur un écran de `largeur` × `hauteur` px (CSS). */
+export function reposNuage(largeur: number, hauteur: number): Repos {
   const colonne = Math.min(largeur, COLONNE_MAX);
   const reference = Math.min(hauteur, HAUTEUR_MAX) / hauteur;
   return {
-    centre: { x: ((largeur - colonne) / 2 + HALO.x * colonne) / largeur, y: HALO.y * reference },
-    rayon: HALO.rayon * reference,
-    flou: HALO.flou * reference,
+    centre: { x: ((largeur - colonne) / 2 + PLACE.x * colonne) / largeur, y: PLACE.y * reference },
+    rayon: PLACE.rayon * reference,
   };
 }
 
@@ -54,20 +52,22 @@ const FIN_ETALEMENT = 900;
 const FONDU_NOM = 300;
 const EFFACEMENT_NOM = 400;
 const FIN_NOM = 2000;
+/** La goutte rétractée éclate en traits de DEBUT_ECLAT à DUREE_INTRO. */
+export const DEBUT_ECLAT = 2700;
 export const DUREE_INTRO = 3200;
-/** Bord net de la goutte, avant qu'elle ne se floute en halo. */
-const FLOU_NET = 0.004;
+/** Rayon de la goutte rétractée, en part du rayon du nuage. */
+const RAPPORT_GOUTTE = 0.3;
+/** Part de l'éclatement pendant laquelle la goutte achève de disparaître. */
+const DISPARITION_GOUTTE = 0.4;
 const CENTRE: Point = { x: 0.5, y: 0.5 };
 
 export type EtatEncre = {
+  /** Centre et rayon de la goutte (rayon nul : plus de goutte). */
   centre: Point;
   rayon: number;
-  /** Demi-largeur du bord adouci. */
-  flou: number;
-  couleur: Rvb;
-  /** 0 : goutte unie ; 1 : dégradé du halo. */
-  melange: number;
   opaciteNom: number;
+  /** Avancée de l'éclatement : 0, pas encore de traits ; 1, nuage posé. */
+  eclat: number;
   terminee: boolean;
 };
 
@@ -75,59 +75,41 @@ const borner = (t: number) => Math.min(1, Math.max(0, t));
 const lisser = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const mix = (a: number, b: number, k: number) => a + (b - a) * k;
 
+/** Le nuage posé, l'intro finie. */
+export function etatNuage(repos: Repos): EtatEncre {
+  return { centre: { ...repos.centre }, rayon: 0, opaciteNom: 0, eclat: 1, terminee: true };
+}
+
 /**
  * État de l'encre `t` ms après le début de l'intro. `couverture` est le rayon
  * qui couvre tout l'écran depuis son centre (voir `rayonCouverture`).
  */
 export function etatEncre(t: number, couverture: number, repos: Repos): EtatEncre {
-  if (t >= DUREE_INTRO) return etatHalo(repos.centre, repos);
-
+  if (t >= DUREE_INTRO) return etatNuage(repos);
   if (t < FIN_ETALEMENT) {
-    return {
-      centre: CENTRE,
-      rayon: couverture * lisser(borner(t / FIN_ETALEMENT)),
-      flou: FLOU_NET,
-      couleur: GOUTTE,
-      melange: 0,
-      opaciteNom: 0,
-      terminee: false,
-    };
+    return { centre: CENTRE, rayon: couverture * lisser(borner(t / FIN_ETALEMENT)), opaciteNom: 0, eclat: 0, terminee: false };
   }
-
   if (t < FIN_NOM) {
+    return { centre: CENTRE, rayon: couverture, opaciteNom: borner((t - FIN_ETALEMENT) / FONDU_NOM), eclat: 0, terminee: false };
+  }
+  const rayonRetracte = repos.rayon * RAPPORT_GOUTTE;
+  if (t < DEBUT_ECLAT) {
+    const k = lisser(borner((t - FIN_NOM) / (DEBUT_ECLAT - FIN_NOM)));
     return {
-      centre: CENTRE,
-      rayon: couverture,
-      flou: FLOU_NET,
-      couleur: GOUTTE,
-      melange: 0,
-      opaciteNom: borner((t - FIN_ETALEMENT) / FONDU_NOM),
+      centre: { x: mix(CENTRE.x, repos.centre.x, k), y: mix(CENTRE.y, repos.centre.y, k) },
+      rayon: mix(couverture, rayonRetracte, k),
+      opaciteNom: 1 - borner((t - FIN_NOM) / EFFACEMENT_NOM),
+      eclat: 0,
       terminee: false,
     };
   }
-
-  const k = lisser(borner((t - FIN_NOM) / (DUREE_INTRO - FIN_NOM)));
+  const eclat = borner((t - DEBUT_ECLAT) / (DUREE_INTRO - DEBUT_ECLAT));
   return {
-    centre: { x: mix(CENTRE.x, repos.centre.x, k), y: mix(CENTRE.y, repos.centre.y, k) },
-    rayon: mix(couverture, repos.rayon, k),
-    flou: mix(FLOU_NET, repos.flou, k),
-    couleur: [mix(GOUTTE[0], LUEUR[0], k), mix(GOUTTE[1], LUEUR[1], k), mix(GOUTTE[2], LUEUR[2], k)],
-    melange: k,
-    opaciteNom: 1 - borner((t - FIN_NOM) / EFFACEMENT_NOM),
-    terminee: false,
-  };
-}
-
-/** Le halo au repos, centré sur `centre` (il peut s'écarter de sa place, attiré par la souris). */
-export function etatHalo(centre: Point, repos: Repos): EtatEncre {
-  return {
-    centre: { x: centre.x, y: centre.y },
-    rayon: repos.rayon,
-    flou: repos.flou,
-    couleur: LUEUR,
-    melange: 1,
+    centre: { ...repos.centre },
+    rayon: rayonRetracte * (1 - lisser(borner(eclat / DISPARITION_GOUTTE))),
     opaciteNom: 0,
-    terminee: true,
+    eclat,
+    terminee: false,
   };
 }
 
@@ -136,23 +118,13 @@ export function rayonCouverture(largeur: number, hauteur: number): number {
   return Math.hypot(largeur / hauteur / 2, 0.5) * 1.25;
 }
 
-/** Cible du halo : sa position de repos, attirée d'un quart vers la souris ; dérive lente au doigt. */
-export function cibleHalo(souris: Point | null, temps: number, tactile: boolean, repos: Point): Point {
-  if (tactile) {
-    return {
-      x: repos.x + 0.03 * Math.sin(temps / 3200),
-      y: repos.y + 0.03 * Math.cos(temps / 4100),
-    };
-  }
-  if (!souris) return { x: repos.x, y: repos.y };
-  return {
-    x: repos.x + (souris.x - repos.x) * 0.25,
-    y: repos.y + (souris.y - repos.y) * 0.25,
-  };
+/** Centre visé par le nuage : le pointeur (souris ou doigt), sinon sa place de repos. */
+export function cibleNuage(pointeur: Point | null, repos: Point): Point {
+  return pointeur ? { x: pointeur.x, y: pointeur.y } : { x: repos.x, y: repos.y };
 }
 
-/** Rapproche `actuel` de `cible` d'une fraction par image : l'inertie du halo. */
-export function suivre(actuel: Point, cible: Point, facteur = 0.08): Point {
+/** Rapproche `actuel` de `cible` d'une fraction par image : l'inertie du nuage. */
+export function suivre(actuel: Point, cible: Point, facteur = 0.07): Point {
   return {
     x: actuel.x + (cible.x - actuel.x) * facteur,
     y: actuel.y + (cible.y - actuel.y) * facteur,

@@ -1,42 +1,26 @@
-import {
-  LUEUR_CHAUDE,
-  cibleHalo,
-  etatEncre,
-  etatHalo,
-  rayonCouverture,
-  reposHalo,
-  suivre,
-  type EtatEncre,
-  type Point,
-} from "./chronologie";
-import { SOURCE_FRAGMENT, SOURCE_SOMMET } from "./shader";
+import { GOUTTE, cibleNuage, etatEncre, etatNuage, rayonCouverture, reposNuage, rvb, suivre, type EtatEncre, type Point } from "./chronologie";
+import { COULEURS_NUAGE, semerTraits } from "./nuage";
+import { SOURCE_FRAGMENT, SOURCE_SOMMET, SOURCE_TRAITS_FRAGMENT, SOURCE_TRAITS_SOMMET } from "./shader";
 
 /** Repère ce morceau de JS dans le build (scripts/verifier-taille-encre.mjs). */
 export const MARQUEUR_MOTEUR = "moteur-encre:v1";
 
 /**
- * Pixels du canvas par pixel CSS. Le shader est calculé pour chaque pixel :
- * sans carte graphique (rendu logiciel, machines de CI comprises), la pleine
- * résolution bloque le fil principal à chaque image. Le halo est flou et le
- * bord de la goutte adouci par `smoothstep` : la demi-résolution, agrandie
- * par le navigateur, ne se voit pas.
+ * Pixels du canvas par pixel CSS : la densité de l'écran, plafonnée. Les
+ * traits du nuage font 2 px de large : à demi-résolution, ils seraient flous.
  */
-const ECHELLE_RENDU = 0.5;
-/** Écart au-dessous duquel le halo est considéré arrivé : on cesse de dessiner. */
-const REPOS = 0.0005;
+const DENSITE_MAX = 2;
 
 /** `rendu-logiciel` : WebGL dessiné par le processeur, faute de carte graphique. */
 export type RaisonEchec = "webgl2-indisponible" | "rendu-logiciel" | "shader" | "contexte-perdu";
 
 export type OptionsMoteur = {
   canvas: HTMLCanvasElement;
-  /** Joue l'intro avant de poser le halo ; sinon, halo directement. */
+  /** Joue l'intro avant de poser le nuage ; sinon, nuage directement. */
   intro: boolean;
   /** Élément HTML du nom, dont l'opacité suit l'intro. */
   nom?: HTMLElement | null;
-  /** Écran tactile : le halo dérive seul au lieu de suivre la souris. */
-  tactile: boolean;
-  /** Première image dessinée : le canvas peut remplacer le halo CSS. */
+  /** Première image dessinée : le canvas peut remplacer le nuage figé. */
   surPret?: () => void;
   surFinIntro?: () => void;
   surEchec?: (raison: RaisonEchec) => void;
@@ -44,18 +28,19 @@ export type OptionsMoteur = {
 
 export type Moteur = {
   demarrer(): void;
-  /** Termine l'intro immédiatement : on saute à l'état « halo ». */
+  /** Termine l'intro immédiatement : le nuage se pose. */
   sauter(): void;
-  /** Position de la souris en fractions du canvas (y depuis le haut), ou null. */
-  suivreSouris(point: Point | null): void;
+  /** Position du pointeur (souris ou doigt) en fractions du canvas (y depuis le haut), ou null. */
+  suivrePointeur(point: Point | null): void;
   arreter(): void;
 };
 
-/** Taille du canvas, en pixels, pour une surface affichée de `largeurCss` × `hauteurCss`. */
-export function tailleRendu(largeurCss: number, hauteurCss: number) {
+/** Taille du canvas, en pixels, pour une surface affichée de `largeurCss` × `hauteurCss` sur un écran de densité `densite`. */
+export function tailleRendu(largeurCss: number, hauteurCss: number, densite = 1) {
+  const echelle = Math.min(densite, DENSITE_MAX);
   return {
-    largeur: Math.max(1, Math.round(largeurCss * ECHELLE_RENDU)),
-    hauteur: Math.max(1, Math.round(hauteurCss * ECHELLE_RENDU)),
+    largeur: Math.max(1, Math.round(largeurCss * echelle)),
+    hauteur: Math.max(1, Math.round(hauteurCss * echelle)),
   };
 }
 
@@ -87,7 +72,7 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     return null;
   }
   // Sans carte graphique, l'animation occuperait le fil principal pendant des
-  // secondes (et la batterie) : on garde le halo CSS. Les navigateurs sans tête
+  // secondes (et la batterie) : on garde le nuage figé. Les navigateurs sans tête
   // de la CI, sans GPU, passent eux aussi par ce chemin.
   if (estRenduLogiciel(nomDuRendu(gl))) {
     gl.getExtension("WEBGL_lose_context")?.loseContext();
@@ -95,74 +80,119 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     return null;
   }
 
-  const programme = compiler(gl);
-  if (!programme) {
+  const goutte = compiler(gl, SOURCE_SOMMET, SOURCE_FRAGMENT);
+  const traits = goutte && compiler(gl, SOURCE_TRAITS_SOMMET, SOURCE_TRAITS_FRAGMENT);
+  if (!goutte || !traits) {
     options.surEchec?.("shader");
     return null;
   }
   canvas.dataset.moteur = MARQUEUR_MOTEUR;
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // couleurs prémultipliées
 
-  gl.useProgram(programme);
-  const tampon = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, tampon);
-  // Un triangle qui déborde de l'écran le couvre entièrement.
+  // Goutte : un triangle qui déborde de l'écran le couvre entièrement.
+  const vaoGoutte = gl.createVertexArray();
+  gl.bindVertexArray(vaoGoutte);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  const position = gl.getAttribLocation(programme, "aPosition");
-  gl.enableVertexAttribArray(position);
-  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+  attribut(gl, goutte, "aPosition", 2, 0);
 
-  const u = (nom: string) => gl.getUniformLocation(programme, nom);
-  const uniformes = {
-    resolution: u("uResolution"),
-    centre: u("uCentre"),
-    rayon: u("uRayon"),
-    flou: u("uFlou"),
-    couleur: u("uCouleur"),
-    couleurClaire: u("uCouleurClaire"),
-    melange: u("uMelange"),
-    temps: u("uTemps"),
+  // Traits : un rectangle (deux triangles), répété une fois par trait.
+  const vaoTraits = gl.createVertexArray();
+  gl.bindVertexArray(vaoTraits);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5]),
+    gl.STATIC_DRAW
+  );
+  attribut(gl, traits, "aCoin", 2, 0);
+  const tamponTraits = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, tamponTraits);
+  attribut(gl, traits, "aTrait", 4, 1);
+  gl.bindVertexArray(null);
+
+  const ug = (nom: string) => gl.getUniformLocation(goutte, nom);
+  const ut = (nom: string) => gl.getUniformLocation(traits, nom);
+  const uGoutte = { resolution: ug("uResolution"), centre: ug("uCentre"), rayon: ug("uRayon"), temps: ug("uTemps") };
+  const uTraits = {
+    taille: ut("uTaille"),
+    centre: ut("uCentre"),
+    origine: ut("uOrigine"),
+    rayon: ut("uRayon"),
+    eclat: ut("uEclat"),
+    temps: ut("uTemps"),
   };
-  gl.uniform3fv(uniformes.couleurClaire, LUEUR_CHAUDE);
+  gl.useProgram(goutte);
+  gl.uniform3fv(ug("uCouleur"), GOUTTE);
+  gl.useProgram(traits);
+  gl.uniform3fv(ut("uCouleurs"), COULEURS_NUAGE.flatMap(rvb));
 
   /** Instant (horloge rAF) de la première image d'intro ; posé à ce moment-là. */
   let debut: number | null = null;
   let demarre = false;
-  /** Horloge du shader (ms) : n'avance que sur les images dessinées, sans saut après une pause. */
+  /** Horloge des shaders (ms) : n'avance que sur les images dessinées, sans saut après une pause. */
   let horloge = 0;
   let precedent: number | null = null;
   let introFinie = !options.intro;
-  let repos = reposHalo(canvas.clientWidth || 1, canvas.clientHeight || 1);
-  let halo: Point = repos.centre;
-  let souris: Point | null = null;
+  let repos = reposNuage(canvas.clientWidth || 1, canvas.clientHeight || 1);
+  /** Centre du nuage, en fractions du canvas. */
+  let nuage: Point = repos.centre;
+  let pointeur: Point | null = null;
+  /** Surface (px CSS) du semis envoyé à la carte graphique, et nombre de traits. */
+  let semis = { largeur: 0, hauteur: 0, nombre: 0 };
   let image = 0;
   let pret = false;
   let arrete = false;
-  /** Le haut de page est à l'écran ; sinon, inutile de dessiner (dérive tactile). */
+  /** Le haut de page est à l'écran ; sinon, inutile de dessiner. */
   let aLEcran = true;
 
   function redimensionner() {
-    const { largeur, hauteur } = tailleRendu(canvas.clientWidth, canvas.clientHeight);
+    const largeurCss = canvas.clientWidth || 1;
+    const hauteurCss = canvas.clientHeight || 1;
+    const { largeur, hauteur } = tailleRendu(largeurCss, hauteurCss, window.devicePixelRatio || 1);
     if (canvas.width !== largeur || canvas.height !== hauteur) {
       canvas.width = largeur;
       canvas.height = hauteur;
     }
     gl!.viewport(0, 0, canvas.width, canvas.height);
-    repos = reposHalo(canvas.clientWidth || 1, canvas.clientHeight || 1);
+    repos = reposNuage(largeurCss, hauteurCss);
+    if (semis.largeur !== largeurCss || semis.hauteur !== hauteurCss) {
+      const liste = semerTraits(largeurCss, hauteurCss);
+      gl!.bindBuffer(gl!.ARRAY_BUFFER, tamponTraits);
+      gl!.bufferData(gl!.ARRAY_BUFFER, new Float32Array(liste.flatMap((t) => [t.x, t.y, t.longueur, t.phase])), gl!.STATIC_DRAW);
+      semis = { largeur: largeurCss, hauteur: hauteurCss, nombre: liste.length };
+    }
   }
 
-  function dessiner(etat: EtatEncre, maintenant: number) {
+  /** Dessine la goutte (si elle a encore un rayon) puis les traits (dès l'éclatement), autour de `centreNuage`. */
+  function dessiner(etat: EtatEncre, centreNuage: Point, maintenant: number) {
     horloge += precedent === null ? 0 : Math.min(maintenant - precedent, 50);
     precedent = maintenant;
-    gl!.uniform2f(uniformes.resolution, canvas.width, canvas.height);
-    gl!.uniform2f(uniformes.centre, etat.centre.x, etat.centre.y);
-    gl!.uniform1f(uniformes.rayon, etat.rayon);
-    gl!.uniform1f(uniformes.flou, etat.flou);
-    gl!.uniform3fv(uniformes.couleur, etat.couleur);
-    gl!.uniform1f(uniformes.melange, etat.melange);
-    gl!.uniform1f(uniformes.temps, (horloge / 1000) % 1000);
+    const temps = (horloge / 1000) % 1000;
     gl!.clearColor(0, 0, 0, 0);
     gl!.clear(gl!.COLOR_BUFFER_BIT);
-    gl!.drawArrays(gl!.TRIANGLES, 0, 3);
+    if (etat.rayon > 0) {
+      gl!.useProgram(goutte);
+      gl!.bindVertexArray(vaoGoutte);
+      gl!.uniform2f(uGoutte.resolution, canvas.width, canvas.height);
+      gl!.uniform2f(uGoutte.centre, etat.centre.x, etat.centre.y);
+      gl!.uniform1f(uGoutte.rayon, etat.rayon);
+      gl!.uniform1f(uGoutte.temps, temps);
+      gl!.drawArrays(gl!.TRIANGLES, 0, 3);
+    }
+    if (etat.eclat > 0) {
+      const { largeur, hauteur, nombre } = semis;
+      gl!.useProgram(traits);
+      gl!.bindVertexArray(vaoTraits);
+      gl!.uniform2f(uTraits.taille, largeur, hauteur);
+      gl!.uniform2f(uTraits.centre, centreNuage.x * largeur, centreNuage.y * hauteur);
+      gl!.uniform2f(uTraits.origine, etat.centre.x * largeur, etat.centre.y * hauteur);
+      gl!.uniform1f(uTraits.rayon, repos.rayon * hauteur);
+      gl!.uniform1f(uTraits.eclat, etat.eclat);
+      gl!.uniform1f(uTraits.temps, temps);
+      gl!.drawArraysInstanced(gl!.TRIANGLES, 0, 6, nombre);
+    }
     if (!pret) {
       pret = true;
       options.surPret?.();
@@ -171,6 +201,7 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
 
   function terminerIntro() {
     introFinie = true;
+    nuage = repos.centre;
     if (options.nom) options.nom.style.opacity = "0";
     options.surFinIntro?.();
   }
@@ -183,20 +214,17 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
     if (!introFinie) {
       const etat = etatEncre(maintenant - (debut ??= maintenant), rayonCouverture(canvas.width, canvas.height), repos);
       if (options.nom) options.nom.style.opacity = String(etat.opaciteNom);
-      dessiner(etat, maintenant);
+      // Pendant l'éclatement, le nuage naît à sa place de repos.
+      dessiner(etat, repos.centre, maintenant);
       if (etat.terminee) terminerIntro();
       demanderImage();
       return;
     }
 
-    const cible = cibleHalo(souris, maintenant, options.tactile, repos.centre);
-    halo = suivre(halo, cible);
-    dessiner(etatHalo(halo, repos), maintenant);
-    // Au repos, plus rien ne bouge : la prochaine image viendra d'un mouvement
-    // de souris, d'un redimensionnement ou du retour sur l'onglet.
-    const auRepos = !options.tactile && Math.hypot(cible.x - halo.x, cible.y - halo.y) < REPOS;
-    if (auRepos) precedent = null;
-    else demanderImage();
+    nuage = suivre(nuage, cibleNuage(pointeur, repos.centre));
+    dessiner(etatNuage(repos), nuage, maintenant);
+    // Le nuage respire : on dessine tant que le haut de page est à l'écran et l'onglet visible.
+    demanderImage();
   }
 
   function demanderImage() {
@@ -251,18 +279,18 @@ export function creerMoteur(options: OptionsMoteur): Moteur | null {
       terminerIntro();
       demanderImage();
     },
-    suivreSouris(point) {
+    suivrePointeur(point) {
       if (arrete) return;
-      souris = point;
+      pointeur = point;
       demanderImage();
     },
     arreter,
   };
 }
 
-function compiler(gl: WebGL2RenderingContext): WebGLProgram | null {
-  const sommet = shader(gl, gl.VERTEX_SHADER, SOURCE_SOMMET);
-  const fragment = shader(gl, gl.FRAGMENT_SHADER, SOURCE_FRAGMENT);
+function compiler(gl: WebGL2RenderingContext, sourceSommet: string, sourceFragment: string): WebGLProgram | null {
+  const sommet = shader(gl, gl.VERTEX_SHADER, sourceSommet);
+  const fragment = shader(gl, gl.FRAGMENT_SHADER, sourceFragment);
   if (!sommet || !fragment) return null;
 
   const programme = gl.createProgram();
@@ -270,11 +298,19 @@ function compiler(gl: WebGL2RenderingContext): WebGLProgram | null {
   gl.attachShader(programme, fragment);
   gl.linkProgram(programme);
   if (!gl.getProgramParameter(programme, gl.LINK_STATUS)) {
-    // Avertissement et non erreur : le repli CSS prend le relais.
+    // Avertissement et non erreur : le repli prend le relais.
     console.warn("[encre] Édition des liens du shader impossible :", gl.getProgramInfoLog(programme));
     return null;
   }
   return programme;
+}
+
+/** Branche l'attribut `nom` sur le tampon courant : `diviseur` 1, une valeur par trait (instance). */
+function attribut(gl: WebGL2RenderingContext, programme: WebGLProgram, nom: string, taille: number, diviseur: number) {
+  const position = gl.getAttribLocation(programme, nom);
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, taille, gl.FLOAT, false, 0, 0);
+  gl.vertexAttribDivisor(position, diviseur);
 }
 
 function shader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader | null {

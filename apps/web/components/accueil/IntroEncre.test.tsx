@@ -6,7 +6,7 @@ import { CLE_INTRO_VUE } from "@/lib/encre/decision";
 
 const { creerMoteur, moteur } = vi.hoisted(() => ({
   creerMoteur: vi.fn(),
-  moteur: { demarrer: vi.fn(), sauter: vi.fn(), suivreSouris: vi.fn(), arreter: vi.fn() },
+  moteur: { demarrer: vi.fn(), sauter: vi.fn(), suivrePointeur: vi.fn(), arreter: vi.fn() },
 }));
 vi.mock("@/lib/encre/moteur", () => ({ creerMoteur }));
 
@@ -61,7 +61,7 @@ describe("IntroEncre", () => {
     navigateur();
     const { container } = render(<IntroEncre />);
     await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
-    expect(options()).toMatchObject({ intro: true, tactile: false });
+    expect(options()).toMatchObject({ intro: true });
     expect(moteur.demarrer).toHaveBeenCalled();
     expect(fond(container)).toHaveAttribute("data-mode", "intro");
 
@@ -200,7 +200,7 @@ describe("IntroEncre", () => {
       fireEvent.pointerDown(window);
       fireEvent.pointerMove(window);
       expect(moteur.sauter).not.toHaveBeenCalled();
-      expect(moteur.suivreSouris).not.toHaveBeenCalled();
+      expect(moteur.suivrePointeur).not.toHaveBeenCalled();
     });
 
     it("revient au halo CSS quand le moteur échoue après la première image", async () => {
