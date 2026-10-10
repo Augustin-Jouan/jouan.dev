@@ -125,7 +125,7 @@ describe("PaletteCommandes", () => {
   });
 
   it("propose l'intro et le curseur sur l'accueil quand ils sont là, et émet leur événement", () => {
-    document.body.innerHTML = '<div class="fond-accueil" data-mode="halo-anime"></div><button data-presence="masquee"></button>';
+    document.body.innerHTML = '<div class="fond-accueil" data-mode="nuage-anime"></div><button data-presence="masquee"></button>';
     const recu = vi.fn();
     window.addEventListener(EVENEMENT_REJOUER_INTRO, recu);
     ouvrir();

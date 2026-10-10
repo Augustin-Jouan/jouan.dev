@@ -15,21 +15,21 @@ describe("deciderMode", () => {
     expect(deciderMode(base)).toBe("intro");
   });
 
-  it("passe directement au halo animé à la visite suivante", () => {
-    expect(deciderMode({ ...base, dejaVu: true })).toBe("halo-anime");
+  it("passe directement au nuage animé à la visite suivante", () => {
+    expect(deciderMode({ ...base, dejaVu: true })).toBe("nuage-anime");
   });
 
   // Review Focus 1 : rechargement en milieu de page, défilement restauré.
   it("ne joue pas l'intro si la page est déjà défilée", () => {
-    expect(deciderMode({ ...base, defilee: true })).toBe("halo-anime");
+    expect(deciderMode({ ...base, defilee: true })).toBe("nuage-anime");
   });
 
-  it("se contente du halo CSS avec le mouvement réduit, même à la première visite", () => {
-    expect(deciderMode({ ...base, mouvementReduit: true })).toBe("halo-css");
+  it("se contente du nuage figé avec le mouvement réduit, même à la première visite", () => {
+    expect(deciderMode({ ...base, mouvementReduit: true })).toBe("nuage-fige");
   });
 
-  it("se contente du halo CSS sans WebGL2", () => {
-    expect(deciderMode({ ...base, webgl2: false, dejaVu: true })).toBe("halo-css");
+  it("se contente du nuage figé sans WebGL2", () => {
+    expect(deciderMode({ ...base, webgl2: false, dejaVu: true })).toBe("nuage-fige");
   });
 });
 

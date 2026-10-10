@@ -4,41 +4,40 @@ import { FIN_INTRO_MS, simulerGpu, surveillerErreurs } from "./outils";
 test.describe("mouvement réduit", () => {
   test.use({ reducedMotion: "reduce" });
 
-  test("halo CSS, sans canvas", async ({ page }) => {
+  test("nuage figé, sans canvas", async ({ page }) => {
     await page.goto("/");
     const fond = page.locator(".fond-accueil");
-    await expect(fond).toHaveAttribute("data-mode", "halo-css");
+    await expect(fond).toHaveAttribute("data-mode", "nuage-fige");
     await expect(fond.locator("canvas")).toHaveCount(0);
-    await expect(fond.locator(".halo-css")).toBeVisible();
+    await expect(fond.locator(".nuage-fige")).toBeVisible();
   });
 
-  test("halo CSS aux couleurs de la charte (corail bordé de rose)", async ({ page }) => {
+  test("nuage figé aux couleurs de la charte", async ({ page }) => {
     await page.goto("/");
-    const halo = await page.locator(".halo-css").evaluate((el) => getComputedStyle(el).backgroundImage);
-    expect(halo).toContain("rgb(216, 127, 129)"); // lueur (corail)
-    expect(halo).toContain("rgb(174, 99, 120)"); // lueur chaude (rose)
+    const couleurs = await page.locator(".nuage-fige path").evaluateAll((chemins) => chemins.map((c) => c.getAttribute("stroke")));
+    expect(new Set(couleurs)).toEqual(new Set(["#eab595", "#d87f81", "#ae6378", "#b9a3b0"]));
   });
 });
 
-test("WebGL2 absent : halo CSS", async ({ page }) => {
+test("WebGL2 absent : nuage figé", async ({ page }) => {
   const erreurs = surveillerErreurs(page);
   await page.addInitScript(() => {
     delete (window as unknown as Record<string, unknown>).WebGL2RenderingContext;
   });
   await page.goto("/");
-  await expect(page.locator(".fond-accueil")).toHaveAttribute("data-mode", "halo-css");
+  await expect(page.locator(".fond-accueil")).toHaveAttribute("data-mode", "nuage-fige");
   expect(erreurs).toEqual([]);
 });
 
-test("rendu WebGL logiciel (sans carte graphique) : halo CSS, sans erreur", async ({ page }) => {
+test("rendu WebGL logiciel (sans carte graphique) : nuage figé, sans erreur", async ({ page }) => {
   // Les navigateurs de test n'ont pas de GPU : WebGL y passe par SwiftShader.
   const erreurs = surveillerErreurs(page);
   await page.goto("/");
   const fond = page.locator(".fond-accueil");
   await expect(fond).toHaveAttribute("data-encre", "repli");
-  await expect(fond).toHaveAttribute("data-mode", "halo-css");
+  await expect(fond).toHaveAttribute("data-mode", "nuage-fige");
   await expect(fond.locator("canvas")).toHaveCount(0);
-  await expect(fond.locator(".halo-css")).toBeVisible();
+  await expect(fond.locator(".nuage-fige")).toBeVisible();
   expect(erreurs).toEqual([]);
 });
 
@@ -58,8 +57,8 @@ test("contexte WebGL2 refusé : repli sans erreur", async ({ page }) => {
   await page.goto("/");
   const fond = page.locator(".fond-accueil");
   await expect(fond).toHaveAttribute("data-encre", "repli");
-  await expect(fond).toHaveAttribute("data-mode", "halo-css");
-  await expect(fond.locator(".halo-css")).toBeVisible();
+  await expect(fond).toHaveAttribute("data-mode", "nuage-fige");
+  await expect(fond.locator(".nuage-fige")).toBeVisible();
   expect(erreurs).toEqual([]);
 });
 

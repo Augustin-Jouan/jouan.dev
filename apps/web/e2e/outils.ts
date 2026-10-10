@@ -6,7 +6,7 @@ export const FIN_INTRO_MS = 8000;
 /**
  * Les navigateurs de test dessinent WebGL au processeur (SwiftShader, sans
  * carte graphique) : le moteur de l'encre reconnaît ce rendu logiciel et garde
- * le halo CSS. Pour tester l'intro elle-même, on fait passer le moteur de rendu
+ * le nuage figé. Pour tester l'intro elle-même, on fait passer le moteur de rendu
  * pour une carte graphique.
  */
 export async function simulerGpu(page: Page): Promise<void> {

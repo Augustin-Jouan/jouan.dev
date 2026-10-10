@@ -48,11 +48,11 @@ function defiler(y: number) {
 }
 
 describe("IntroEncre", () => {
-  it("se contente du halo CSS avec le mouvement réduit, sans charger le moteur", async () => {
+  it("se contente du nuage figé avec le mouvement réduit, sans charger le moteur", async () => {
     navigateur({ mouvementReduit: true });
     const { container } = render(<IntroEncre />);
     await act(async () => {});
-    expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
+    expect(fond(container)).toHaveAttribute("data-mode", "nuage-fige");
     expect(container.querySelector("canvas")).toBeNull();
     expect(creerMoteur).not.toHaveBeenCalled();
   });
@@ -101,16 +101,16 @@ describe("IntroEncre", () => {
     expect(moteur.sauter).toHaveBeenCalled();
   });
 
-  it("pose directement le halo animé quand l'intro a déjà été vue dans cet onglet", async () => {
+  it("pose directement le nuage animé quand l'intro a déjà été vue dans cet onglet", async () => {
     navigateur();
     window.sessionStorage.setItem(CLE_INTRO_VUE, "1");
     const { container } = render(<IntroEncre />);
     await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
     expect(options()).toMatchObject({ intro: false });
-    expect(fond(container)).toHaveAttribute("data-mode", "halo-anime");
+    expect(fond(container)).toHaveAttribute("data-mode", "nuage-anime");
   });
 
-  it("revient au halo CSS quand le moteur échoue", async () => {
+  it("revient au nuage figé quand le moteur échoue", async () => {
     navigateur();
     creerMoteur.mockImplementation((o: OptionsMoteur) => {
       o.surEchec?.("shader");
@@ -118,7 +118,7 @@ describe("IntroEncre", () => {
     });
     const { container } = render(<IntroEncre />);
     await waitFor(() => expect(fond(container)).toHaveAttribute("data-encre", "repli"));
-    expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
+    expect(fond(container)).toHaveAttribute("data-mode", "nuage-fige");
     expect(fond(container)).not.toHaveAttribute("data-intro");
   });
 
@@ -203,7 +203,7 @@ describe("IntroEncre", () => {
       expect(moteur.suivrePointeur).not.toHaveBeenCalled();
     });
 
-    it("revient au halo CSS quand le moteur échoue après la première image", async () => {
+    it("revient au nuage figé quand le moteur échoue après la première image", async () => {
       navigateur();
       const { container } = render(<IntroEncre />);
       await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
@@ -213,7 +213,7 @@ describe("IntroEncre", () => {
       act(() => options().surEchec?.("contexte-perdu"));
       expect(moteur.arreter).toHaveBeenCalled();
       expect(fond(container)).toHaveAttribute("data-encre", "repli");
-      expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
+      expect(fond(container)).toHaveAttribute("data-mode", "nuage-fige");
       expect(fond(container)).not.toHaveAttribute("data-intro");
       expect(container.querySelector("canvas")).toBeNull();
     });
@@ -246,7 +246,7 @@ describe("IntroEncre", () => {
       window.dispatchEvent(new Event(EVENEMENT_REJOUER_INTRO));
       await new Promise((fin) => requestAnimationFrame(() => fin(undefined)));
     });
-    expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
+    expect(fond(container)).toHaveAttribute("data-mode", "nuage-fige");
     expect(creerMoteur).not.toHaveBeenCalled();
   });
 
