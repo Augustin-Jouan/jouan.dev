@@ -43,3 +43,9 @@ test("/api/me : JSON Resume valide, lisible depuis d'autres sites", async ({ req
   expect(cv.basics.name).toBe("Augustin Jouan");
   expect(cv.meta.canonical).toMatch(/\/api\/me$/);
 });
+
+test("la source de la page cache les indices dans un commentaire", async ({ request }) => {
+  const html = await (await request.get("/", { headers: { "User-Agent": NAVIGATEUR } })).text();
+  expect(html).toMatch(/<!--\nBonjour, curieux ![\s\S]*curl -L [\s\S]*\/api\/me[\s\S]*⌘K ou Ctrl\+K[\s\S]*-->/);
+});
+
