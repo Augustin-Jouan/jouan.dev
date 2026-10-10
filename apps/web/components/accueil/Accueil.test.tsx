@@ -15,6 +15,14 @@ describe("Accueil", () => {
     expect(container.querySelector('input[name="pour"]')).toBeNull();
   });
 
+  it("montre le portrait d'Augustin au-dessus du surtitre, pour qu'on voie tout de suite à qui l'on parle", () => {
+    render(<Accueil />);
+    const portrait = screen.getByRole("img", { name: "Augustin Jouan" });
+    expect(portrait.getAttribute("src")).toContain("augustin-jouan.webp");
+    const surtitre = screen.getByText("Développeur full stack · indépendant");
+    expect(portrait.compareDocumentPosition(surtitre) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("angle vitrine : salutation échappée, accroche, offre et étude vitrine d'abord, champ caché", () => {
     const { container } = render(
       <Accueil personnalisation={{ nom: "<b>Boulangerie</b> 🍞", angle: "vitrine", jeton: "boulangerie-k7f3" }} />,

@@ -23,6 +23,35 @@ test("le bouton principal mène au formulaire", async ({ page }) => {
   await expect(page.getByLabel("Nom", { exact: true })).toBeInViewport();
 });
 
+test("le portrait est chargé et visible dès le premier écran", async ({ page }) => {
+  await page.goto("/");
+  const portrait = page.getByRole("img", { name: "Augustin Jouan" });
+  await expect(portrait).toBeInViewport();
+  await expect
+    .poll(() => portrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth))
+    .toBeGreaterThan(0);
+  const cadre = (await portrait.boundingBox())!;
+  const titre = (await page.getByRole("heading", { level: 1 }).boundingBox())!;
+  if (page.viewportSize()!.width >= 768) {
+    // Ordinateur : à gauche du titre, centré sur lui, 10rem.
+    expect(cadre.width).toBe(160);
+    expect(cadre.x + cadre.width).toBeLessThan(titre.x);
+    expect(cadre.y).toBeLessThan(titre.y + titre.height);
+    expect(cadre.y + cadre.height).toBeGreaterThan(titre.y);
+  } else {
+    // Téléphone : au-dessus, 6rem (le titre n'a pas la place à côté).
+    expect(cadre.width).toBe(96);
+    expect(cadre.y + cadre.height).toBeLessThan(titre.y);
+  }
+});
+
+test("le passage en couleur du titre ne se coupe pas entre deux lignes", async ({ page }) => {
+  await page.goto("/");
+  const accent = page.getByRole("heading", { level: 1 }).locator("em");
+  await expect(accent).toHaveText(accroche.titreAccent);
+  expect(await accent.evaluate((element) => element.getClientRects().length)).toBe(1);
+});
+
 // Review Focus 4 : petit écran sans défilement horizontal.
 test("aucun défilement horizontal à 320 px", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });

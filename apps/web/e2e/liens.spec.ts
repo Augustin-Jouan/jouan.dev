@@ -49,7 +49,7 @@ test("l'aperçu ne compte rien", async ({ page }, info) => {
 
 test("un lien inconnu affiche l'accueil normal", async ({ page }) => {
   await page.goto("/?pour=inconnu-0000");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Des applications métier");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Moins de tâches répétitives");
   await expect(page.getByText(/^Bonjour/)).toHaveCount(0);
 });
 
