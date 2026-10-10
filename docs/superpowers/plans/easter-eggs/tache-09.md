@@ -196,7 +196,8 @@ puis, juste après la fonction `basculerPartage` (après son `};`), ajouter :
   // Sans dépendances : réinscrit à chaque rendu, l'écouteur voit l'état courant.
   useEffect(() => {
     window.addEventListener(EVENEMENT_BASCULER_CURSEUR, basculerPartage);
-  
+    return () => window.removeEventListener(EVENEMENT_BASCULER_CURSEUR, basculerPartage);
+  });
 ```
 
 - [ ] **Step 4: La 3D par l'adresse** — `apps/web/components/coulisses/ArchitectureVivante.tsx`
