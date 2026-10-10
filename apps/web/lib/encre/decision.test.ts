@@ -4,7 +4,7 @@ import {
   deciderMode,
   introDejaVue,
   marquerIntroVue,
-  stockageLocal,
+  stockageSession,
   type Contexte,
 } from "./decision";
 
@@ -34,19 +34,19 @@ describe("deciderMode", () => {
 });
 
 describe("drapeau « intro déjà vue »", () => {
-  const descripteur = Object.getOwnPropertyDescriptor(window, "localStorage");
+  const descripteur = Object.getOwnPropertyDescriptor(window, "sessionStorage");
 
   afterEach(() => {
-    if (descripteur) Object.defineProperty(window, "localStorage", descripteur);
-    else delete (window as { localStorage?: Storage }).localStorage;
-    window.localStorage.clear();
+    if (descripteur) Object.defineProperty(window, "sessionStorage", descripteur);
+    else delete (window as { sessionStorage?: Storage }).sessionStorage;
+    window.sessionStorage.clear();
   });
 
   it("se lit et s'écrit dans le stockage", () => {
-    expect(introDejaVue(window.localStorage)).toBe(false);
-    marquerIntroVue(window.localStorage);
-    expect(window.localStorage.getItem(CLE_INTRO_VUE)).toBe("1");
-    expect(introDejaVue(window.localStorage)).toBe(true);
+    expect(introDejaVue(window.sessionStorage)).toBe(false);
+    marquerIntroVue(window.sessionStorage);
+    expect(window.sessionStorage.getItem(CLE_INTRO_VUE)).toBe("1");
+    expect(introDejaVue(window.sessionStorage)).toBe(true);
   });
 
   it("vaut « jamais vue » sans stockage ou si la lecture lève", () => {
@@ -70,12 +70,12 @@ describe("drapeau « intro déjà vue »", () => {
   });
 
   it("renvoie null quand l'accès même au stockage lève (navigation privée stricte)", () => {
-    Object.defineProperty(window, "localStorage", {
+    Object.defineProperty(window, "sessionStorage", {
       configurable: true,
       get() {
         throw new DOMException("refusé", "SecurityError");
       },
     });
-    expect(stockageLocal()).toBeNull();
+    expect(stockageSession()).toBeNull();
   });
 });

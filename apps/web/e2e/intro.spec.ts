@@ -14,7 +14,7 @@ test("première visite : l'intro se joue puis devient le halo", async ({ page })
   await expect(fond).toHaveAttribute("data-mode", "intro");
   await expect(fond).toHaveAttribute("data-encre", "actif");
   await expect(fond).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
-  expect(await page.evaluate((cle) => localStorage.getItem(cle), CLE)).toBe("1");
+  expect(await page.evaluate((cle) => sessionStorage.getItem(cle), CLE)).toBe("1");
 });
 
 test("pendant l'intro, le nom se lit en nuit sur la goutte pêche", async ({ page }) => {
@@ -43,13 +43,26 @@ test("Tab termine l'intro et atteint le lien d'évitement", async ({ page }, tes
   await expect(page.getByRole("link", { name: "Aller au contenu" })).toBeFocused();
 });
 
-test("visite suivante : pas d'intro, halo animé", async ({ page }) => {
-  await page.addInitScript((cle) => localStorage.setItem(cle, "1"), CLE);
+test("dans le même onglet (rechargement, retour à l'accueil) : pas d'intro, halo animé", async ({ page }) => {
+  await page.addInitScript((cle) => sessionStorage.setItem(cle, "1"), CLE);
   await page.goto("/");
   const fond = page.locator(".fond-accueil");
   await expect(fond).toHaveAttribute("data-mode", "halo-anime");
   await expect(fond).toHaveAttribute("data-encre", "actif");
   await expect(fond).not.toHaveAttribute("data-intro", /.+/);
+});
+
+test("nouvelle visite (nouvel onglet) : l'intro se rejoue", async ({ page, context }) => {
+  await page.goto("/");
+  await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
+
+  const onglet = await context.newPage();
+  await simulerGpu(onglet);
+  // Ancien repère (intro vue une fois pour toutes) laissé chez un visiteur qui revient : sans effet.
+  await onglet.addInitScript((cle) => localStorage.setItem(cle, "1"), CLE);
+  await onglet.goto("/");
+  await expect(onglet.locator(".fond-accueil")).toHaveAttribute("data-mode", "intro");
+  await expect(onglet.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", { timeout: 5000 });
 });
 
 // Revue finale, Important 1 : sur un téléphone lent, le moteur arrive plusieurs

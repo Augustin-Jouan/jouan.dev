@@ -78,12 +78,15 @@ test("stockage inaccessible : l'intro se joue sans erreur", async ({ page }) => 
   const erreurs = surveillerErreurs(page);
   await simulerGpu(page);
   await page.addInitScript(() => {
-    Object.defineProperty(window, "localStorage", {
-      configurable: true,
-      get() {
-        throw new DOMException("refusé", "SecurityError");
-      },
-    });
+    // Navigation privée stricte : les deux stockages refusés (intro : session ; curseur : local).
+    for (const nom of ["localStorage", "sessionStorage"]) {
+      Object.defineProperty(window, nom, {
+        configurable: true,
+        get() {
+          throw new DOMException("refusé", "SecurityError");
+        },
+      });
+    }
   });
   await page.goto("/");
   await expect(page.locator(".fond-accueil")).toHaveAttribute("data-intro", "terminee", {

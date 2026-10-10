@@ -96,8 +96,8 @@ export default function PolitiqueConfidentialitePage() {
         </p>
         <p>
           Vous pouvez vous y opposer à tout moment avec le bouton « Masquer mon curseur ». Ce choix est gardé
-          dans le stockage local de votre navigateur, comme le repère de l&apos;introduction déjà vue ; aucun
-          cookie supplémentaire n&apos;est déposé.
+          dans le stockage local de votre navigateur ; le repère de l&apos;introduction déjà vue, lui, ne dure
+          que le temps de l&apos;onglet (stockage de session). Aucun cookie supplémentaire n&apos;est déposé.
         </p>
       </div>
 
