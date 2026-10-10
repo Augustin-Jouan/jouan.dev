@@ -45,6 +45,13 @@ test("le portrait est chargé et visible dès le premier écran", async ({ page 
   }
 });
 
+test("le passage en couleur du titre ne se coupe pas entre deux lignes", async ({ page }) => {
+  await page.goto("/");
+  const accent = page.getByRole("heading", { level: 1 }).locator("em");
+  await expect(accent).toHaveText(accroche.titreAccent);
+  expect(await accent.evaluate((element) => element.getClientRects().length)).toBe(1);
+});
+
 // Review Focus 4 : petit écran sans défilement horizontal.
 test("aucun défilement horizontal à 320 px", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });

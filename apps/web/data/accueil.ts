@@ -42,7 +42,8 @@ export type Accroche = {
 export const accroche: Accroche = {
   surtitre: "Développeur full stack · indépendant",
   titreAvant: "Moins de tâches répétitives, ",
-  titreAccent: "plus de temps",
+  // Insécables : le passage en couleur ne se coupe pas entre deux lignes sur téléphone.
+  titreAccent: "plus\u00a0de\u00a0temps",
   titreApres: " pour votre cœur de métier.",
   sousTitre:
     "Je conçois, développe et héberge vos outils, du premier échange à la mise en ligne.",

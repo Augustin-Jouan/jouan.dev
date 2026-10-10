@@ -16,7 +16,8 @@ describe("HomePage", () => {
   it("affiche l'accroche et ses deux actions", () => {
     render(<HomePage />);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      `${accroche.titreAvant}${accroche.titreAccent}${accroche.titreApres}`
+      // jest-dom lit les insécables du titre comme des espaces.
+      `${accroche.titreAvant}${accroche.titreAccent}${accroche.titreApres}`.replaceAll("\u00a0", " ")
     );
     expect(screen.getByRole("link", { name: accroche.actionPrincipale.libelle })).toHaveAttribute(
       "href",
