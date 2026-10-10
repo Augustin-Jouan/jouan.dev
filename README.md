@@ -17,10 +17,14 @@ Monorepo pnpm :
   - `lib/encre/` — l'intro : décision et chronologie (pures, testées),
     shader et moteur WebGL2.
   - `e2e/` — tests Playwright.
-- `apps/demo-marches` — la démo « Suivi de marchés » des études de cas (Vite, React,
-  Tailwind) : règles de calcul pures dans `src/domaine/`, chantier fictif dans
-  `src/donnees/`. Construite dans `apps/web/public/demo/suivi-de-marches/` par
-  `pnpm build` ; `pnpm dev:demo` pour la développer seule.
+- `apps/web/public/demo/suivi-de-marches/` — la démo « Suivi de marchés » des études de cas :
+  la maquette fonctionnelle de l'application, anonymisée (entreprise, artisans, chantiers et
+  montants fictifs), en un seul fichier HTML statique avec ses polices. Elle est générée hors du
+  dépôt par un script local d'anonymisation, qui applique aussi les retouches propres au portfolio
+  (thème sombre par `?theme=sombre`, connexion d'office, stockage de session, téléchargement du
+  CSV) : pour la mettre à jour, relancer ce script puis commiter le fichier. Le test
+  `apps/web/lib/demo-anonymat.test.ts` vérifie à chaque CI qu'elle ne porte ni e-mail, ni
+  téléphone, ni image, ni ressource externe réels.
 
 ## Commandes
 
@@ -39,7 +43,7 @@ pnpm --filter web capturer-apercu-demo   # après un changement visible de la d�
 
 Lighthouse (`apps/web/lighthouserc.json`) : accessibilité, CLS et poids des scripts bloquent la CI ; score de performance et LCP ne font qu'avertir, car ils dépendent trop de la vitesse du runner GitHub (un runner lent les fait échouer sans changement du code). À surveiller dans le journal de la CI.
 
-Pour voir la démo dans la page des études de cas avec `pnpm dev`, construire d'abord la démo : `pnpm --filter demo-marches build` (sinon l'iframe affiche une 404).
+La démo est un fichier statique : `pnpm dev` la sert telle quelle.
 
 Les tests de bout en bout démarrent un faux serveur SMTP local (port 2525).
 

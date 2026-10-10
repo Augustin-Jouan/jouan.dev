@@ -59,4 +59,12 @@ describe("FenetreDemo", () => {
       SOURCE_DEMO,
     );
   });
+
+  it("annonce des données fictives, oubliées à la fermeture de l'onglet", () => {
+    simulerEcran(true);
+    render(<FenetreDemo apercu={apercu} />);
+    expect(
+      screen.getByText("Chantiers, entreprises et montants fictifs. Vos modifications sont oubliées à la fermeture de l'onglet."),
+    ).toBeInTheDocument();
+  });
 });

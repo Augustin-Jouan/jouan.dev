@@ -71,5 +71,9 @@ describe("PolitiqueConfidentialitePage", () => {
     expect(screen.getByText(/les autres visiteurs présents au même moment/)).toBeInTheDocument();
     expect(screen.getByText(/Masquer mon curseur/)).toBeInTheDocument();
   });
-});
 
+  it("dit que la démo de l'étude de cas ne garde rien au-delà de l'onglet", () => {
+    render(<PolitiqueConfidentialitePage />);
+    expect(screen.getByText(/modifications faites dans la démo/)).toHaveTextContent(/stockage de session/);
+  });
+});

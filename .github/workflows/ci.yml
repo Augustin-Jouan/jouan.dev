@@ -70,7 +70,7 @@ jobs:
       - name: Mesures des tests
         run: >-
           node apps/web/scripts/compter-tests.mjs vitest
-          apps/web/.mesures/vitest.json apps/demo-marches/.mesures/vitest.json apps/realtime/.mesures/vitest.json
+          apps/web/.mesures/vitest.json apps/realtime/.mesures/vitest.json
           > mesures-verifier.json
 
       - uses: actions/upload-artifact@v4

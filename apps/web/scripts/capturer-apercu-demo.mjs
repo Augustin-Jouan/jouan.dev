@@ -43,6 +43,9 @@ try {
       deviceScaleFactor: 1,
     });
     await page.goto(`http://127.0.0.1:${port}/demo/suivi-de-marches/index.html?theme=sombre`);
+    // L'aperçu montre l'écran des marchés du chantier fictif de référence
+    // (la carte du chantier est un bouton dont le nom est sa référence).
+    await page.getByRole("button", { name: "LEFÈVRE — Rivebourg", exact: true }).click();
     await page.locator("table").first().waitFor();
     await page.evaluate(() => document.fonts.ready);
     const png = await page.screenshot({ type: "png" });
