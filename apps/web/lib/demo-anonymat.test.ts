@@ -23,6 +23,16 @@ describe("démo « Suivi de marchés » : anonymat", () => {
     expect(numeros.filter((n) => !TRANCHES_FICTION.includes(n.slice(0, 6)))).toEqual([]);
   });
 
+  it("tout code postal (données, exemples de saisie, adresses) est fictif, en 00xxx", () => {
+    const codes = [
+      ...html.matchAll(/placeholder="(\d{5})"/g),
+      ...html.matchAll(/["'](\d{5})["']/g),
+      ...html.matchAll(/\b(\d{2} ?\d{3})\s+[A-ZÉÈÂÎÔ][A-ZÉÈÂÎÔ' -]{2,}/g),
+    ].map((m) => m[1].replace(" ", ""));
+    expect(codes.length).toBeGreaterThan(0);
+    expect(codes.filter((c) => !c.startsWith("00"))).toEqual([]);
+  });
+
   it("n'intègre aucune image matricielle (le logo est un monogramme SVG)", () => {
     expect(html).not.toMatch(/data:image\/(?:jpeg|png|gif|webp)/);
   });

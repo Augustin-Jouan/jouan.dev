@@ -68,6 +68,8 @@ test.describe("ordinateur", () => {
     await expect(page.frameLocator('iframe[title^="Démo interactive"]').getByRole("heading", { name: "Mes chantiers" })).toBeVisible();
     const cadre = page.frames().find((f) => f.url().includes("/demo/suivi-de-marches/"))!;
     expect(await cadre.evaluate(() => document.documentElement.dataset.theme)).toBe("dark");
+    // Les contrôles natifs (calendrier, barres de défilement) suivent le thème sombre.
+    expect(await cadre.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe("dark");
     // Fond réellement sombre (luminance relative faible), pas seulement l'attribut.
     const luminance = await cadre.evaluate(() => {
       const [r, g, b] = getComputedStyle(document.body).backgroundColor.match(/\d+/g)!.map(Number);
