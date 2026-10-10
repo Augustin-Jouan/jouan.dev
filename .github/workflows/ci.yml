@@ -79,9 +79,7 @@ jobs:
           path: mesures-verifier.json
           retention-days: 7
 
-      # Laissé commenté tant que les mentions légales attendent les
-      # informations de l'EI ; à activer avant la bascule sur jouan.dev.
-      # - run: pnpm verifier-placeholders
+      - run: pnpm verifier-placeholders
 
       - run: pnpm build
 

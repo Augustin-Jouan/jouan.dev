@@ -104,9 +104,8 @@ l'image `ghcr.io/augustin-jouan/jouan.dev`, Coolify la tire.
 
 - Prévisualisation : `https://portfolio.jouan.dev`.
 - `SITE_URL` vaut déjà l'URL finale `https://jouan.dev` (figée au build).
-- Avant la bascule sur `jouan.dev` : compléter les mentions légales
-  (`apps/web/data/legal.ts`), décommenter `pnpm verifier-placeholders` dans
-  la CI, puis domaine nu + redirection `www` → domaine nu dans Coolify.
+- Bascule sur `jouan.dev` : domaine nu + redirection `www` → domaine nu dans
+  Coolify (les mentions légales sont complètes, la CI refuse tout placeholder).
 
 Liens personnalisés (accueil `/?pour=<jeton>`) : ils demandent une base.
 

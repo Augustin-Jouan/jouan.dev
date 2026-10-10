@@ -29,7 +29,6 @@ export default function MentionsLegalesPage() {
         <dl className="flex flex-col gap-2">
           <Ligne label="Éditeur :" valeur={m.editeur} />
           <Ligne label="Statut :" valeur={m.statut} />
-          <Ligne label="Adresse :" valeur={m.adresse} />
           <Ligne label="Téléphone :" valeur={m.telephone} />
           <Ligne label="Email :" valeur={m.email} />
           <Ligne label="SIREN :" valeur={m.siren} />
@@ -48,18 +47,8 @@ export default function MentionsLegalesPage() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">Médiation de la consommation</h2>
-        <p>
-          Conformément aux articles L.611-1 et L.616-1 du code de la
-          consommation, en cas de litige vous pouvez recourir gratuitement au
-          médiateur de la consommation dont relève {m.editeur}, après avoir
-          adressé une réclamation écrite préalable.
-        </p>
-        <dl className="flex flex-col gap-2">
-          <Ligne label="Médiateur :" valeur={m.mediateur.nom} />
-          <Ligne label="Adresse :" valeur={m.mediateur.adresse} />
-          <Ligne label="Site internet :" valeur={m.mediateur.site} />
-        </dl>
+        <h2 className="text-xl font-semibold">Clientèle professionnelle</h2>
+        <p>{m.clientele}</p>
       </div>
     </section>
   );

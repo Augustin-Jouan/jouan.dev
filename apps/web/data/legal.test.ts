@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { A_COMPLETER, mentionsLegales, mentionsLegalesManquantes } from "./legal";
+import { mentionsLegales, mentionsLegalesManquantes } from "./legal";
 import { contact } from "./contact";
 import { siteName } from "./site";
 
@@ -18,11 +18,7 @@ describe("mentionsLegales", () => {
     );
   });
 
-  // Informations à fournir par l'EI avant la bascule sur jouan.dev.
-  it("liste précisément les champs à compléter", () => {
-    expect([...mentionsLegalesManquantes].sort()).toEqual(
-      ["adresse", "mediateur.adresse", "mediateur.nom", "mediateur.site", "siren", "telephone", "tva"].sort()
-    );
-    expect(mentionsLegales.siren).toBe(A_COMPLETER);
+  it("ne laisse aucun champ à compléter", () => {
+    expect(mentionsLegalesManquantes).toEqual([]);
   });
 });
