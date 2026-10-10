@@ -3,6 +3,9 @@
 // n'y existe pas et la valeur retomberait sur le défaut.
 export const siteUrl = resolveSiteUrl();
 
+/** Hôte public (`jouan.dev`), pour les commandes à taper : `curl -L jouan.dev`. */
+export const hoteSite = new URL(siteUrl).host;
+
 export const siteName = "Augustin Jouan";
 
 export const siteDescription =
