@@ -4,7 +4,7 @@ import { FIN_INTRO_MS, simulerGpu, surveillerErreurs } from "./outils";
 
 test("affiche tous les blocs, sans erreur dans la console", async ({ page }) => {
   const erreurs = surveillerErreurs(page);
-  // Toute l'intro, jusqu'au halo, doit se dérouler sans erreur.
+  // Toute l'intro, jusqu'au nuage, doit se dérouler sans erreur.
   await simulerGpu(page);
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(accroche.titreAccent);

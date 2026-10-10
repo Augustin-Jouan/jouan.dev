@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
   await simulerGpu(page);
 });
 
-test("première visite : l'intro se joue puis devient le halo", async ({ page }) => {
+test("première visite : l'intro se joue puis devient le nuage", async ({ page }) => {
   await page.goto("/");
   const fond = page.locator(".fond-accueil");
   await expect(fond).toHaveAttribute("data-mode", "intro");
@@ -43,11 +43,11 @@ test("Tab termine l'intro et atteint le lien d'évitement", async ({ page }, tes
   await expect(page.getByRole("link", { name: "Aller au contenu" })).toBeFocused();
 });
 
-test("dans le même onglet (rechargement, retour à l'accueil) : pas d'intro, halo animé", async ({ page }) => {
+test("dans le même onglet (rechargement, retour à l'accueil) : pas d'intro, nuage animé", async ({ page }) => {
   await page.addInitScript((cle) => sessionStorage.setItem(cle, "1"), CLE);
   await page.goto("/");
   const fond = page.locator(".fond-accueil");
-  await expect(fond).toHaveAttribute("data-mode", "halo-anime");
+  await expect(fond).toHaveAttribute("data-mode", "nuage-anime");
   await expect(fond).toHaveAttribute("data-encre", "actif");
   await expect(fond).not.toHaveAttribute("data-intro", /.+/);
 });

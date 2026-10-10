@@ -6,7 +6,7 @@ import { CLE_INTRO_VUE } from "@/lib/encre/decision";
 
 const { creerMoteur, moteur } = vi.hoisted(() => ({
   creerMoteur: vi.fn(),
-  moteur: { demarrer: vi.fn(), sauter: vi.fn(), suivreSouris: vi.fn(), arreter: vi.fn() },
+  moteur: { demarrer: vi.fn(), sauter: vi.fn(), suivrePointeur: vi.fn(), arreter: vi.fn() },
 }));
 vi.mock("@/lib/encre/moteur", () => ({ creerMoteur }));
 
@@ -48,11 +48,11 @@ function defiler(y: number) {
 }
 
 describe("IntroEncre", () => {
-  it("se contente du halo CSS avec le mouvement réduit, sans charger le moteur", async () => {
+  it("se contente du nuage figé avec le mouvement réduit, sans charger le moteur", async () => {
     navigateur({ mouvementReduit: true });
     const { container } = render(<IntroEncre />);
     await act(async () => {});
-    expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
+    expect(fond(container)).toHaveAttribute("data-mode", "nuage-fige");
     expect(container.querySelector("canvas")).toBeNull();
     expect(creerMoteur).not.toHaveBeenCalled();
   });
@@ -61,7 +61,7 @@ describe("IntroEncre", () => {
     navigateur();
     const { container } = render(<IntroEncre />);
     await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
-    expect(options()).toMatchObject({ intro: true, tactile: false });
+    expect(options()).toMatchObject({ intro: true });
     expect(moteur.demarrer).toHaveBeenCalled();
     expect(fond(container)).toHaveAttribute("data-mode", "intro");
 
@@ -101,16 +101,16 @@ describe("IntroEncre", () => {
     expect(moteur.sauter).toHaveBeenCalled();
   });
 
-  it("pose directement le halo animé quand l'intro a déjà été vue dans cet onglet", async () => {
+  it("pose directement le nuage animé quand l'intro a déjà été vue dans cet onglet", async () => {
     navigateur();
     window.sessionStorage.setItem(CLE_INTRO_VUE, "1");
     const { container } = render(<IntroEncre />);
     await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
     expect(options()).toMatchObject({ intro: false });
-    expect(fond(container)).toHaveAttribute("data-mode", "halo-anime");
+    expect(fond(container)).toHaveAttribute("data-mode", "nuage-anime");
   });
 
-  it("revient au halo CSS quand le moteur échoue", async () => {
+  it("revient au nuage figé quand le moteur échoue", async () => {
     navigateur();
     creerMoteur.mockImplementation((o: OptionsMoteur) => {
       o.surEchec?.("shader");
@@ -118,7 +118,7 @@ describe("IntroEncre", () => {
     });
     const { container } = render(<IntroEncre />);
     await waitFor(() => expect(fond(container)).toHaveAttribute("data-encre", "repli"));
-    expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
+    expect(fond(container)).toHaveAttribute("data-mode", "nuage-fige");
     expect(fond(container)).not.toHaveAttribute("data-intro");
   });
 
@@ -200,10 +200,10 @@ describe("IntroEncre", () => {
       fireEvent.pointerDown(window);
       fireEvent.pointerMove(window);
       expect(moteur.sauter).not.toHaveBeenCalled();
-      expect(moteur.suivreSouris).not.toHaveBeenCalled();
+      expect(moteur.suivrePointeur).not.toHaveBeenCalled();
     });
 
-    it("revient au halo CSS quand le moteur échoue après la première image", async () => {
+    it("revient au nuage figé quand le moteur échoue après la première image", async () => {
       navigateur();
       const { container } = render(<IntroEncre />);
       await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
@@ -213,7 +213,7 @@ describe("IntroEncre", () => {
       act(() => options().surEchec?.("contexte-perdu"));
       expect(moteur.arreter).toHaveBeenCalled();
       expect(fond(container)).toHaveAttribute("data-encre", "repli");
-      expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
+      expect(fond(container)).toHaveAttribute("data-mode", "nuage-fige");
       expect(fond(container)).not.toHaveAttribute("data-intro");
       expect(container.querySelector("canvas")).toBeNull();
     });
@@ -246,7 +246,78 @@ describe("IntroEncre", () => {
       window.dispatchEvent(new Event(EVENEMENT_REJOUER_INTRO));
       await new Promise((fin) => requestAnimationFrame(() => fin(undefined)));
     });
-    expect(fond(container)).toHaveAttribute("data-mode", "halo-css");
+    expect(fond(container)).toHaveAttribute("data-mode", "nuage-fige");
     expect(creerMoteur).not.toHaveBeenCalled();
+  });
+
+  describe("pointeur", () => {
+    let cadre: ReturnType<typeof vi.spyOn>;
+    beforeEach(() => {
+      cadre = vi.spyOn(HTMLCanvasElement.prototype, "getBoundingClientRect").mockReturnValue({
+        left: 0, top: 0, width: 200, height: 100, right: 200, bottom: 100, x: 0, y: 0, toJSON: () => ({}),
+      } as DOMRect);
+    });
+    afterEach(() => cadre.mockRestore());
+
+    async function monter() {
+      navigateur();
+      render(<IntroEncre />);
+      await waitFor(() => expect(creerMoteur).toHaveBeenCalled());
+    }
+
+    function pointeur(type: string, x: number, y: number) {
+      const evenement = new MouseEvent("pointermove", { clientX: x, clientY: y });
+      Object.defineProperty(evenement, "pointerType", { value: type });
+      window.dispatchEvent(evenement);
+    }
+
+    it("suit la souris en fractions du canvas", async () => {
+      await monter();
+      pointeur("mouse", 50, 25);
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith({ x: 0.25, y: 0.25 });
+    });
+
+    // Relecture finale (M4) : défiler à la molette sans bouger la souris ne
+    // doit pas emporter le nuage avec la page.
+    it("reste sous la souris pendant le défilement", async () => {
+      await monter();
+      pointeur("mouse", 50, 25);
+      cadre.mockReturnValue({
+        left: 0, top: -100, width: 200, height: 100, right: 200, bottom: 0, x: 0, y: -100, toJSON: () => ({}),
+      } as DOMRect);
+      fireEvent.scroll(window);
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith({ x: 0.25, y: 1.25 });
+    });
+
+    it("ne vise rien au défilement tant que la souris n'a pas bougé", async () => {
+      await monter();
+      fireEvent.scroll(window);
+      expect(moteur.suivrePointeur).not.toHaveBeenCalled();
+    });
+
+    // Review Focus 3
+    it("oublie la souris quand elle quitte la fenêtre : le nuage revient à sa place", async () => {
+      await monter();
+      pointeur("mouse", 50, 25);
+      fireEvent.mouseLeave(document.documentElement);
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith(null);
+    });
+
+    // Review Focus 2
+    it("suit le doigt pendant le toucher et le glisser, puis revient au lâcher", async () => {
+      await monter();
+      fireEvent.touchStart(window, { touches: [{ clientX: 100, clientY: 50 }] });
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith({ x: 0.5, y: 0.5 });
+      fireEvent.touchMove(window, { touches: [{ clientX: 150, clientY: 75 }] });
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith({ x: 0.75, y: 0.75 });
+      fireEvent.touchEnd(window, { touches: [] });
+      expect(moteur.suivrePointeur).toHaveBeenLastCalledWith(null);
+    });
+
+    it("ignore les événements de pointeur tactiles (le doigt passe par les événements touch)", async () => {
+      await monter();
+      pointeur("touch", 50, 25);
+      expect(moteur.suivrePointeur).not.toHaveBeenCalled();
+    });
   });
 });

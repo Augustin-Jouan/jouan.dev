@@ -10,10 +10,10 @@ describe("lireContexte", () => {
     expect(lireContexte()).toEqual({ chemin: "/", introDisponible: false, presence: null });
   });
 
-  it("intro disponible quand le fond peut jouer l'encre, pas avec le halo CSS", () => {
-    document.body.innerHTML = '<div class="fond-accueil" data-mode="halo-anime"></div>';
+  it("intro disponible quand le fond peut jouer l'encre, pas avec le nuage figé", () => {
+    document.body.innerHTML = '<div class="fond-accueil" data-mode="nuage-anime"></div>';
     expect(lireContexte().introDisponible).toBe(true);
-    document.body.innerHTML = '<div class="fond-accueil" data-mode="halo-css"></div>';
+    document.body.innerHTML = '<div class="fond-accueil" data-mode="nuage-fige"></div>';
     expect(lireContexte().introDisponible).toBe(false);
   });
 

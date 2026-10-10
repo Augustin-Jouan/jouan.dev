@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { HaloCss } from "./HaloCss";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { siteMetier, siteName } from "@/data/site";
 import { EVENEMENT_REJOUER_INTRO } from "@/lib/commandes/evenements";
 import {
@@ -22,17 +21,17 @@ const EVENEMENTS_SAUT = ["pointerdown", "keydown", "wheel", "touchstart", "scrol
 /**
  * Au-delà de ce délai après le montage, le moteur arrive trop tard : le
  * visiteur lit déjà la page, une intro qui la recouvrirait n'en est plus une.
- * On pose alors directement le halo.
+ * On pose alors directement le nuage.
  */
 const DELAI_MAX_INTRO_MS = 3000;
 
 /**
- * Fond de l'accueil. Rendu côté serveur, c'est un simple halo CSS ; une fois
+ * Fond de l'accueil. Rendu côté serveur, c'est le nuage figé (`repli`) ; une fois
  * monté, il décide s'il faut jouer l'intro (une fois par visite), puis importe
  * le moteur WebGL dans son propre morceau de JS, après l'affichage.
  *
  * Attributs lus par le CSS et les tests de bout en bout :
- * - data-mode : intro | halo-anime | halo-css
+ * - data-mode : intro | nuage-anime | nuage-fige
  * - data-intro : en-cours | terminee (absent hors intro)
  * - data-encre : actif (canvas affiché) | repli (WebGL a échoué)
  *
@@ -40,12 +39,12 @@ const DELAI_MAX_INTRO_MS = 3000;
  * `jouan:rejouer-intro` : retour en haut, puis l'intro repart sur un canvas neuf
  * (l'arrêt du moteur libère le contexte WebGL de l'ancien).
  */
-export function IntroEncre() {
+export function IntroEncre({ repli }: { repli?: ReactNode }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nomRef = useRef<HTMLParagraphElement>(null);
   /** Instant du montage (performance.now), point de départ de DELAI_MAX_INTRO_MS. */
   const montageRef = useRef(0);
-  const [mode, setMode] = useState<ModeEncre>("halo-css");
+  const [mode, setMode] = useState<ModeEncre>("nuage-fige");
   const [intro, setIntro] = useState<"en-cours" | "terminee">();
   const [encre, setEncre] = useState<"actif" | "repli">();
   /** Numéro de l'intro jouée : change à chaque « Rejouer l'intro ». */
@@ -74,7 +73,7 @@ export function IntroEncre() {
       image = requestAnimationFrame(() => {
         montageRef.current = performance.now();
         setIntro(undefined);
-        setMode((actuel) => (actuel === "halo-css" ? actuel : "intro"));
+        setMode((actuel) => (actuel === "nuage-fige" ? actuel : "intro"));
         setTour((n) => n + 1);
       });
     };
@@ -86,7 +85,7 @@ export function IntroEncre() {
   }, []);
 
   useEffect(() => {
-    if (mode === "halo-css") return;
+    if (mode === "nuage-fige") return;
 
     const jouerIntro = mode === "intro";
     let moteur: Moteur | null = null;
@@ -100,21 +99,42 @@ export function IntroEncre() {
     };
     const retirerSaut = () =>
       EVENEMENTS_SAUT.forEach((nom) => window.removeEventListener(nom, sauter));
-    const suivre = (evenement: PointerEvent) => {
+    /** Pointeur en (x, y) px de la fenêtre, transmis en fractions du canvas. */
+    const viser = (x: number, y: number) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const cadre = canvas.getBoundingClientRect();
-      moteur?.suivreSouris({
-        x: (evenement.clientX - cadre.left) / cadre.width,
-        y: (evenement.clientY - cadre.top) / cadre.height,
-      });
+      moteur?.suivrePointeur({ x: (x - cadre.left) / cadre.width, y: (y - cadre.top) / cadre.height });
+    };
+    // Le doigt passe par `touchstart` / `touchmove`, qui continuent pendant le
+    // défilement (les événements de pointeur s'y arrêtent : `pointercancel`).
+    /** Dernière position de la souris dans la fenêtre : le défilement la redonne au moteur. */
+    let souris: { x: number; y: number } | null = null;
+    const suivreSouris = (evenement: PointerEvent) => {
+      if (evenement.pointerType === "touch") return;
+      souris = { x: evenement.clientX, y: evenement.clientY };
+      viser(souris.x, souris.y);
+    };
+    // Défiler sans bouger la souris déplace le canvas sous elle : le nuage
+    // reste sous le curseur au lieu de partir avec la page.
+    const suivreDefilement = () => {
+      if (souris) viser(souris.x, souris.y);
+    };
+    const suivreDoigt = (evenement: TouchEvent) => {
+      const doigt = evenement.touches[0];
+      if (doigt) viser(doigt.clientX, doigt.clientY);
+    };
+    /** Souris sortie de la fenêtre, doigt levé : le nuage revient à sa place. */
+    const oublier = () => {
+      souris = null;
+      moteur?.suivrePointeur(null);
     };
 
     const echouer = () => {
       moteur?.arreter();
       setEncre("repli");
       setIntro(undefined);
-      setMode("halo-css");
+      setMode("nuage-fige");
     };
 
     import("@/lib/encre/moteur")
@@ -137,7 +157,6 @@ export function IntroEncre() {
           canvas: canvasRef.current,
           intro: introEffective,
           nom: nomRef.current,
-          tactile: window.matchMedia("(pointer: coarse)").matches,
           surPret: () => {
             setEncre("actif");
             if (introEffective) setIntro((etat) => etat ?? "en-cours");
@@ -159,13 +178,25 @@ export function IntroEncre() {
     if (jouerIntro) {
       EVENEMENTS_SAUT.forEach((nom) => window.addEventListener(nom, sauter, { passive: true }));
     }
-    window.addEventListener("pointermove", suivre, { passive: true });
+    window.addEventListener("pointermove", suivreSouris, { passive: true });
+    window.addEventListener("scroll", suivreDefilement, { passive: true });
+    window.addEventListener("touchstart", suivreDoigt, { passive: true });
+    window.addEventListener("touchmove", suivreDoigt, { passive: true });
+    window.addEventListener("touchend", oublier);
+    window.addEventListener("touchcancel", oublier);
+    document.documentElement.addEventListener("mouseleave", oublier);
 
     return () => {
       annule = true;
       moteur?.arreter();
       retirerSaut();
-      window.removeEventListener("pointermove", suivre);
+      window.removeEventListener("pointermove", suivreSouris);
+      window.removeEventListener("scroll", suivreDefilement);
+      window.removeEventListener("touchstart", suivreDoigt);
+      window.removeEventListener("touchmove", suivreDoigt);
+      window.removeEventListener("touchend", oublier);
+      window.removeEventListener("touchcancel", oublier);
+      document.documentElement.removeEventListener("mouseleave", oublier);
     };
   }, [mode, tour]);
 
@@ -177,8 +208,8 @@ export function IntroEncre() {
       data-encre={encre}
       aria-hidden="true"
     >
-      <HaloCss />
-      {mode !== "halo-css" && <canvas key={tour} ref={canvasRef} />}
+      {repli}
+      {mode !== "nuage-fige" && <canvas key={tour} ref={canvasRef} />}
       {mode === "intro" && (
         <p ref={nomRef} className="fond-accueil__nom">
           {siteName}

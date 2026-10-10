@@ -1,5 +1,5 @@
 /** Ce que l'accueil affiche en fond. */
-export type ModeEncre = "intro" | "halo-anime" | "halo-css";
+export type ModeEncre = "intro" | "nuage-anime" | "nuage-fige";
 
 export type Contexte = {
   /** `prefers-reduced-motion: reduce`. */
@@ -13,8 +13,8 @@ export type Contexte = {
 };
 
 export function deciderMode(contexte: Contexte): ModeEncre {
-  if (contexte.mouvementReduit || !contexte.webgl2) return "halo-css";
-  if (contexte.dejaVu || contexte.defilee) return "halo-anime";
+  if (contexte.mouvementReduit || !contexte.webgl2) return "nuage-fige";
+  if (contexte.dejaVu || contexte.defilee) return "nuage-anime";
   return "intro";
 }
 

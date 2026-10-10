@@ -1,5 +1,6 @@
 import { Accroche } from "./Accroche";
 import { IntroEncre } from "./IntroEncre";
+import { NuageFige } from "./NuageFige";
 import { Methode } from "./Methode";
 import { Offre } from "./Offre";
 import { Parcours } from "./Parcours";
@@ -20,7 +21,7 @@ export function Accueil({
   const angle = personnalisation?.angle ?? "application";
   return (
     <PresenceDirecte>
-      <IntroEncre />
+      <IntroEncre repli={<NuageFige />} />
       <Accroche angle={angle} nom={personnalisation?.nom} />
       <Offre angle={angle} />
       <Realisations angle={angle} />

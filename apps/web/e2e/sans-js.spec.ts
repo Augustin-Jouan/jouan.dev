@@ -10,7 +10,7 @@ test("la page est complète et lisible sans JavaScript", async ({ page }) => {
   for (const { titre } of Object.values(sections)) {
     await expect(page.getByRole("heading", { level: 2, name: titre })).toBeVisible();
   }
-  await expect(page.locator(".halo-css")).toBeVisible();
+  await expect(page.locator(".nuage-fige")).toBeVisible();
   await expect(page.locator(".fond-accueil canvas")).toHaveCount(0);
 });
 

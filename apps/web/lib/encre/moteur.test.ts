@@ -1,5 +1,6 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { creerMoteur, estRenduLogiciel, nomDuRendu, tailleRendu } from "./moteur";
+import { semerTraits } from "./nuage";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -10,7 +11,6 @@ describe("creerMoteur", () => {
     const moteur = creerMoteur({
       canvas: document.createElement("canvas"),
       intro: true,
-      tactile: false,
       surEchec,
     });
     expect(moteur).toBeNull();
@@ -28,7 +28,7 @@ describe("creerMoteur", () => {
     };
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(gl as unknown as WebGL2RenderingContext);
     const surEchec = vi.fn();
-    const moteur = creerMoteur({ canvas: document.createElement("canvas"), intro: true, tactile: false, surEchec });
+    const moteur = creerMoteur({ canvas: document.createElement("canvas"), intro: true, surEchec });
     expect(moteur).toBeNull();
     expect(surEchec).toHaveBeenCalledWith("rendu-logiciel");
     expect(loseContext).toHaveBeenCalledOnce();
@@ -68,7 +68,6 @@ describe("creerMoteur", () => {
     const moteur = creerMoteur({
       canvas: document.createElement("canvas"),
       intro: true,
-      tactile: false,
       surEchec,
     });
     expect(moteur).not.toBeNull();
@@ -79,14 +78,89 @@ describe("creerMoteur", () => {
 });
 
 describe("tailleRendu", () => {
-  it("dessine à demi-résolution CSS, quelle que soit la densité de l'écran", () => {
-    // Le shader tourne pour chaque pixel : sans carte graphique (rendu
-    // logiciel), la pleine résolution bloque le fil principal à chaque image.
-    expect(tailleRendu(1440, 900)).toEqual({ largeur: 720, hauteur: 450 });
-    expect(tailleRendu(375, 667)).toEqual({ largeur: 188, hauteur: 334 });
+  it("dessine à la densité de l'écran, pour des traits de 2 px nets", () => {
+    expect(tailleRendu(1440, 900, 1)).toEqual({ largeur: 1440, hauteur: 900 });
+    expect(tailleRendu(1440, 900, 2)).toEqual({ largeur: 2880, hauteur: 1800 });
+  });
+
+  it("plafonne la densité à 2", () => {
+    expect(tailleRendu(1440, 900, 3)).toEqual({ largeur: 2880, hauteur: 1800 });
   });
 
   it("garde au moins un pixel", () => {
     expect(tailleRendu(0, 0)).toEqual({ largeur: 1, hauteur: 1 });
+  });
+});
+
+describe("dessin du nuage", () => {
+  /** Faux contexte qui note les appels de dessin ; tout le reste réussit sans rien faire. */
+  function fauxContexte() {
+    const appels = { drawArrays: vi.fn(), drawArraysInstanced: vi.fn(), bufferData: vi.fn() };
+    const fixes: Record<string, unknown> = {
+      ...appels,
+      getShaderParameter: () => true,
+      getProgramParameter: () => true,
+      isContextLost: () => false,
+      getExtension: () => null,
+    };
+    const gl = new Proxy(fixes, { get: (cible, cle: string) => cible[cle] ?? (() => ({})) });
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(gl as unknown as WebGL2RenderingContext);
+    return appels;
+  }
+
+  function canvasDe(largeur: number, hauteur: number) {
+    const canvas = document.createElement("canvas");
+    Object.defineProperty(canvas, "clientWidth", { configurable: true, get: () => largeur });
+    Object.defineProperty(canvas, "clientHeight", { configurable: true, get: () => hauteur });
+    return canvas;
+  }
+
+  const image = () => new Promise((resoudre) => requestAnimationFrame(() => resoudre(null)));
+
+  it("sans intro, dessine le nuage posé en un seul appel, un exemplaire par trait, sans goutte", async () => {
+    const appels = fauxContexte();
+    const moteur = creerMoteur({ canvas: canvasDe(1280, 800), intro: false })!;
+    moteur.demarrer();
+    await image();
+    expect(appels.drawArraysInstanced).toHaveBeenCalledWith(expect.anything(), 0, 6, semerTraits(1280, 800).length);
+    expect(appels.drawArrays).not.toHaveBeenCalled();
+    moteur.arreter();
+  });
+
+  // Relecture finale (I2) : la goutte plein écran (bruit fractal par pixel) ne
+  // se calcule pas à la densité de l'écran ; les traits, si.
+  it("dessine la goutte de l'intro à densité 1, puis le nuage à la densité de l'écran", async () => {
+    fauxContexte();
+    vi.stubGlobal("devicePixelRatio", 2);
+    const avecIntro = canvasDe(1280, 800);
+    const intro = creerMoteur({ canvas: avecIntro, intro: true })!;
+    intro.demarrer();
+    await image();
+    expect(avecIntro.width).toBe(1280);
+    intro.arreter();
+    const sansIntro = canvasDe(1280, 800);
+    const nuage = creerMoteur({ canvas: sansIntro, intro: false })!;
+    nuage.demarrer();
+    await image();
+    expect(sansIntro.width).toBe(2560);
+    nuage.arreter();
+    vi.unstubAllGlobals();
+  });
+
+  // Review Focus 1 : rotation ou redimensionnement pendant le nuage.
+  it("ressème quand la taille change", async () => {
+    const appels = fauxContexte();
+    let largeur = 1280;
+    const canvas = document.createElement("canvas");
+    Object.defineProperty(canvas, "clientWidth", { configurable: true, get: () => largeur });
+    Object.defineProperty(canvas, "clientHeight", { configurable: true, get: () => 800 });
+    const moteur = creerMoteur({ canvas, intro: false })!;
+    moteur.demarrer();
+    await image();
+    largeur = 390;
+    moteur.suivrePointeur({ x: 0.5, y: 0.5 });
+    await image();
+    expect(appels.drawArraysInstanced).toHaveBeenLastCalledWith(expect.anything(), 0, 6, semerTraits(390, 800).length);
+    moteur.arreter();
   });
 });

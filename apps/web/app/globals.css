@@ -125,30 +125,23 @@ body::before {
   height: 100%;
 }
 
-/* Halo final de l'intro : même calcul que reposHalo dans
-   lib/encre/chronologie.ts. Il se place à 80 % de la colonne de contenu
-   (90rem au plus) ; hauteur et rayon suivent l'écran jusqu'à 61rem de haut. */
-.halo-css {
+/* Nuage figé (components/accueil/NuageFige.tsx), à la place de repos du
+   nuage : même calcul que reposNuage dans lib/encre/chronologie.ts. Centré à
+   80 % de la colonne de contenu (90rem au plus) ; son rayon (0,2 de la hauteur
+   d'écran, plafonnée à 61rem) vaut 200 unités du SVG, qui en couvre 800. */
+.nuage-fige {
   position: absolute;
   left: calc((100% - min(100%, 90rem)) / 2 + 0.8 * min(100%, 90rem));
   top: calc(0.24 * min(100svh, 61rem));
-  width: calc(0.64 * min(100svh, 61rem));
-  height: calc(0.64 * min(100svh, 61rem));
+  width: calc(0.8 * min(100svh, 61rem));
+  height: calc(0.8 * min(100svh, 61rem));
   translate: -50% -50%;
-  border-radius: 9999px;
-  background: radial-gradient(
-    circle at 45% 45%,
-    var(--color-lueur) 0%,
-    var(--color-lueur-chaude) 40%,
-    transparent 70%
-  );
-  filter: blur(28px);
-  opacity: 0.85;
-  transition: opacity 300ms;
+  overflow: visible;
+  transition: opacity 0.3s ease-out;
 }
 
-/* Le canvas dessine le halo : on efface la copie CSS pour ne pas le doubler. */
-.fond-accueil[data-encre="actif"] .halo-css {
+/* Le canvas dessine le nuage : la copie figée s'efface en fondu. */
+.fond-accueil[data-encre="actif"] .nuage-fige {
   opacity: 0;
 }
 

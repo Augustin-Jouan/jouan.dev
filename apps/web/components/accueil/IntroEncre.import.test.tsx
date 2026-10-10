@@ -12,7 +12,7 @@ import { IntroEncre } from "./IntroEncre";
 afterEach(() => vi.unstubAllGlobals());
 
 describe("IntroEncre, import du moteur rejeté", () => {
-  it("revient au halo CSS, sans intro ni canvas", async () => {
+  it("revient au nuage figé, sans intro ni canvas", async () => {
     vi.stubGlobal("matchMedia", (query: string) => ({
       matches: false,
       media: query,
@@ -23,7 +23,7 @@ describe("IntroEncre, import du moteur rejeté", () => {
     const { container } = render(<IntroEncre />);
     const fond = container.querySelector(".fond-accueil")!;
     await waitFor(() => expect(fond).toHaveAttribute("data-encre", "repli"));
-    expect(fond).toHaveAttribute("data-mode", "halo-css");
+    expect(fond).toHaveAttribute("data-mode", "nuage-fige");
     expect(fond).not.toHaveAttribute("data-intro");
     expect(container.querySelector("canvas")).toBeNull();
   });
