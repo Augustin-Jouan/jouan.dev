@@ -7,11 +7,11 @@ describe("origines", () => {
     expect(lireOrigines(undefined)).toEqual([]);
   });
   it("n'autorise que les origines listées, à l'identique", () => {
-    const liste = ["https://portfolio.jouan.dev"];
-    expect(origineAutorisee("https://portfolio.jouan.dev", liste)).toBe(true);
-    expect(origineAutorisee("https://portfolio.jouan.dev.attaque.dev", liste)).toBe(false);
+    const liste = ["https://jouan.dev"];
+    expect(origineAutorisee("https://jouan.dev", liste)).toBe(true);
+    expect(origineAutorisee("https://jouan.dev.attaque.dev", liste)).toBe(false);
     expect(origineAutorisee(undefined, liste)).toBe(false);
-    expect(origineAutorisee("https://portfolio.jouan.dev", [])).toBe(false);
+    expect(origineAutorisee("https://jouan.dev", [])).toBe(false);
   });
 });
 
