@@ -18,8 +18,7 @@ permissions:
   contents: read
 
 env:
-  # URL finale du site, figée dans les pages au build (canonical, sitemap…).
-  # La prévisualisation (portfolio.jouan.dev) sert déjà ces pages.
+  # URL du site, figée dans les pages au build (canonical, sitemap…).
   SITE_URL: https://jouan.dev
 
 jobs:
@@ -246,7 +245,7 @@ jobs:
       # ils doivent être connus ici, pas dans Coolify. L'identifiant Umami est
       # une variable de dépôt GitHub (Settings → Secrets and variables →
       # Actions → Variables). `NEXT_PUBLIC_DIRECT_URL` aussi (variable de
-      # dépôt `DIRECT_URL`, par exemple `wss://direct.portfolio.jouan.dev/direct`).
+      # dépôt `DIRECT_URL`, par exemple `wss://direct.jouan.dev/direct`).
       - uses: docker/build-push-action@v6
         with:
           context: .
