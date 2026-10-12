@@ -1,18 +1,20 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/data/site";
 
-/** Ajouter ici chaque page créée. Les pages légales restent en priorité basse. */
+/**
+ * Ajouter ici chaque page créée. Les pages légales restent en priorité basse ;
+ * les mentions légales n'y figurent pas : elles sont en `noindex`.
+ */
 const pages = [
   "",
   "/contact",
   "/realisations",
   "/coulisses",
-  "/mentions-legales",
   "/politique-de-confidentialite",
 ];
 
 const priorite = (chemin: string) =>
-  chemin === "" ? 1 : chemin === "/coulisses" ? 0.5 : chemin.startsWith("/mentions") || chemin.startsWith("/politique") ? 0.3 : 0.8;
+  chemin === "" ? 1 : chemin === "/coulisses" ? 0.5 : chemin.startsWith("/politique") ? 0.3 : 0.8;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();

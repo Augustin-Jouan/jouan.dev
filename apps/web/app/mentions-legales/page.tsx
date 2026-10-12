@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   title: "Mentions légales",
   description: `Mentions légales du site de ${siteName}.`,
   alternates: { canonical: "/mentions-legales" },
+  // Obligatoires sur le site, mais pas dans les résultats de recherche (téléphone, SIREN).
+  robots: { index: false, follow: true },
 };
 
 function Ligne({ label, valeur }: { label: string; valeur: string }) {
