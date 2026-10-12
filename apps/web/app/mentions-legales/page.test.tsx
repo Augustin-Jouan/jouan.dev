@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import MentionsLegalesPage from "./page";
+import MentionsLegalesPage, { metadata } from "./page";
 import { siteName } from "@/data/site";
 
 describe("MentionsLegalesPage", () => {
@@ -20,5 +20,9 @@ describe("MentionsLegalesPage", () => {
     render(<MentionsLegalesPage />);
     expect(screen.getByText("109 461 350")).toBeInTheDocument();
     expect(screen.getByText(/293 B du CGI/)).toBeInTheDocument();
+  });
+
+  it("n'est pas indexée par les moteurs de recherche (téléphone et SIREN hors des résultats)", () => {
+    expect(metadata.robots).toEqual({ index: false, follow: true });
   });
 });
