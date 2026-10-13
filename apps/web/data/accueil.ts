@@ -154,7 +154,7 @@ export const etapes: Etape[] = [
   },
 ];
 
-/** Logo affiché avant un nom (fichier dans `public/`, dimensions réelles en pixels). */
+/** Logo d'une enseigne (fichier dans `public/`, dimensions réelles en pixels). */
 export type Logo = { src: string; largeur: number; hauteur: number };
 
 /** Une ligne du parcours ; le nom d'un employeur ou d'une école renvoie vers son site. */
@@ -170,7 +170,7 @@ export const parcours: LigneParcours[] = [
     lien: {
       libelle: "SCR Informatique",
       href: "https://www.scrinfo.net/",
-      logo: { src: "/parcours/scr-informatique.webp", largeur: 126, hauteur: 60 },
+      logo: { src: "/parcours/scr-informatique.webp", largeur: 240, hauteur: 114 },
     },
     apres: ", en alternance",
   },
@@ -179,7 +179,7 @@ export const parcours: LigneParcours[] = [
     lien: {
       libelle: "Epitech",
       href: "https://www.epitech.eu/",
-      logo: { src: "/parcours/epitech.webp", largeur: 68, hauteur: 60 },
+      logo: { src: "/parcours/epitech.webp", largeur: 200, hauteur: 177 },
     },
   },
   { avant: "Indépendant : applications métier et sites vitrines" },

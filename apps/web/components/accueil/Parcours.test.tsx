@@ -1,26 +1,25 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Parcours } from "./Parcours";
 
 describe("Parcours", () => {
-  it("affiche le logo de l'employeur et de l'école dans leur lien, avant leur nom", () => {
+  it("met en avant les logos de l'employeur et de l'école à côté des trois lignes, liés à leur site", () => {
     render(<Parcours />);
-    for (const [nom, fichier] of [
-      ["SCR Informatique", "/parcours/scr-informatique.webp"],
-      ["Epitech", "/parcours/epitech.webp"],
+    const enseignes = screen.getByRole("list", { name: "Employeur et école" });
+    for (const [nom, fichier, site] of [
+      ["SCR Informatique", "/parcours/scr-informatique.webp", "https://www.scrinfo.net/"],
+      ["Epitech", "/parcours/epitech.webp", "https://www.epitech.eu/"],
     ]) {
-      const lien = screen.getByRole("link", { name: nom });
-      const logo = lien.querySelector("img");
-      expect(logo?.getAttribute("src")).toBe(fichier);
-      // Décoratif : le nom est écrit juste à côté, il donne déjà son nom au lien.
-      expect(logo?.getAttribute("alt")).toBe("");
-      expect(lien.firstElementChild).toBe(logo?.parentElement);
+      const logo = within(enseignes).getByRole("img", { name: nom });
+      expect(logo.getAttribute("src")).toBe(fichier);
+      expect(logo.closest("a")?.getAttribute("href")).toBe(site);
     }
   });
 
-  it("n'affiche aucun logo sur la ligne sans lien", () => {
+  it("garde les trois lignes en texte, sans logo dans les phrases", () => {
     render(<Parcours />);
-    const ligne = screen.getByText(/Indépendant : applications métier/);
-    expect(ligne.querySelector("img")).toBeNull();
+    const lignes = screen.getByRole("list", { name: "Parcours" });
+    expect(within(lignes).getAllByRole("listitem")).toHaveLength(3);
+    expect(lignes.querySelector("img")).toBeNull();
   });
 });
