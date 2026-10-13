@@ -154,20 +154,34 @@ export const etapes: Etape[] = [
   },
 ];
 
+/** Logo affiché avant un nom (fichier dans `public/`, dimensions réelles en pixels). */
+export type Logo = { src: string; largeur: number; hauteur: number };
+
 /** Une ligne du parcours ; le nom d'un employeur ou d'une école renvoie vers son site. */
 export type LigneParcours = {
   avant: string;
-  lien?: { libelle: string; href: string };
+  lien?: { libelle: string; href: string; logo?: Logo };
   apres?: string;
 };
 
 export const parcours: LigneParcours[] = [
   {
     avant: "Développeur full stack chez ",
-    lien: { libelle: "SCR Informatique", href: "https://www.scrinfo.net/" },
+    lien: {
+      libelle: "SCR Informatique",
+      href: "https://www.scrinfo.net/",
+      logo: { src: "/parcours/scr-informatique.webp", largeur: 126, hauteur: 60 },
+    },
     apres: ", en alternance",
   },
-  { avant: "Actuellement en Master of Science à ", lien: { libelle: "Epitech", href: "https://www.epitech.eu/" } },
+  {
+    avant: "Actuellement en Master of Science à ",
+    lien: {
+      libelle: "Epitech",
+      href: "https://www.epitech.eu/",
+      logo: { src: "/parcours/epitech.webp", largeur: 68, hauteur: 60 },
+    },
+  },
   { avant: "Indépendant : applications métier et sites vitrines" },
 ];
 

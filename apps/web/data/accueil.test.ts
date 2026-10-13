@@ -59,8 +59,16 @@ describe("contenu de l'accueil", () => {
       "Actuellement en Master of Science à Epitech",
       "Indépendant : applications métier et sites vitrines",
     ]);
-    expect(parcours[0].lien).toEqual({ libelle: "SCR Informatique", href: "https://www.scrinfo.net/" });
-    expect(parcours[1].lien).toEqual({ libelle: "Epitech", href: "https://www.epitech.eu/" });
+    expect(parcours[0].lien).toMatchObject({
+      libelle: "SCR Informatique",
+      href: "https://www.scrinfo.net/",
+      logo: { src: "/parcours/scr-informatique.webp" },
+    });
+    expect(parcours[1].lien).toMatchObject({
+      libelle: "Epitech",
+      href: "https://www.epitech.eu/",
+      logo: { src: "/parcours/epitech.webp" },
+    });
     expect(parcours[2].lien).toBeUndefined();
   });
 
