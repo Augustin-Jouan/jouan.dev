@@ -58,10 +58,10 @@ describe("HomePage", () => {
     for (const etape of etapes) {
       expect(screen.getByRole("heading", { level: 3, name: etape.titre })).toBeInTheDocument();
     }
-    const lignes = within(document.getElementById(ANCRES.parcours)!).getAllByRole("listitem");
-    expect(lignes.map((li) => li.textContent)).toEqual(parcours.map(texteParcours));
-    expect(screen.getByRole("link", { name: "SCR Informatique" })).toHaveAttribute("href", "https://www.scrinfo.net/");
-    expect(screen.getByRole("link", { name: "Epitech" })).toHaveAttribute("href", "https://www.epitech.eu/");
+    const liste = within(document.getElementById(ANCRES.parcours)!).getByRole("list", { name: "Parcours" });
+    expect(within(liste).getAllByRole("listitem").map((li) => li.textContent)).toEqual(parcours.map(texteParcours));
+    expect(within(liste).getByRole("link", { name: "SCR Informatique" })).toHaveAttribute("href", "https://www.scrinfo.net/");
+    expect(within(liste).getByRole("link", { name: "Epitech" })).toHaveAttribute("href", "https://www.epitech.eu/");
     expect(screen.getByRole("link", { name: "Toutes les réalisations" })).toHaveAttribute("href", "/realisations");
     expect(screen.getByRole("link", { name: "Voir le site" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
   });
