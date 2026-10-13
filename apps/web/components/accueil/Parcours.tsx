@@ -27,22 +27,19 @@ export function Parcours() {
           {enseignes.map(({ href, libelle, logo }) => (
             <li key={href}>
               <a href={href} className="group flex flex-col items-center gap-4">
-                {/* Disque couleur papier cerclé de l'accent, comme le portrait de l'accroche :
-                    les logos sont dessinés pour un fond clair (le leur, rendu transparent,
-                    laisse voir le papier). Simple <img> : pas de JS client en plus sur l'accueil. */}
-                <span className="flex size-28 items-center justify-center rounded-full bg-texte ring-2 ring-accent ring-offset-4 ring-offset-fond motion-safe:transition-transform motion-safe:group-hover:scale-105 sm:size-32 lg:size-40">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={logo.src}
-                    alt={libelle}
-                    width={logo.largeur}
-                    height={logo.hauteur}
-                    loading="lazy"
-                    decoding="async"
-                    // Le plus grand possible dans le disque, quelle que soit la forme du logo.
-                    className="h-auto max-h-[55%] w-auto max-w-[72%]"
-                  />
-                </span>
+                {/* Rond cerclé de l'accent, comme le portrait de l'accroche : l'image porte
+                    le même fond beige chaud que la photo. Simple <img> : pas de JS client en
+                    plus sur l'accueil. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logo.src}
+                  alt={libelle}
+                  width={logo.largeur}
+                  height={logo.hauteur}
+                  loading="lazy"
+                  decoding="async"
+                  className="size-28 rounded-full ring-2 ring-accent ring-offset-4 ring-offset-fond motion-safe:transition-transform motion-safe:group-hover:scale-105 sm:size-32 lg:size-40"
+                />
                 {/* Le logo nomme déjà le lien : la légende n'est que visuelle. */}
                 <span aria-hidden="true" className="text-sm text-texte-doux transition-[color] group-hover:text-texte">
                   {libelle}
