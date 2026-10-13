@@ -8,7 +8,7 @@ const enseignes = parcours.flatMap(({ lien }) => (lien?.logo ? [{ ...lien, logo:
 export function Parcours() {
   return (
     <Section id={ANCRES.parcours} {...sections.parcours}>
-      {/* Sur ordinateur, les logos à droite des lignes ; sur téléphone, en dessous. */}
+      {/* Sur ordinateur, les logos à droite des lignes ; sur téléphone, en dessous et centrés. */}
       <div className="flex flex-col gap-12 md:flex-row md:items-center md:gap-16">
         <ul aria-label="Parcours" className="flex max-w-3xl flex-1 flex-col divide-y divide-trait border-y border-trait">
           {parcours.map((ligne) => (
@@ -23,7 +23,7 @@ export function Parcours() {
             </li>
           ))}
         </ul>
-        <ul aria-label="Employeur et école" className="flex shrink-0 gap-8 sm:gap-10">
+        <ul aria-label="Employeur et école" className="flex shrink-0 justify-center gap-8 sm:gap-10 md:justify-start">
           {enseignes.map(({ href, libelle, logo }) => (
             <li key={href}>
               <a href={href} className="group flex flex-col items-center gap-4">
