@@ -22,4 +22,15 @@ describe("Parcours", () => {
     expect(within(lignes).getAllByRole("listitem")).toHaveLength(3);
     expect(lignes.querySelector("img")).toBeNull();
   });
+
+  it("ouvre le site de l'employeur et de l'école dans un nouvel onglet, sans quitter le portfolio", () => {
+    const { container } = render(<Parcours />);
+    const liens = [...container.querySelectorAll("a")];
+    expect(liens).toHaveLength(4);
+    for (const lien of liens) {
+      expect(lien).toHaveAttribute("target", "_blank");
+      expect(lien).toHaveAttribute("rel", "noopener");
+      expect(lien).toHaveTextContent("(nouvel onglet)");
+    }
+  });
 });

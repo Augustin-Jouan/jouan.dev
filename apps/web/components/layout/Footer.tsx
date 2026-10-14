@@ -22,8 +22,8 @@ export function Footer() {
               </a>
             </li>
             <li>
-              <a href={contact.github} rel="me" className="hover:text-texte">
-                GitHub
+              <a href={contact.github} target="_blank" rel="me noopener" className="hover:text-texte">
+                GitHub<span className="sr-only"> (nouvel onglet)</span>
               </a>
             </li>
             <li>

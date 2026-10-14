@@ -18,7 +18,7 @@ test("« Voir mes réalisations » montre les deux études à la suite", async (
   await expect(page.getByRole("article")).toHaveCount(2);
   await expect(page.getByRole("heading", { level: 2 })).toHaveText([/suivi des marchés de travaux/, /Un site d'artisan rapide/]);
   await expect(page.getByRole("img", { name: /sur ordinateur/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Voir le site" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
+  await expect(page.getByRole("link", { name: "Voir le site (nouvel onglet)" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
   expect(erreurs).toEqual([]);
 });
 

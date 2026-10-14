@@ -20,8 +20,14 @@ export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
         </h2>
         <p className="mt-6 max-w-3xl text-lg text-texte-doux">{etude.sousTitre}</p>
         {etude.site && (
-          <a href={etude.site} className="mt-6 inline-block font-medium text-accent underline underline-offset-4">
+          <a
+            href={etude.site}
+            target="_blank"
+            rel="noopener"
+            className="mt-6 inline-block font-medium text-accent underline underline-offset-4"
+          >
             Voir le site<span aria-hidden="true"> ↗</span>
+            <span className="sr-only"> (nouvel onglet)</span>
           </a>
         )}
         <dl className="mt-10 grid gap-6 sm:grid-cols-3">

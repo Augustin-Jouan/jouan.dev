@@ -24,10 +24,10 @@ describe("page des réalisations", () => {
         "Sous le capot",
       ]);
     });
-    expect(within(etudes[0]).queryByRole("link", { name: "Voir le site" })).toBeNull();
+    expect(within(etudes[0]).queryByRole("link", { name: /^Voir le site\s*\(nouvel onglet\)$/ })).toBeNull();
     expect(within(etudes[0]).getByRole("link", { name: /Ouvrir la démo en plein écran/ })).toBeInTheDocument();
     expect(within(etudes[1]).getByText("Site vitrine · SARL Dufourd Jérôme, électricien-plombier à Châteaubriant")).toBeInTheDocument();
-    expect(within(etudes[1]).getByRole("link", { name: "Voir le site" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
+    expect(within(etudes[1]).getByRole("link", { name: /^Voir le site\s*\(nouvel onglet\)$/ })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
     expect(screen.getAllByRole("link", { name: "Parlons-en" })).toHaveLength(1);
   });
 
