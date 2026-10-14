@@ -3,8 +3,9 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const MOUVEMENT = "@media (prefers-reduced-motion: no-preference)";
 
-/** Le bloc qui commence à `debut`, jusqu'à son accolade fermante. */
+/** Le bloc qui commence à `depuis`, jusqu'à son accolade fermante. */
 function bloc(depuis: number): string {
   const ouverture = css.indexOf("{", depuis);
   let profondeur = 0;
@@ -15,23 +16,33 @@ function bloc(depuis: number): string {
   throw new Error("bloc non fermé");
 }
 
-describe("animation de la méthode (app/globals.css)", () => {
-  const debut = css.indexOf("@supports (animation-timeline: view())");
-  const anime = debut >= 0 ? bloc(debut) : "";
-  const reste = css.replace(anime, "");
+/** Blocs « sans mouvement réduit » qui animent la méthode. */
+const blocsAnimes: string[] = [];
+for (let i = css.indexOf(MOUVEMENT); i >= 0; i = css.indexOf(MOUVEMENT, i + 1)) {
+  const b = bloc(i);
+  if (b.includes(".methode-")) blocsAnimes.push(b);
+}
+const reste = blocsAnimes.reduce((texte, b) => texte.replace(b, ""), css);
+const regles = (texte: string) => texte.match(/[^{}]*\.methode-[^{}]*\{[^{}]*\}/g) ?? [];
 
-  it("n'anime qu'au défilement, sans mouvement réduit, sur la frise de la méthode", () => {
-    expect(anime).toContain("@media (prefers-reduced-motion: no-preference)");
-    expect(anime).toContain("animation-timeline: --methode");
-    expect(reste).toContain("view-timeline-name: --methode");
+describe("animation de la méthode (app/globals.css)", () => {
+  it("n'est jamais liée au défilement : elle se figerait à mi-chemin quand on s'arrête", () => {
+    expect(css).not.toMatch(/animation-timeline|view-timeline/);
   });
 
-  it("hors de ce bloc, la méthode est dans son état final : rien de caché ni d'animé", () => {
+  it("ne s'applique qu'à une frise prise en main par le script (`data-animation`), sans mouvement réduit", () => {
+    expect(blocsAnimes.length).toBeGreaterThan(0);
+    for (const regle of regles(blocsAnimes.join("\n"))) {
+      expect(regle.slice(0, regle.indexOf("{")), regle).toContain("[data-animation]");
+    }
+  });
+
+  it("hors de ces blocs, la méthode est dans son état final : rien de caché ni d'animé", () => {
     // La goutte (`::before`) n'est qu'un éclat pendant l'animation : invisible au repos, par construction.
-    const reglesMethode = (reste.match(/\.methode-[^{}]*\{[^}]*\}/g) ?? []).filter((r) => !r.includes("::before"));
-    expect(reglesMethode.length).toBeGreaterThan(0);
-    for (const regle of reglesMethode) {
-      expect(regle, regle).not.toMatch(/animation(?:-name|-timeline|-range)?\s*:|opacity:\s*0[;\s]|scale[XY]?\(0\)/);
+    const finales = regles(reste).filter((r) => !r.includes("::before"));
+    expect(finales.length).toBeGreaterThan(0);
+    for (const regle of finales) {
+      expect(regle, regle).not.toMatch(/animation(?:-name|-delay|-play-state)?\s*:|transition\s*:|opacity:\s*0[;\s]|scale[XY]?\(0\)|data-animation/);
     }
   });
 });
