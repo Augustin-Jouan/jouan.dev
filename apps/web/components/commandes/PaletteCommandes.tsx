@@ -97,6 +97,8 @@ export function PaletteCommandes({ commandes, ouverte, fermer }: ProprietesPalet
         ref={dialogue}
         aria-label="Commandes"
         data-marqueur={MARQUEUR_PALETTE}
+        // La molette fait défiler la liste, jamais la page derrière (défilement doux).
+        data-lenis-prevent
         onClose={fermer}
         // Un clic sur le fond atteint le dialogue lui-même, hors de son contenu.
         onClick={(e) => {

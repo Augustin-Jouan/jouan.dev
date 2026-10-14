@@ -4,6 +4,7 @@ import "./globals.css";
 import { SkipLink, CONTENU_ID } from "@/components/layout/SkipLink";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { DefilementDoux } from "@/components/layout/DefilementDoux";
 import { MessageConsole } from "@/components/commandes/MessageConsole";
 import { RaccourciCommandes } from "@/components/commandes/RaccourciCommandes";
 import { PersonJsonLd } from "@/components/shared/PersonJsonLd";
@@ -86,6 +87,7 @@ export default function RootLayout({
         <Footer />
         <RaccourciCommandes commandes={commandes} />
         <MessageConsole hote={hoteSite} />
+        <DefilementDoux />
       </body>
     </html>
   );

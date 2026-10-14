@@ -139,6 +139,8 @@ jobs:
 
       - run: pnpm --filter web verifier-taille-direct
 
+      - run: pnpm --filter web verifier-taille-defilement
+
       - run: pnpm --filter web verifier-taille-demo
 
       - run: pnpm --filter web verifier-taille-3d

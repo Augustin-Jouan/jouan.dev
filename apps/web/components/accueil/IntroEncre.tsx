@@ -12,6 +12,7 @@ import {
 } from "@/lib/encre/decision";
 import type { Moteur } from "@/lib/encre/moteur";
 import { leverVoile } from "@/lib/encre/voile";
+import { remonterEnHaut } from "@/lib/defilement";
 
 /**
  * Un geste du visiteur termine l'intro immédiatement. `scroll` couvre aussi
@@ -76,7 +77,7 @@ export function IntroEncre({ repli }: { repli?: ReactNode }) {
   useEffect(() => {
     let image = 0;
     const rejouer = () => {
-      window.scrollTo({ top: 0, behavior: "instant" });
+      remonterEnHaut();
       // Le `scroll` de ce retour en haut part avant la prochaine image : l'intro
       // ne repart qu'après, sinon elle se sauterait elle-même.
       cancelAnimationFrame(image);
