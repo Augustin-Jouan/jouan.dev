@@ -118,6 +118,54 @@ test.describe("ordinateur", () => {
     });
   }
 
+  test("le trait signe sous l'adresse e-mail, sans toucher le texte, avant de filer vers le bouton", async ({ page }) => {
+    await page.goto("/");
+    await attendreTrait(page);
+    await defiler(page, (await etat(page)).bas);
+    expect((await etat(page)).allumees).toContain("envoi");
+    const { dessous, dessus } = await page.evaluate(() => {
+      const colonne = document.querySelector('[data-trait="signature"]')!.getBoundingClientRect();
+      const courriel = document.querySelector('[data-trait="signature"] a')!.getBoundingClientRect();
+      const ligne = document.querySelector<SVGPathElement>(".trait-ligne")!;
+      const calque = ligne.ownerSVGElement!.getBoundingClientRect();
+      let dessous = 0;
+      let dessus = 0;
+      for (let l = 0; l < ligne.getTotalLength(); l += 4) {
+        const p = ligne.getPointAtLength(l);
+        const x = p.x + calque.left;
+        const y = p.y + calque.top;
+        if (x < colonne.left || x > colonne.right) continue;
+        if (y > courriel.bottom && y < colonne.bottom) dessous++;
+        if (y >= courriel.top && y <= courriel.bottom) dessus++;
+      }
+      return { dessous, dessus };
+    });
+    // Une signature, pas une simple traversée : plus de 1 200 px de trait dans la colonne.
+    expect(dessous * 4).toBeGreaterThan(1_200);
+    expect(dessus).toBe(0);
+  });
+
+  test("le point lumineux est toujours à la pointe du trait : le trait ne le dépasse jamais", async ({ page }) => {
+    await page.goto("/");
+    await attendreTrait(page);
+    const { bas } = await etat(page);
+    for (let top = 0; top <= bas; top += Math.round(bas / 25)) {
+      await defiler(page, top);
+      const ecart = await page.evaluate(async () => {
+        await new Promise((fin) => requestAnimationFrame(() => requestAnimationFrame(fin)));
+        const ligne = document.querySelector<SVGPathElement>(".trait-ligne")!;
+        const longueur = Number(ligne.getAttribute("pathLength"));
+        const trace = longueur - Number(ligne.style.strokeDashoffset);
+        if (trace <= 0) return 0;
+        // Bout du trait dessiné, dans la mesure du navigateur (`pathLength` normalise la longueur des tirets).
+        const bout = ligne.getPointAtLength((trace / longueur) * ligne.getTotalLength());
+        const [x, y] = document.querySelector(".trait-tete")!.getAttribute("transform")!.match(/[-\d.]+/g)!.map(Number);
+        return Math.hypot(x! - bout.x, y! - bout.y);
+      });
+      expect(ecart, `à ${top} px`).toBeLessThan(1);
+    }
+  });
+
   test("page de prospect : le trait mène aussi jusqu'au bouton d'envoi", async ({ page }) => {
     await page.goto("/?pour=exemple-0000");
     await attendreTrait(page);
