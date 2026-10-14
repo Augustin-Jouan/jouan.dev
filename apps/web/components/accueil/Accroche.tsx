@@ -9,7 +9,6 @@ export function Accroche({ angle = "application", nom }: { angle?: Angle; nom?: 
   return (
     <section
       aria-labelledby="accroche-titre"
-      data-direct-section="accroche"
       className="mx-auto flex min-h-[min(calc(100svh-5rem),56rem)] w-full max-w-6xl flex-col justify-end px-5 pb-16 pt-24 sm:px-8 sm:pb-24 2xl:max-w-page"
     >
       <CompteurPresents />

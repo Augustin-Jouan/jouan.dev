@@ -120,16 +120,16 @@ describe("PaletteCommandes", () => {
   it("n'affiche les commandes ludiques que dans leur contexte", () => {
     ouvrir();
     expect(screen.queryByRole("option", { name: "Rejouer l'intro" })).toBeNull();
-    expect(screen.queryByRole("option", { name: /mon curseur/ })).toBeNull();
     expect(screen.getByRole("option", { name: "Voir l'architecture en 3D" })).toBeInTheDocument();
   });
 
-  it("propose l'intro et le curseur sur l'accueil quand ils sont là, et émet leur événement", () => {
-    document.body.innerHTML = '<div class="fond-accueil" data-mode="nuage-anime"></div><button data-presence="masquee"></button>';
+  it("propose l'intro sur l'accueil quand elle peut se jouer, et émet son événement", () => {
+    document.body.innerHTML = '<div class="fond-accueil" data-mode="nuage-anime"></div>';
     const recu = vi.fn();
     window.addEventListener(EVENEMENT_REJOUER_INTRO, recu);
     ouvrir();
-    expect(screen.getByRole("option", { name: "Montrer mon curseur" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Rejouer l'intro" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /curseur/ })).toBeNull();
     taper("rejouer");
     touche("Enter");
     window.removeEventListener(EVENEMENT_REJOUER_INTRO, recu);

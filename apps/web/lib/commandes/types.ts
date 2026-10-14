@@ -13,16 +13,13 @@ export type ActionCommande =
 
 /**
  * Condition d'affichage, évaluée à l'ouverture de la palette :
- * - `intro` : sur l'accueil, quand l'intro WebGL peut s'y jouer ;
- * - `presence` : quand la présence en direct est connectée (pointeur fin).
+ * - `intro` : sur l'accueil, quand l'intro WebGL peut s'y jouer.
  */
-export type ConditionCommande = "intro" | "presence";
+export type ConditionCommande = "intro";
 
 export type Commande = {
   id: string;
   libelle: string;
-  /** Libellé quand le partage du curseur est coupé (condition `presence`). */
-  libelleInverse?: string;
   groupe: GroupeCommande;
   motsCles: string[];
   action: ActionCommande;
@@ -33,5 +30,4 @@ export type Commande = {
 export type ContexteCommandes = {
   chemin: string;
   introDisponible: boolean;
-  presence: "connectee" | "masquee" | null;
 };

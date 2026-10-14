@@ -59,11 +59,17 @@ describe("HomePage", () => {
       expect(screen.getByRole("heading", { level: 3, name: etape.titre })).toBeInTheDocument();
     }
     const liste = within(document.getElementById(ANCRES.parcours)!).getByRole("list", { name: "Parcours" });
-    expect(within(liste).getAllByRole("listitem").map((li) => li.textContent)).toEqual(parcours.map(texteParcours));
-    expect(within(liste).getByRole("link", { name: "SCR Informatique" })).toHaveAttribute("href", "https://www.scrinfo.net/");
-    expect(within(liste).getByRole("link", { name: "Epitech" })).toHaveAttribute("href", "https://www.epitech.eu/");
+    // Texte visible : sans la mention « (nouvel onglet) » réservée aux lecteurs d'écran.
+    const visible = (li: HTMLElement) => {
+      const copie = li.cloneNode(true) as HTMLElement;
+      copie.querySelectorAll(".sr-only").forEach((el) => el.remove());
+      return copie.textContent;
+    };
+    expect(within(liste).getAllByRole("listitem").map(visible)).toEqual(parcours.map(texteParcours));
+    expect(within(liste).getByRole("link", { name: /^SCR Informatique\s*\(nouvel onglet\)$/ })).toHaveAttribute("href", "https://www.scrinfo.net/");
+    expect(within(liste).getByRole("link", { name: /^Epitech\s*\(nouvel onglet\)$/ })).toHaveAttribute("href", "https://www.epitech.eu/");
     expect(screen.getByRole("link", { name: "Toutes les réalisations" })).toHaveAttribute("href", "/realisations");
-    expect(screen.getByRole("link", { name: "Voir le site" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
+    expect(screen.getByRole("link", { name: /^Voir le site\s*\(nouvel onglet\)$/ })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
   });
 
   it("intègre le formulaire et l'e-mail direct dans la section contact", () => {

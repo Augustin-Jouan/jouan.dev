@@ -6,7 +6,7 @@ const ORIGINE = "http://localhost:3000";
 let serveur: Awaited<ReturnType<typeof demarrerServeur>>;
 
 beforeEach(async () => {
-  serveur = await demarrerServeur({ origines: [ORIGINE], port: 0, hote: "127.0.0.1", connexionsParIp: 5, intervalleLotMs: 10 });
+  serveur = await demarrerServeur({ origines: [ORIGINE], port: 0, hote: "127.0.0.1", connexionsParIp: 5 });
 });
 afterEach(async () => {
   await serveur.fermer();

@@ -80,7 +80,7 @@ export const NOEUDS: readonly Noeud[] = [
   {
     id: "tempsReel",
     nom: "Temps réel",
-    role: "Partage les curseurs et le compteur de l'accueil, et renvoie l'écho de cette page.",
+    role: "Compte les visiteurs de l'accueil et renvoie l'écho de cette page.",
     techno: "Hono et WebSocket, sur Node 22",
     pourquoi: "Séparé du site : il garde ses connexions ouvertes sans ralentir le rendu des pages, et se déploie à part.",
     groupe: "requete",

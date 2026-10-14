@@ -5,7 +5,7 @@
  * le morceau de JS de la palette n'embarque pas les textes de l'accueil.
  * Ajouter une commande : une entrée ici (type `Commande`, lib/commandes/types.ts).
  */
-import { EVENEMENT_BASCULER_CURSEUR, EVENEMENT_REJOUER_INTRO } from "@/lib/commandes/evenements";
+import { EVENEMENT_REJOUER_INTRO } from "@/lib/commandes/evenements";
 import type { Commande } from "@/lib/commandes/types";
 import { ANCRES, realisations, sections, type CleSection } from "./accueil";
 import { contact } from "./contact";
@@ -103,15 +103,6 @@ export const commandes: Commande[] = [
     motsCles: ["animation", "goutte", "lumière"],
     action: { type: "evenement", nom: EVENEMENT_REJOUER_INTRO },
     condition: "intro",
-  },
-  {
-    id: "curseur",
-    libelle: "Masquer mon curseur",
-    libelleInverse: "Montrer mon curseur",
-    groupe: "Pour le plaisir",
-    motsCles: ["présence", "direct", "souris"],
-    action: { type: "evenement", nom: EVENEMENT_BASCULER_CURSEUR },
-    condition: "presence",
   },
   {
     id: "architecture-3d",

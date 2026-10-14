@@ -6,8 +6,8 @@ afterEach(() => {
 });
 
 describe("lireContexte", () => {
-  it("sans fond d'accueil ni présence : ni intro ni curseur", () => {
-    expect(lireContexte()).toEqual({ chemin: "/", introDisponible: false, presence: null });
+  it("sans fond d'accueil : pas d'intro", () => {
+    expect(lireContexte()).toEqual({ chemin: "/", introDisponible: false });
   });
 
   it("intro disponible quand le fond peut jouer l'encre, pas avec le nuage figé", () => {
@@ -15,12 +15,5 @@ describe("lireContexte", () => {
     expect(lireContexte().introDisponible).toBe(true);
     document.body.innerHTML = '<div class="fond-accueil" data-mode="nuage-fige"></div>';
     expect(lireContexte().introDisponible).toBe(false);
-  });
-
-  it("lit l'état du curseur sur son bouton", () => {
-    document.body.innerHTML = '<button data-presence="masquee"></button>';
-    expect(lireContexte().presence).toBe("masquee");
-    document.body.innerHTML = '<button data-presence="autre"></button>';
-    expect(lireContexte().presence).toBeNull();
   });
 });

@@ -12,7 +12,11 @@ describe("Footer", () => {
       "href",
       `mailto:${contact.email}`
     );
-    expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", contact.github);
+    const github = screen.getByRole("link", { name: /^GitHub\s*\(nouvel onglet\)$/ });
+    expect(github).toHaveAttribute("href", contact.github);
+    // Le portfolio reste ouvert ; `me` relie le profil au site (rel=me).
+    expect(github).toHaveAttribute("target", "_blank");
+    expect(github).toHaveAttribute("rel", "me noopener");
     expect(screen.getByRole("link", { name: "Mentions légales" })).toHaveAttribute(
       "href",
       "/mentions-legales"

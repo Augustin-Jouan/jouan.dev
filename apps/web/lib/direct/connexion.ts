@@ -1,21 +1,18 @@
 /**
- * Connexion au service temps réel, côté navigateur : WebSocket natif, envois
- * espacés de 50 ms (seule la dernière position part), reconnexion de plus en
- * plus espacée (jusqu'à 30 s, chaque délai varié de ±20 % pour que les
+ * Connexion au service temps réel, côté navigateur : WebSocket natif qui ne
+ * fait qu'écouter le nombre de présents, reconnexion de plus en plus espacée (jusqu'à 30 s, chaque délai varié de ±20 % pour que les
  * visiteurs ne reviennent pas tous à la même seconde après un redéploiement),
  * fermeture après 30 s d'onglet caché. Les échecs
  * sont silencieux : sans service, l'accueil reste celui d'avant.
  */
-import { lireMessageServeur, type MessageClient, type MessageServeur } from "./protocole";
+import { lireMessageServeur, type MessageServeur } from "./protocole";
 
 export const DELAIS_RECONNEXION_MS = [1_000, 2_000, 4_000, 8_000, 16_000, 30_000];
 export const FERMETURE_ONGLET_CACHE_MS = 30_000;
-export const INTERVALLE_ENVOI_MS = 50;
 /** Variation des délais de reconnexion : ±20 %. */
 const VARIATION = 0.2;
 /** Repère ce morceau de JS dans le build (scripts/verifier-taille-direct.mjs). */
 export const MARQUEUR_DIRECT = "connexion-direct:v1";
-const OUVERTE = 1;
 
 export type Horloge = {
   maintenant(): number;
@@ -38,9 +35,6 @@ export class ConnexionDirecte {
   private arretee = false;
   private reconnexion: unknown = null;
   private fermetureCache: unknown = null;
-  private envoiDiffere: unknown = null;
-  private enAttente: MessageClient | null = null;
-  private dernierEnvoi = -Infinity;
 
   constructor(
     private readonly url: string,
@@ -79,21 +73,6 @@ export class ConnexionDirecte {
     };
   }
 
-  /** La dernière position gagne : envoyée tout de suite, ou au prochain créneau de 50 ms. */
-  envoyer(m: MessageClient): void {
-    this.enAttente = m;
-    if (this.envoiDiffere !== null) return;
-    const attente = this.dernierEnvoi + INTERVALLE_ENVOI_MS - this.horloge.maintenant();
-    if (attente <= 0) {
-      this.vider();
-      return;
-    }
-    this.envoiDiffere = this.horloge.programmer(() => {
-      this.envoiDiffere = null;
-      this.vider();
-    }, attente);
-  }
-
   surVisibilite(visible: boolean): void {
     if (visible) {
       this.cache = false;
@@ -103,8 +82,6 @@ export class ConnexionDirecte {
     }
     this.cache = true;
     this.annuler("reconnexion");
-    this.enAttente = { type: "masque" };
-    this.vider();
     this.annuler("fermetureCache");
     this.fermetureCache = this.horloge.programmer(() => {
       this.fermetureCache = null;
@@ -116,16 +93,7 @@ export class ConnexionDirecte {
     this.arretee = true;
     this.annuler("reconnexion");
     this.annuler("fermetureCache");
-    this.annuler("envoiDiffere");
     this.fermerSocket();
-  }
-
-  private vider(): void {
-    const m = this.enAttente;
-    this.enAttente = null;
-    if (!m || this.socket?.readyState !== OUVERTE) return;
-    this.socket.send(JSON.stringify(m));
-    this.dernierEnvoi = this.horloge.maintenant();
   }
 
   private planifierReconnexion(): void {
@@ -148,7 +116,7 @@ export class ConnexionDirecte {
     this.rappels.surFermeture();
   }
 
-  private annuler(minuterie: "reconnexion" | "fermetureCache" | "envoiDiffere"): void {
+  private annuler(minuterie: "reconnexion" | "fermetureCache"): void {
     if (this[minuterie] === null) return;
     this.horloge.annuler(this[minuterie]);
     this[minuterie] = null;

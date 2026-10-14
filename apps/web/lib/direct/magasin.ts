@@ -1,13 +1,11 @@
-import type { Curseur, MessageServeur } from "./protocole";
+import type { MessageServeur } from "./protocole";
 
-export type CurseurAffiche = { id: string; couleur: string; s: number; x: number; y: number; vuLe: number };
-export type EtatDirect = { connecte: boolean; presents: number; curseurs: CurseurAffiche[] };
+export type EtatDirect = { connecte: boolean; presents: number };
 
-const VIDE: EtatDirect = { connecte: false, presents: 0, curseurs: [] };
-const versAffiche = ([id, couleur, s, x, y]: Curseur, vuLe: number): CurseurAffiche => ({ id, couleur, s, x, y, vuLe });
+const VIDE: EtatDirect = { connecte: false, presents: 0 };
 
 /**
- * L'état affiché (présents, curseurs des autres), lu par `useSyncExternalStore` :
+ * L'état affiché (connexion, nombre de présents), lu par `useSyncExternalStore` :
  * un nouvel objet à chaque changement, le même entre deux.
  */
 export class MagasinDirect {
@@ -23,24 +21,12 @@ export class MagasinDirect {
     };
   };
 
-  appliquer(m: MessageServeur, maintenant: number): void {
-    const e = this.courant;
-    switch (m.type) {
-      case "bienvenue":
-        return this.publier({ connecte: true, presents: m.presents, curseurs: m.curseurs.map((c) => versAffiche(c, maintenant)) });
-      case "presents":
-        return this.publier({ ...e, presents: m.nombre });
-      case "positions": {
-        const parId = new Map(e.curseurs.map((c) => [c.id, c]));
-        for (const c of m.curseurs) parId.set(c[0], versAffiche(c, maintenant));
-        return this.publier({ ...e, curseurs: [...parId.values()] });
-      }
-      case "depart":
-        return this.publier({ ...e, curseurs: e.curseurs.filter((c) => c.id !== m.id) });
-    }
+  appliquer(m: MessageServeur): void {
+    if (m.type === "bienvenue") this.publier({ connecte: true, presents: m.presents });
+    else this.publier({ ...this.courant, presents: m.nombre });
   }
 
-  /** Connexion perdue : plus de compteur ni de curseur (pas de nombre périmé) jusqu'au prochain `bienvenue`. */
+  /** Connexion perdue : plus de compteur (pas de nombre périmé) jusqu'au prochain `bienvenue`. */
   vider(): void {
     this.publier(VIDE);
   }

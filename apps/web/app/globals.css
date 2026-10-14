@@ -8,7 +8,7 @@
  *   donnent aucune classe Tailwind ;
  * - les rôles, seuls jetons `--color-*` de `@theme` : `bg-fond`, `text-texte`,
  *   `text-accent`… Les composants n'emploient que ces rôles, sans opacité.
- * Mêmes valeurs dans lib/charte.ts (moteur de l'intro, vignettes, curseurs),
+ * Mêmes valeurs dans lib/charte.ts (moteur de l'intro, vignettes, scène 3D),
  * vérifiées par lib/charte.test.ts, comme les contrastes.
  *
  * `--font-inter` et `--font-instrument` sont posées par next/font dans

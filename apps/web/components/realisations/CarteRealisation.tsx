@@ -38,8 +38,14 @@ export function CarteRealisation({ realisation: r, niveau: Titre }: { realisatio
           Voir l&apos;étude de cas →
         </p>
         {r.site && (
-          <a href={r.site} className="relative z-10 text-texte-doux underline transition-[color] hover:text-texte">
+          <a
+            href={r.site}
+            target="_blank"
+            rel="noopener"
+            className="relative z-10 text-texte-doux underline transition-[color] hover:text-texte"
+          >
             Voir le site<span aria-hidden="true"> ↗</span>
+            <span className="sr-only"> (nouvel onglet)</span>
           </a>
         )}
       </div>
