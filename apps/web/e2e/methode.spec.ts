@@ -24,14 +24,27 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("jouan.dev:intro-vue", "1"));
 });
 
+/**
+ * Sans le trait conducteur : son morceau de JS (repéré par `MARQUEUR_TRAIT`) ne se charge pas, la Méthode
+ * s'allume par son repli (FriseMethode). Avec le trait, voir e2e/trait.spec.ts.
+ */
+async function sansTrait(page: Page) {
+  await page.route("**/*.js", async (route) => {
+    const reponse = await route.fetch();
+    if ((await reponse.text()).includes("trait-conducteur:v1")) await route.abort();
+    else await route.fulfill({ response: reponse });
+  });
+}
+
 /** Jamais une étape allumée après une éteinte : toujours un début de liste. */
 function enOrdre(allumees: boolean[]) {
   const premiereEteinte = allumees.indexOf(false);
   return premiereEteinte === -1 || !allumees.slice(premiereEteinte).includes(true);
 }
 
-test("ordinateur : la frise s'allume d'une traite en cascade, même si l'on cesse de défiler", async ({ page, isMobile }) => {
+test("sans trait, ordinateur : la frise s'allume d'une traite en cascade, même si l'on cesse de défiler", async ({ page, isMobile }) => {
   test.skip(isMobile, "Cascade : ordinateur seulement.");
+  await sansTrait(page);
   await page.goto("/");
   // Frise armée (hydratée) avant de défiler : sinon elle serait déjà à l'écran et resterait finie.
   await expect(page.locator(".methode-frise[data-animation]")).toBeAttached();
@@ -54,8 +67,9 @@ test("ordinateur : la frise s'allume d'une traite en cascade, même si l'on cess
   await expect.poll(() => opacites(page), { timeout: 1_000 }).toEqual(Array(ETAPES).fill(1));
 });
 
-test("téléphone : chaque étape s'allume en arrivant à l'écran, et le reste", async ({ page, isMobile }) => {
+test("sans trait, téléphone : chaque étape s'allume en arrivant à l'écran, et le reste", async ({ page, isMobile }) => {
   test.skip(!isMobile, "Étape par étape : téléphone seulement.");
+  await sansTrait(page);
   /** Place le haut (0) ou le bas (1) de la frise au milieu de l'écran. */
   const centrer = (bord: 0 | 1) =>
     page.evaluate((b) => {

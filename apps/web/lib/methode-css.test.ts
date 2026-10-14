@@ -46,3 +46,36 @@ describe("animation de la méthode (app/globals.css)", () => {
     }
   });
 });
+
+describe("trait conducteur (app/globals.css)", () => {
+  it("ne masque la ligne et le paquet de la frise que quand le trait a pris la main (`data-trait`)", () => {
+    const masquees = regles(css).filter((r) => /display:\s*none/.test(r));
+    expect(masquees.length).toBeGreaterThan(0);
+    for (const regle of masquees) {
+      expect(regle.slice(0, regle.indexOf("{")), regle).toContain("[data-trait]");
+    }
+  });
+
+  it("n'anime le bouton d'envoi que sans mouvement réduit", () => {
+    const pulsations = css.match(/[^{}]*\{[^{}]*animation:[^{}]*trait-pulsation[^{}]*\}/g) ?? [];
+    expect(pulsations.length).toBe(1);
+    const debut = css.indexOf(pulsations[0]!);
+    const blocMouvement = css.lastIndexOf(MOUVEMENT, debut);
+    expect(blocMouvement).toBeGreaterThanOrEqual(0);
+    expect(bloc(blocMouvement)).toContain(pulsations[0]);
+  });
+
+  it("masque le calque à l'impression", () => {
+    const impression = css.indexOf("@media print");
+    expect(impression).toBeGreaterThanOrEqual(0);
+    expect(bloc(impression)).toMatch(/\.trait-calque\s*\{[^}]*display:\s*none/);
+  });
+});
+
+describe("trait conducteur : fluidité (app/globals.css)", () => {
+  it("aucun filtre sur les tracés : un flou de toute la hauteur de la page, redessiné à chaque image, la ferait tomber", () => {
+    const traces = css.match(/[^{}]*\.trait-(?:ligne|halo)[^{}]*\{[^{}]*\}/g) ?? [];
+    expect(traces.length).toBeGreaterThan(0);
+    for (const regle of traces) expect(regle, regle).not.toMatch(/filter\s*:/);
+  });
+});
