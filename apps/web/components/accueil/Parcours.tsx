@@ -32,7 +32,7 @@ export function Parcours() {
         <ul aria-label="Employeur et école" className="flex shrink-0 justify-center gap-8 sm:gap-10 md:justify-start">
           {enseignes.map(({ href, libelle, logo }) => (
             <li key={href}>
-              <a href={href} target="_blank" rel="noopener" className="group flex flex-col items-center gap-4">
+              <a href={href} target="_blank" rel="noopener" data-trait="logo" className="group flex flex-col items-center gap-4">
                 {/* Rond cerclé de l'accent, comme le portrait de l'accroche : l'image porte
                     le même fond beige chaud que la photo. Simple <img> : pas de JS client en
                     plus sur l'accueil. */}

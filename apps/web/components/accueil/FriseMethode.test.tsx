@@ -1,4 +1,4 @@
-import { act, render } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FriseMethode } from "./FriseMethode";
 
@@ -96,6 +96,19 @@ describe("FriseMethode", () => {
     expect(allumees(etapes)).toEqual([true, true, true, true, true]);
     expect(frise.style.getPropertyValue("--avance")).toBe("1");
     expect(frise).toHaveAttribute("data-complete");
+  });
+
+  it("trait conducteur aux commandes (`data-trait`) : ses déclenchements n'allument rien", () => {
+    for (const ordinateur of [true, false]) {
+      medias(ordinateur);
+      const { frise, etapes } = rendre();
+      frise.setAttribute("data-trait", "");
+      const observateur = Observateur.dernier!;
+      observateur.entrer(ordinateur ? frise : etapes[2]!);
+      expect(allumees(etapes)).toEqual([false, false, false, false, false]);
+      expect(frise).not.toHaveAttribute("data-complete");
+      cleanup();
+    }
   });
 
   it("frise déjà à l'écran au chargement (page rechargée plus bas) : laissée finie, sans clignotement", () => {
