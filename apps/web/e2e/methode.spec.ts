@@ -50,3 +50,21 @@ test.describe("mouvement réduit", () => {
     expect(await opacites(page)).toEqual(Array(ETAPES).fill(1));
   });
 });
+
+test("le paquet de lumière ne fait jamais déborder la page en largeur", async ({ page }) => {
+  await page.goto("/");
+  for (const fraction of [0, 0.3, 0.7]) {
+    await defilerVers(page, fraction);
+    // Toute une boucle du paquet (4 s) : la largeur de la page ne doit jamais dépasser l'écran.
+    const debordementMax = await page.evaluate(async () => {
+      let max = 0;
+      const fin = performance.now() + 4_200;
+      while (performance.now() < fin) {
+        await new Promise((ok) => requestAnimationFrame(ok));
+        max = Math.max(max, document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      }
+      return max;
+    });
+    expect(debordementMax, `fraction ${fraction}`).toBe(0);
+  }
+});

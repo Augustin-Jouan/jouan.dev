@@ -222,18 +222,16 @@ html[data-voile-intro] body::after {
   box-shadow: 0 0 12px color-mix(in srgb, var(--color-lueur) 55%, transparent);
   transform-origin: top;
 }
-/* Le paquet de lumière : invisible tant que la frise n'est pas animée. */
+/* Le paquet de lumière : invisible tant que la frise n'est pas animée. Le fil est
+   son conteneur : le point avance de sa longueur (`cqw`, `cqh`) sans jamais en
+   sortir, donc sans élargir la page. */
 .methode-paquet {
   position: absolute;
   inset: 0;
   visibility: hidden;
+  container-type: size;
 }
 .methode-paquet__trajet {
-  position: absolute;
-  inset: 0;
-}
-.methode-paquet__trajet::after {
-  content: "";
   position: absolute;
   left: -4px;
   top: 0;
@@ -298,7 +296,7 @@ html[data-voile-intro] body::after {
     --sens: 90deg;
     transform-origin: left;
   }
-  .methode-paquet__trajet::after {
+  .methode-paquet__trajet {
     left: 0;
     top: -4px;
   }
@@ -473,7 +471,7 @@ html[data-voile-intro] body::after {
     opacity: 1;
   }
   to {
-    transform: translateY(100%);
+    transform: translateY(calc(100cqh - 10px));
     opacity: 0;
   }
 }
@@ -487,7 +485,7 @@ html[data-voile-intro] body::after {
     opacity: 1;
   }
   to {
-    transform: translateX(100%);
+    transform: translateX(calc(100cqw - 10px));
     opacity: 0;
   }
 }
