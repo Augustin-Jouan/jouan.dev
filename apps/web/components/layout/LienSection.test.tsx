@@ -1,8 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { brancherDefilement } from "@/lib/defilement";
 import { LienSection } from "./LienSection";
 
 afterEach(() => {
+  brancherDefilement(null);
+  document.body.innerHTML = "";
   window.history.replaceState(null, "", "/");
 });
 
@@ -34,5 +37,21 @@ describe("LienSection", () => {
     fireEvent.click(lien);
     expect(window.location.pathname).toBe("/mentions-legales");
     expect(window.location.hash).toBe("");
+  });
+
+  it("avec le défilement doux, glisse jusqu'à la section au lieu de sauter", () => {
+    const moteur = { scrollTo: vi.fn() };
+    brancherDefilement(moteur);
+    window.history.replaceState(null, "", "/?pour=boulangerie-k7f3");
+    render(
+      <>
+        <LienSection href="/#contact">Contact</LienSection>
+        <section id="contact" />
+      </>,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "Contact" }));
+    expect(moteur.scrollTo).toHaveBeenCalledWith(document.getElementById("contact"));
+    expect(window.location.search).toBe("?pour=boulangerie-k7f3");
+    expect(window.location.hash).toBe("#contact");
   });
 });

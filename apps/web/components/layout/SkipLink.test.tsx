@@ -10,6 +10,11 @@ describe("SkipLink", () => {
     expect(lien).toHaveAttribute("href", `#${CONTENU_ID}`);
   });
 
+  it("garde le saut natif, même avec le défilement doux : le focus va au contenu d'un coup", () => {
+    render(<SkipLink />);
+    expect(screen.getByRole("link", { name: "Aller au contenu" })).toHaveAttribute("data-defilement-natif");
+  });
+
   it("reste hors écran tant qu'il n'a pas le focus clavier", async () => {
     render(<SkipLink />);
     const lien = screen.getByRole("link", { name: "Aller au contenu" });

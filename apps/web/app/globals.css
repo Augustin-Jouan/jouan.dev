@@ -89,6 +89,29 @@ textarea:-webkit-autofill {
   }
 }
 
+/*
+ * Défilement doux (lib/defilement-lenis.ts) : Lenis pose la classe `lenis` sur
+ * <html> et mène lui-même chaque glissé, d'où le défilement natif instantané.
+ * Reprend dist/lenis.css du paquet (sans `autoToggle`, non utilisé).
+ */
+html.lenis {
+  scroll-behavior: auto;
+}
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+/* Pendant un glissé, la démo intégrée ne capte pas la molette. */
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
 /* Grain : bruit SVG très léger, fixe, sous tout le contenu. */
 body::before {
   content: "";

@@ -1,3 +1,4 @@
+import { allerAAncre } from "@/lib/defilement";
 import type { ActionCommande } from "./types";
 
 export type OutilsExecution = {
@@ -18,9 +19,7 @@ export async function executerAction(action: ActionCommande, outils: OutilsExecu
       // Ancre de l'accueil, depuis l'accueil : on ne change que le hash, comme
       // LienSection, pour garder un lien personnalisé (`/?pour=…`).
       if (action.href.startsWith("/#") && window.location.pathname === "/") {
-        const ancre = action.href.slice(1);
-        if (window.location.hash === ancre) document.getElementById(ancre.slice(1))?.scrollIntoView();
-        else window.location.hash = ancre;
+        allerAAncre(action.href.slice(1));
         return;
       }
       outils.naviguer(action.href);

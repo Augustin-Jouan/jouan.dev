@@ -43,6 +43,8 @@ describe("PaletteCommandes", () => {
     const dialogue = screen.getByRole("dialog", { name: "Commandes" });
     expect(dialogue).toHaveAttribute("open");
     expect(dialogue).toHaveAttribute("data-marqueur", MARQUEUR_PALETTE);
+    // La molette fait défiler la liste, jamais la page derrière (défilement doux).
+    expect(dialogue).toHaveAttribute("data-lenis-prevent");
     const liste = screen.getByRole("listbox", { name: "Commandes" });
     expect(champ()).toHaveAttribute("aria-expanded", "true");
     expect(champ()).toHaveAttribute("aria-controls", liste.id);

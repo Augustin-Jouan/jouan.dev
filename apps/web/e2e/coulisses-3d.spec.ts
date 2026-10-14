@@ -20,6 +20,13 @@ test("la 3D se charge au clic seulement, puis revient en 2D", async ({ page }) =
   // Prefetch Next du lien d'accueil (`/`) : sans attendre, son JS (IntroEncre)
   // arrive pendant le clic et n'est pas une signature 3D.
   await page.waitForLoadState("networkidle");
+  // Défilement doux (Lenis), chargé dans un temps libre : il ne doit pas arriver pendant le clic.
+  await page.waitForFunction(
+    () =>
+      document.documentElement.classList.contains("lenis") ||
+      matchMedia("(hover: none) and (pointer: coarse)").matches ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
 
   const charges: string[] = [];
   page.on("response", (r) => {
