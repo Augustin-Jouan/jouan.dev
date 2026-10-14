@@ -13,6 +13,9 @@ import { useEffect, useRef, type ReactNode } from "react";
  * `data-animation` n'est posé qu'ici : sans JS, en mouvement réduit, sans
  * IntersectionObserver ou si la frise est déjà à l'écran au chargement, elle
  * reste finie. Une fois allumée, elle le reste.
+ *
+ * C'est le repli du trait conducteur (lib/trait/trait-conducteur.ts) : quand il
+ * pose `data-trait` sur la frise, il allume lui-même les étapes à son passage.
  */
 export function FriseMethode({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -28,6 +31,8 @@ export function FriseMethode({ children }: { children: ReactNode }) {
     frise.setAttribute("data-animation", "");
     /** Étapes allumées jusqu'à `rang` inclus ; le fil rejoint le bas de la dernière. */
     const allumerJusqua = (rang: number) => {
+      // Le trait conducteur (lib/trait) a pris la main : c'est lui qui allume.
+      if (frise.hasAttribute("data-trait")) return;
       etapes.slice(0, rang + 1).forEach((etape) => etape.setAttribute("data-allumee", ""));
       const derniere = etapes[rang]!;
       const hauteur = frise.offsetHeight;

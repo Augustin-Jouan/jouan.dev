@@ -488,3 +488,93 @@ html[data-voile-intro] body::after {
     opacity: 0;
   }
 }
+
+/*
+ * Trait conducteur de l'accueil (lib/trait/trait-conducteur.ts) : un calque posé par le script
+ * par-dessus la page, qui ne capte aucun clic. Sans JS ou en mouvement réduit, il n'existe pas.
+ */
+.trait-calque {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.4s ease-out;
+}
+.trait-calque svg {
+  display: block;
+  overflow: hidden;
+}
+/* Pas de filtre sur les tracés : redessiner un flou de toute la hauteur de la page à chaque image
+   ferait tomber la fluidité. Le halo est un second tracé, plus large et translucide. */
+.trait-ligne,
+.trait-halo {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.trait-ligne {
+  stroke: var(--color-accent);
+  stroke-width: 2;
+}
+.trait-halo {
+  stroke: color-mix(in srgb, var(--color-lueur) 28%, transparent);
+  stroke-width: 7;
+}
+.trait-calque[data-variante="bord"] .trait-ligne {
+  stroke-width: 1.5;
+}
+.trait-calque[data-variante="bord"] .trait-halo {
+  stroke-width: 5;
+}
+.trait-tete {
+  fill: var(--color-texte);
+  filter: drop-shadow(0 0 3px var(--color-accent)) drop-shadow(0 0 8px color-mix(in srgb, var(--color-lueur) 70%, transparent));
+}
+/* Méthode prise en main par le trait : c'est lui le fil ; la ligne pêche et le paquet de la frise s'effacent. */
+.methode-frise[data-trait] .methode-fil__plein,
+.methode-frise[data-trait] .methode-paquet {
+  display: none;
+}
+/* Logos touchés et bouton d'envoi atteint : un halo qui reste. Animations et non transitions : les
+   classes Tailwind de ces éléments ont déjà leurs propres transitions. */
+[data-trait="logo"][data-allumee] img {
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--color-lueur) 60%, transparent));
+}
+[data-trait="envoi"][data-allumee] {
+  box-shadow: 0 0 18px 2px color-mix(in srgb, var(--color-lueur) 45%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* Chaque étape s'allume à l'instant où le trait la touche, sans le décalage de la cascade. */
+  .methode-frise[data-animation][data-trait] .methode-etape {
+    --delai: 0s;
+  }
+  [data-trait="logo"][data-allumee] img {
+    animation: trait-halo 0.6s ease-out;
+  }
+  [data-trait="envoi"][data-allumee] {
+    animation: trait-pulsation 1.2s ease-out;
+  }
+}
+@keyframes trait-halo {
+  from {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+}
+@keyframes trait-pulsation {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 70%, transparent);
+  }
+  35% {
+    box-shadow:
+      0 0 0 10px color-mix(in srgb, var(--color-accent) 0%, transparent),
+      0 0 32px 8px color-mix(in srgb, var(--color-lueur) 60%, transparent);
+  }
+}
+@media print {
+  .trait-calque {
+    display: none;
+  }
+}

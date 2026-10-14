@@ -7,6 +7,7 @@ import { Parcours } from "./Parcours";
 import { Realisations } from "./Realisations";
 import { SectionContact } from "./SectionContact";
 import { SignalVisite } from "./SignalVisite";
+import { TraitConducteur } from "./TraitConducteur";
 import { PresenceDirecte } from "@/components/direct/PresenceDirecte";
 import type { Personnalisation } from "@/data/accueil";
 
@@ -28,6 +29,7 @@ export function Accueil({
       <Methode />
       <Parcours />
       <SectionContact jeton={personnalisation?.jeton} />
+      <TraitConducteur />
       {signalerVisite && personnalisation?.jeton ? <SignalVisite jeton={personnalisation.jeton} /> : null}
     </PresenceDirecte>
   );
