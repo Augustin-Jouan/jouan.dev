@@ -127,6 +127,9 @@ test.describe("ordinateur", () => {
 
   test("arrivée directe sur #contact : le trait est déjà tracé, ce qu'il a dépassé est allumé", async ({ page }) => {
     await page.goto("/#contact");
+    // Le navigateur glisse jusqu'à l'ancre (`scroll-behavior: smooth`) : le pousser d'un pixel, comme le
+    // fait `attendreTrait` quand la page est encore en haut, interromprait ce glissé.
+    await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 5_000 }).toBeGreaterThan(1_000);
     await attendreTrait(page);
     await expect.poll(async () => (await etat(page)).allumees, { timeout: 5_000 }).toEqual(
       expect.arrayContaining(["etape0", "etape4", "logo0", "logo1"]),
