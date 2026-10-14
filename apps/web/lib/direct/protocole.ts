@@ -1,28 +1,26 @@
 /**
  * Messages du service temps réel, côté navigateur : même forme que
  * `apps/realtime/src/protocole.ts` (les deux paquets ne s'importent pas ;
- * le test de bout en bout garde les deux côtés d'accord).
+ * le test de bout en bout garde les deux côtés d'accord). Le navigateur
+ * n'envoie rien : il écoute le nombre de personnes présentes.
  */
-export type Curseur = [id: string, couleur: string, s: number, x: number, y: number];
+export type MessageServeur = { type: "bienvenue"; presents: number } | { type: "presents"; nombre: number };
 
-export type MessageClient = { type: "position"; s: number; x: number; y: number } | { type: "masque" };
-
-export type MessageServeur =
-  | { type: "bienvenue"; id: string; couleur: string; presents: number; curseurs: Curseur[] }
-  | { type: "presents"; nombre: number }
-  | { type: "positions"; curseurs: Curseur[] }
-  | { type: "depart"; id: string };
-
-const TYPES = new Set(["bienvenue", "presents", "positions", "depart"]);
-
-/** Un message du serveur, ou `null` (binaire, JSON invalide, type inconnu d'une autre version). */
+/**
+ * Un message du serveur, ou `null` (binaire, JSON invalide, type inconnu d'une
+ * autre version). Seul le nombre est gardé : l'accueil d'un ancien service, qui
+ * portait aussi les curseurs, reste lisible.
+ */
 export function lireMessageServeur(brut: unknown): MessageServeur | null {
   if (typeof brut !== "string") return null;
+  let m: { type?: unknown; presents?: unknown; nombre?: unknown } | null;
   try {
-    const m: unknown = JSON.parse(brut);
-    if (typeof m === "object" && m !== null && TYPES.has((m as { type?: unknown }).type as string)) return m as MessageServeur;
+    m = JSON.parse(brut) as typeof m;
   } catch {
-    // ignoré
+    return null;
   }
+  if (typeof m !== "object" || m === null) return null;
+  if (m.type === "bienvenue" && typeof m.presents === "number") return { type: "bienvenue", presents: m.presents };
+  if (m.type === "presents" && typeof m.nombre === "number") return { type: "presents", nombre: m.nombre };
   return null;
 }

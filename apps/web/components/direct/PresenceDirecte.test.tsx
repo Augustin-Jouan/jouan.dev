@@ -1,11 +1,9 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EVENEMENT_BASCULER_CURSEUR } from "@/lib/commandes/evenements";
 import type { MessageServeur } from "@/lib/direct/protocole";
 
 const fausse = vi.hoisted(() => ({
   rappels: null as null | { surMessage(m: MessageServeur): void; surFermeture(): void },
-  envoyer: vi.fn(),
   construite: 0,
 }));
 vi.mock("@/lib/direct/connexion", () => ({
@@ -16,7 +14,6 @@ vi.mock("@/lib/direct/connexion", () => ({
       fausse.construite++;
     }
     ouvrir() {}
-    envoyer = fausse.envoyer;
     surVisibilite() {}
     arreter() {}
   },
@@ -25,19 +22,10 @@ vi.mock("@/lib/direct/connexion", () => ({
 import { CompteurPresents } from "./CompteurPresents";
 import { PresenceDirecte } from "./PresenceDirecte";
 
-function pointeur(fin: boolean) {
-  vi.stubGlobal("matchMedia", (q: string) => ({
-    matches: fin && q === "(pointer: fine)",
-    media: q,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  }));
-}
-
 function rendre() {
   render(
     <PresenceDirecte>
-      <section data-direct-section="accroche">
+      <section>
         <CompteurPresents />
         <p>Accroche</p>
       </section>
@@ -58,16 +46,12 @@ const recevoir = (m: MessageServeur) =>
     fausse.rappels!.surMessage(m);
   });
 
-const bienvenue = (presents: number): MessageServeur => ({ type: "bienvenue", id: "moi", couleur: "#c84a1f", presents, curseurs: [] });
+const bienvenue = (presents: number): MessageServeur => ({ type: "bienvenue", presents });
 
 beforeEach(() => {
   vi.useFakeTimers();
   fausse.rappels = null;
   fausse.construite = 0;
-  fausse.envoyer.mockReset();
-  window.localStorage.clear();
-  pointeur(true);
-  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 800, height: 600 } as DOMRect);
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -127,7 +111,7 @@ describe("PresenceDirecte", () => {
           fireEvent.click(screen.getByRole("button", { name: "Inviter quelqu'un" }));
         });
         expect(copier).toHaveBeenCalledWith(`${window.location.origin}/`);
-        expect(screen.getByText("Lien copié : envoyez-le, son curseur apparaîtra ici.")).toBeInTheDocument();
+        expect(screen.getByText("Lien copié : envoyez-le, le compteur passera à 2.")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "Inviter quelqu'un" })).toBeNull();
       });
 
@@ -157,94 +141,34 @@ describe("PresenceDirecte", () => {
         expect(screen.getByRole("button", { name: "Inviter quelqu'un" })).toBeInTheDocument();
       });
 
-      it("sans pointeur fin (téléphone) : pas d'invitation", async () => {
-        pointeur(false);
+      it("invite aussi sur téléphone, sans souris", async () => {
+        vi.stubGlobal("matchMedia", (q: string) => ({ matches: false, media: q, addEventListener: () => {}, removeEventListener: () => {} }));
         rendre();
         await demarrer();
         recevoir(bienvenue(1));
-        expect(screen.queryByText("Vous êtes seul ici.")).toBeNull();
-        expect(screen.queryByRole("button", { name: "Inviter quelqu'un" })).toBeNull();
+        expect(screen.getByText("Vous êtes seul ici.")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Inviter quelqu'un" })).toBeInTheDocument();
       });
     });
 
-    it("bouton visible dès la connexion, même seul, et absent avant", async () => {
+    it("n'affiche ni curseur ni bouton de curseur, et ne garde rien dans le navigateur", async () => {
       rendre();
       await demarrer();
-      expect(screen.queryByRole("button", { name: /mon curseur/ })).toBeNull();
-      recevoir(bienvenue(1));
-      expect(screen.getByRole("button", { name: "Masquer mon curseur" })).toBeInTheDocument();
-    });
-
-    it("le bouton coupe le partage, envoie un masque et retient le choix", async () => {
-      rendre();
-      await demarrer();
-      recevoir(bienvenue(1));
-      fireEvent.click(screen.getByRole("button", { name: "Masquer mon curseur" }));
-      expect(fausse.envoyer).toHaveBeenCalledWith({ type: "masque" });
-      expect(window.localStorage.getItem("direct:partage")).toBe("non");
-      expect(screen.getByRole("button", { name: "Montrer mon curseur" })).toBeInTheDocument();
-    });
-
-    it("la commande de la palette bascule le curseur, comme le bouton", async () => {
-      rendre();
-      await demarrer();
-      recevoir(bienvenue(1));
-      expect(screen.getByRole("button", { name: "Masquer mon curseur" })).toHaveAttribute("data-presence", "connectee");
-      act(() => void window.dispatchEvent(new Event(EVENEMENT_BASCULER_CURSEUR)));
-      expect(fausse.envoyer).toHaveBeenCalledWith({ type: "masque" });
-      expect(window.localStorage.getItem("direct:partage")).toBe("non");
-      expect(screen.getByRole("button", { name: "Montrer mon curseur" })).toHaveAttribute("data-presence", "masquee");
-    });
-
-    it("partage actif : la souris dans une section envoie une position", async () => {
-      rendre();
-      await demarrer();
-      recevoir(bienvenue(1));
-      // fireEvent.mouseMove ne remplit pas pageX sous jsdom : MouseEvent + clientX.
+      recevoir(bienvenue(2));
       document.dispatchEvent(new MouseEvent("mousemove", { clientX: 400, clientY: 150, bubbles: true }));
-      expect(fausse.envoyer).toHaveBeenCalledWith({ type: "position", s: 0, x: 0.5, y: 0.25 });
+      expect(screen.queryByRole("button", { name: /curseur/ })).toBeNull();
+      expect(document.body.querySelector("[data-curseur]")).toBeNull();
+      expect(window.localStorage.length).toBe(0);
     });
 
-    it("partage coupé : la souris n'envoie plus de position", async () => {
-      window.localStorage.setItem("direct:partage", "non");
-      rendre();
-      await demarrer();
-      fireEvent.mouseMove(document, { pageX: 400, pageY: 150 });
-      expect(fausse.envoyer).not.toHaveBeenCalledWith(expect.objectContaining({ type: "position" }));
-    });
-
-    it("sans pointeur fin : ni bouton ni envoi de position", async () => {
-      pointeur(false);
+    it("connexion perdue : plus de compteur ni d'invitation", async () => {
       rendre();
       await demarrer();
       recevoir(bienvenue(2));
-      expect(screen.getByText("2 personnes regardent cette page")).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: /mon curseur/ })).toBeNull();
-      fireEvent.mouseMove(document, { pageX: 400, pageY: 150 });
-      expect(fausse.envoyer).not.toHaveBeenCalled();
-    });
-
-    it("dessine les curseurs reçus dans un calque ignoré des lecteurs d'écran", async () => {
-      rendre();
-      await demarrer();
-      recevoir({ type: "positions", curseurs: [["a", "#2f6f6a", 0, 0.5, 0.5]] });
-      await act(async () => {
-        await vi.dynamicImportSettled();
-      });
-      const curseur = document.body.querySelector("[data-curseur]");
-      expect(curseur).not.toBeNull();
-      expect(curseur!.closest("[aria-hidden='true']")).not.toBeNull();
-    });
-
-    it("connexion perdue : plus de compteur, de bouton ni de curseurs", async () => {
-      rendre();
-      await demarrer();
-      recevoir(bienvenue(2));
-      recevoir({ type: "positions", curseurs: [["a", "#2f6f6a", 0, 0.5, 0.5]] });
       act(() => fausse.rappels!.surFermeture());
       expect(screen.queryByText(/regardent cette page/)).toBeNull();
-      expect(screen.queryByRole("button", { name: /mon curseur/ })).toBeNull();
-      expect(document.body.querySelector("[data-curseur]")).toBeNull();
+      expect(screen.queryByText("Vous êtes seul ici.")).toBeNull();
+      expect(screen.queryByRole("button")).toBeNull();
     });
   });
 });

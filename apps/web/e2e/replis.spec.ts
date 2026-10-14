@@ -77,7 +77,7 @@ test("stockage inaccessible : l'intro se joue sans erreur", async ({ page }) => 
   const erreurs = surveillerErreurs(page);
   await simulerGpu(page);
   await page.addInitScript(() => {
-    // Navigation privée stricte : les deux stockages refusés (intro : session ; curseur : local).
+    // Navigation privée stricte : les deux stockages refusés (la démo et l'intro utilisent la session).
     for (const nom of ["localStorage", "sessionStorage"]) {
       Object.defineProperty(window, nom, {
         configurable: true,

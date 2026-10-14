@@ -73,7 +73,7 @@ fond nuit `#2a2127`, texte papier, accent pêche, alerte corail, « en direct »
   `lueur`, `lueur-chaude`, `goutte`). La palette par défaut de Tailwind est retirée.
 - Les composants n'emploient **que des rôles** (`bg-fond`, `text-texte-doux`…), sans
   opacité, et jamais `text-vivant` : `lib/charte-classes.test.ts` refuse le reste.
-- Le code qui ne lit pas le CSS (intro WebGL, vignettes, curseurs, scène 3D) importe
+- Le code qui ne lit pas le CSS (intro WebGL, vignettes, scène 3D) importe
   `apps/web/lib/charte.ts`. Pour changer une couleur : la modifier dans `globals.css`
   **et** `lib/charte.ts` ; `lib/charte.test.ts` vérifie qu'ils concordent et que chaque
   contraste reste suffisant ; `e2e/accessibilite.spec.ts` passe chaque page à axe-core.
@@ -125,7 +125,7 @@ Liens personnalisés (accueil `/?pour=<jeton>`) : ils demandent une base.
 - `pnpm --filter web verifier-accueil-statique`, après `pnpm build`, vérifie
   que l'accueil `/` reste prérendu (statique).
 
-Temps réel (compteur et curseurs de l'accueil) : service `apps/realtime` (Hono, WebSocket).
+Temps réel (compteur de l'accueil) : service `apps/realtime` (Hono, WebSocket).
 
 - En local : `pnpm dev:direct` (port 3001, `ORIGINES_AUTORISEES=http://localhost:3000` à définir), puis le site construit ou lancé avec `NEXT_PUBLIC_DIRECT_URL=ws://localhost:3001/direct`. Sans cette variable, l'accueil ne charge ni ne connecte rien.
 - Image : `ghcr.io/augustin-jouan/jouan.dev-realtime`, construite par la CI comme celle du site.
@@ -140,7 +140,7 @@ Temps réel (compteur et curseurs de l'accueil) : service `apps/realtime` (Hono,
   2. ressource Coolify depuis l'image du service, port 3001, domaine `https://direct.jouan.dev`, variable `ORIGINES_AUTORISEES` ; attendre qu'elle soit en ligne et saine (`/sante`) ;
   3. variable de dépôt GitHub `DIRECT_URL=wss://direct.jouan.dev/direct` (figée au build du site : tant qu'elle est vide, le site ne tente aucune connexion) ;
   4. secret GitHub `COOLIFY_WEBHOOK_URL_DIRECT` (webhook de la ressource du service).
-- Limites : 300 connexions au total, 5 par adresse IP (`CONNEXIONS_PAR_IP`), messages de 128 octets et 40 par seconde au plus. Aucune IP ni position n'est journalisée.
+- Limites : 300 connexions au total, 5 par adresse IP (`CONNEXIONS_PAR_IP`), messages de 128 octets et 40 par seconde au plus. Le navigateur n'envoie rien ; aucune IP n'est journalisée.
 
 Coulisses (`/coulisses`) : architecture du site mesurée en direct, vue 3D à la demande, preuves de qualité du build.
 

@@ -82,23 +82,20 @@ export default function PolitiqueConfidentialitePage() {
       <div className="flex flex-col gap-3">
         <h2 className="text-xl font-semibold">Présence en direct</h2>
         <p>
-          Sur la page d&apos;accueil, la position de votre souris, relative à la section affichée, est
-          partagée en direct sous la forme d&apos;une flèche colorée anonyme, et un compteur indique combien
-          de personnes regardent la page. Rien n&apos;est enregistré.
+          Sur la page d&apos;accueil, un compteur indique combien de personnes regardent la page en même
+          temps. Votre navigateur se connecte pour être compté, mais n&apos;envoie rien : ni position, ni
+          contenu. Rien n&apos;est enregistré.
         </p>
         <p>
-          Ce partage sert à animer la page d&apos;accueil et à montrer un savoir-faire technique. Sa base
-          légale est mon intérêt légitime (article 6.1.f du RGPD). Ses destinataires sont les autres
-          visiteurs présents au même moment, qui ne voient que la flèche, et l&apos;hébergeur du service, qui
-          achemine la connexion. Il dure le temps de votre visite : votre adresse IP sert uniquement, en
-          mémoire et le temps de la connexion, à limiter le nombre de connexions ; les journaux techniques de
-          l&apos;hébergeur relèvent de la mention ci-dessus.
+          Ce compteur sert à animer la page d&apos;accueil et à montrer un savoir-faire technique. Sa base
+          légale est mon intérêt légitime (article 6.1.f du RGPD). Il dure le temps de votre visite : votre
+          adresse IP sert uniquement, en mémoire et le temps de la connexion, à limiter le nombre de
+          connexions ; les journaux techniques de l&apos;hébergeur relèvent de la mention ci-dessus.
         </p>
         <p>
-          Vous pouvez vous y opposer à tout moment avec le bouton « Masquer mon curseur ». Ce choix est gardé
-          dans le stockage local de votre navigateur ; le repère de l&apos;introduction déjà vue et les
-          modifications faites dans la démo de l&apos;étude de cas « Suivi de marchés », eux, ne durent que le
-          temps de l&apos;onglet (stockage de session). Aucun cookie supplémentaire n&apos;est déposé.
+          Le repère de l&apos;introduction déjà vue et les modifications faites dans la démo de l&apos;étude de
+          cas « Suivi de marchés » ne durent que le temps de l&apos;onglet (stockage de session). Aucun cookie
+          supplémentaire n&apos;est déposé.
         </p>
       </div>
 

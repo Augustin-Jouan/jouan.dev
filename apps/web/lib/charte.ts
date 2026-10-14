@@ -1,6 +1,6 @@
 /**
  * Charte « Nuit mauve » pour le code qui ne lit pas le CSS : moteur de l'intro,
- * vignettes de partage, curseurs du direct, scène 3D des Coulisses. Mêmes
+ * vignettes de partage, scène 3D des Coulisses. Mêmes
  * valeurs que app/globals.css (`--teinte-*` sur `:root`, rôles dans `@theme`),
  * ce que vérifie lib/charte.test.ts.
  *

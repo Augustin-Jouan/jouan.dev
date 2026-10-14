@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EVENEMENT_BASCULER_CURSEUR, EVENEMENT_REJOUER_INTRO } from "@/lib/commandes/evenements";
+import { EVENEMENT_REJOUER_INTRO } from "@/lib/commandes/evenements";
 import { GROUPES } from "@/lib/commandes/types";
 import { ANCRES, realisations } from "./accueil";
 import { commandes } from "./commandes";
@@ -39,16 +39,12 @@ describe("commandes", () => {
     expect(commande("cv-json").action).toEqual({ type: "lien", href: "/api/me", nouvelOnglet: true });
   });
 
-  it("relient les commandes ludiques à l'intro, au curseur et à la 3D", () => {
+  it("relient les commandes ludiques à l'intro et à la 3D, sans commande de curseur", () => {
     expect(commande("rejouer-intro")).toMatchObject({
       condition: "intro",
       action: { type: "evenement", nom: EVENEMENT_REJOUER_INTRO },
     });
-    expect(commande("curseur")).toMatchObject({
-      condition: "presence",
-      libelleInverse: "Montrer mon curseur",
-      action: { type: "evenement", nom: EVENEMENT_BASCULER_CURSEUR },
-    });
+    expect(commandes.some((c) => /curseur/i.test(c.libelle))).toBe(false);
     expect(commande("architecture-3d").action).toEqual({ type: "lien", href: "/coulisses?vue=3d" });
   });
 });

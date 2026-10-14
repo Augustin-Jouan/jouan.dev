@@ -79,25 +79,6 @@ describe("ConnexionDirecte", () => {
     expect(rappels.surMessage).toHaveBeenCalledWith({ type: "presents", nombre: 2 });
   });
 
-  it("espace les envois de 50 ms et n'envoie que la dernière position", () => {
-    const c = nouvelle();
-    c.ouvrir();
-    derniere().ouvrir();
-    c.envoyer({ type: "position", s: 0, x: 0.1, y: 0.1 });
-    c.envoyer({ type: "position", s: 0, x: 0.2, y: 0.2 });
-    c.envoyer({ type: "position", s: 0, x: 0.3, y: 0.3 });
-    expect(derniere().envoyes).toHaveLength(1);
-    h.avancer(50);
-    expect(derniere().envoyes).toEqual(['{"type":"position","s":0,"x":0.1,"y":0.1}', '{"type":"position","s":0,"x":0.3,"y":0.3}']);
-  });
-
-  it("n'envoie rien tant que la socket n'est pas ouverte", () => {
-    const c = nouvelle();
-    c.ouvrir();
-    c.envoyer({ type: "masque" });
-    expect(derniere().envoyes).toEqual([]);
-  });
-
   it("se reconnecte avec un délai croissant plafonné à 30 s, sans boucle serrée", () => {
     const c = nouvelle();
     c.ouvrir();
@@ -126,12 +107,12 @@ describe("ConnexionDirecte", () => {
     expect(FausseSocket.instances.length).toBe(avant + 1);
   });
 
-  it("onglet caché : masque, ferme après 30 s, ne se reconnecte pas avant le retour", () => {
+  it("onglet caché : ferme après 30 s sans rien envoyer, ne se reconnecte pas avant le retour", () => {
     const c = nouvelle();
     c.ouvrir();
     derniere().ouvrir();
     c.surVisibilite(false);
-    expect(derniere().envoyes).toEqual(['{"type":"masque"}']);
+    expect(derniere().envoyes).toEqual([]);
     h.avancer(FERMETURE_ONGLET_CACHE_MS);
     expect(derniere().readyState).toBe(3);
     h.avancer(120_000);

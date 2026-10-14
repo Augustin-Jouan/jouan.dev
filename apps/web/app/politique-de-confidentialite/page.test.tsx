@@ -64,12 +64,12 @@ describe("PolitiqueConfidentialitePage", () => {
     expect(within(coulisses!).getByText(/deux minutes au\s+plus/)).toBeInTheDocument();
   });
 
-  it("décrit la présence en direct, sa base légale et le bouton d'opposition", () => {
-    render(<PolitiqueConfidentialitePage />);
+  it("décrit le compteur de l'accueil et sa base légale : le navigateur n'envoie rien", () => {
+    const { container } = render(<PolitiqueConfidentialitePage />);
     expect(screen.getByRole("heading", { name: "Présence en direct" })).toBeInTheDocument();
     expect(screen.getAllByText(/article 6\.1\.f/).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText(/les autres visiteurs présents au même moment/)).toBeInTheDocument();
-    expect(screen.getByText(/Masquer mon curseur/)).toBeInTheDocument();
+    expect(screen.getByText(/combien de personnes regardent la page/)).toHaveTextContent(/n.envoie rien : ni position, ni contenu/);
+    expect(container.textContent).not.toMatch(/curseur|souris/i);
   });
 
   it("dit que la démo de l'étude de cas ne garde rien au-delà de l'onglet", () => {
