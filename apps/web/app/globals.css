@@ -194,3 +194,300 @@ html[data-voile-intro] body::after {
     animation: none;
   }
 }
+
+/*
+ * Méthode de l'accueil (components/accueil/Methode.tsx) : un fil relie les cinq
+ * étapes. Ici, la frise finie : c'est ce qu'on voit sans animation au défilement,
+ * en mouvement réduit ou sans CSS récent. Vertical sur téléphone, horizontal au-dessus
+ * des colonnes à partir de `lg`.
+ */
+.methode-frise {
+  position: relative;
+  view-timeline-name: --methode;
+}
+.methode-fil {
+  position: absolute;
+  left: 7px;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  border-radius: 2px;
+  background-color: var(--color-trait);
+}
+.methode-fil__plein {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: linear-gradient(var(--sens, 180deg), var(--color-lueur-chaude), var(--color-lueur) 45%, var(--color-accent));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-lueur) 55%, transparent);
+  transform-origin: top;
+}
+/* Le paquet de lumière : invisible tant que la frise n'est pas animée. */
+.methode-paquet {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+.methode-paquet__trajet {
+  position: absolute;
+  inset: 0;
+}
+.methode-paquet__trajet::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-texte);
+  box-shadow:
+    0 0 6px 2px var(--color-accent),
+    0 0 18px 6px color-mix(in srgb, var(--color-lueur) 60%, transparent);
+}
+.methode-etape {
+  position: relative;
+  padding-left: 2.75rem;
+}
+.methode-noeud {
+  position: absolute;
+  left: 0;
+  top: 0.9rem;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--color-accent) 14%, transparent),
+    0 0 18px color-mix(in srgb, var(--color-accent) 80%, transparent);
+}
+.methode-num {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  text-shadow: 0 0 22px color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+/* La goutte : une tache de lumière qui s'étale derrière le numéro puis s'efface. */
+.methode-num::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 7rem;
+  height: 7rem;
+  margin: -3.5rem 0 0 -3.5rem;
+  border-radius: 50%;
+  opacity: 0;
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-goutte) 75%, transparent) 0%,
+    color-mix(in srgb, var(--color-lueur) 45%, transparent) 35%,
+    color-mix(in srgb, var(--color-lueur-chaude) 15%, transparent) 60%,
+    transparent 72%
+  );
+}
+@media (width >= 64rem) {
+  .methode-fil {
+    inset: 7px 0 auto 0;
+    width: auto;
+    height: 2px;
+  }
+  .methode-fil__plein {
+    --sens: 90deg;
+    transform-origin: left;
+  }
+  .methode-paquet__trajet::after {
+    left: 0;
+    top: -4px;
+  }
+  .methode-etape {
+    padding-left: 0;
+    padding-top: 3rem;
+  }
+  .methode-noeud {
+    top: 0;
+  }
+}
+
+/*
+ * Animation liée au défilement, sans JS. Ordinateur : le fil avance de gauche à
+ * droite et allume chaque étape à son passage (`--i`, rang de l'étape). Téléphone :
+ * chaque étape s'allume en montant vers le milieu de l'écran, le fil descend avec.
+ * Une fois tout allumé, le paquet de lumière parcourt le fil en boucle.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .methode-fil__plein {
+      animation: methode-remplir-y linear both;
+      animation-timeline: --methode;
+      animation-range: cover 12% cover 62%;
+    }
+    .methode-etape {
+      view-timeline-name: --etape;
+    }
+    .methode-noeud,
+    .methode-num,
+    .methode-num::before,
+    .methode-etape h3,
+    .methode-etape p {
+      animation: methode-monter linear both;
+      animation-timeline: --etape;
+    }
+    .methode-noeud {
+      animation-name: methode-allumer;
+      animation-range: cover 20% cover 32%;
+    }
+    .methode-num {
+      animation-name: methode-reveler;
+      animation-range: cover 22% cover 36%;
+    }
+    .methode-num::before {
+      animation-name: methode-goutte;
+      animation-range: cover 22% cover 46%;
+    }
+    .methode-etape h3 {
+      animation-range: cover 28% cover 40%;
+    }
+    .methode-etape p {
+      animation-range: cover 31% cover 44%;
+    }
+    .methode-paquet {
+      animation: methode-apparaitre linear both;
+      animation-timeline: --methode;
+      animation-range: cover 58% cover 64%;
+    }
+    .methode-paquet__trajet {
+      animation: methode-trajet-y 4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    }
+
+    @media (width >= 64rem) {
+      .methode-etape {
+        --debut: calc(18% + var(--i) * 6.4%);
+      }
+      .methode-noeud,
+      .methode-num,
+      .methode-num::before,
+      .methode-etape h3,
+      .methode-etape p {
+        animation-timeline: --methode;
+      }
+      .methode-fil__plein {
+        animation-name: methode-remplir-x;
+        animation-range: cover 18% cover 50%;
+      }
+      .methode-noeud {
+        animation-range: cover var(--debut) cover calc(var(--debut) + 2%);
+      }
+      .methode-num {
+        animation-range: cover var(--debut) cover calc(var(--debut) + 5%);
+      }
+      .methode-num::before {
+        animation-range: cover var(--debut) cover calc(var(--debut) + 10%);
+      }
+      .methode-etape h3 {
+        animation-range: cover calc(var(--debut) + 2%) cover calc(var(--debut) + 7%);
+      }
+      .methode-etape p {
+        animation-range: cover calc(var(--debut) + 3%) cover calc(var(--debut) + 8%);
+      }
+      .methode-paquet {
+        animation-range: cover 50% cover 54%;
+      }
+      .methode-paquet__trajet {
+        animation-name: methode-trajet-x;
+      }
+    }
+  }
+}
+
+@keyframes methode-remplir-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes methode-remplir-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes methode-allumer {
+  from {
+    border-color: var(--color-trait-fort);
+    background-color: var(--color-fond);
+    box-shadow: none;
+    transform: scale(0.8);
+  }
+  60% {
+    transform: scale(1.35);
+  }
+}
+@keyframes methode-reveler {
+  from {
+    clip-path: circle(0% at 30% 60%);
+    color: var(--color-texte);
+    text-shadow: none;
+  }
+  to {
+    clip-path: circle(110% at 30% 60%);
+  }
+}
+@keyframes methode-goutte {
+  from {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+@keyframes methode-monter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes methode-apparaitre {
+  from {
+    visibility: visible;
+    opacity: 0;
+  }
+  to {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+@keyframes methode-trajet-y {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  8%,
+  92% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+@keyframes methode-trajet-x {
+  from {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  8%,
+  92% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
