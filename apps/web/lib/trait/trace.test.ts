@@ -176,6 +176,44 @@ describe("tracer, variante « marges »", () => {
   });
 });
 
+describe("tracer, signature sous l'adresse e-mail", () => {
+  // Colonne de l'adresse : à droite du formulaire, de l'e-mail (3600) jusqu'en bas du formulaire.
+  const SIGNE: Reperes = { ...ORDINATEUR, signature: { gauche: 760, haut: 3600, droite: 1184, bas: 4000 } };
+  const zone = SIGNE.signature!;
+  const dansZone = (p: { x: number; y: number }) => p.x > zone.gauche && p.x < zone.droite && p.y > zone.haut - 40 && p.y < zone.bas;
+
+  it("le trait écrit dans la colonne, sous l'e-mail sans le toucher, puis finit sur le bouton d'envoi", () => {
+    const trace = tracer(SIGNE);
+    const ecrits = trace.echantillons.filter(dansZone);
+    // Une signature, pas une simple traversée : plusieurs centaines de pixels de trait dans la colonne.
+    expect(ecrits.length * 4).toBeGreaterThan(1_200);
+    for (const p of ecrits) {
+      expect(p.y).toBeGreaterThan(zone.haut + 8);
+      expect(p.x).toBeLessThan(zone.droite);
+    }
+    expect(distance(trace.echantillons.at(-1)!, { x: 210, y: 3922 })).toBeLessThan(1);
+    expect(longueurDe(trace, "envoi")).toBe(trace.longueur);
+  });
+
+  it("l'écriture s'étale au défilement : du haut de la signature jusqu'après le bouton", () => {
+    const trace = tracer(SIGNE);
+    const [avant, fin] = trace.reperes.slice(-2);
+    // L'écriture commence à hauteur de la signature (pas dès les logos) et dure au moins un quart d'écran.
+    expect(avant!.y).toBeGreaterThan(zone.haut - 0.5 * SIGNE.hauteurEcran);
+    expect(fin!.y - avant!.y).toBeGreaterThan(0.25 * SIGNE.hauteurEcran);
+  });
+
+  it("sans place sous l'adresse, le tracé reste celui d'avant", () => {
+    const etroit = tracer({ ...SIGNE, signature: { ...zone, haut: 3850 } });
+    expect(etroit.d).toBe(tracer(ORDINATEUR).d);
+    expect(tracer({ ...ORDINATEUR, signature: { ...zone, droite: zone.gauche + 200 } }).d).toBe(tracer(ORDINATEUR).d);
+  });
+
+  it("pas de signature sur téléphone ni sur la variante « bord »", () => {
+    expect(tracer({ ...PORTABLE, signature: zone }).d).toBe(tracer(PORTABLE).d);
+  });
+});
+
 describe("tracer, écran haut", () => {
   // Grand écran : sous le bouton, moins de 34 % d'écran de page ; la ligne de lecture s'arrête au-dessus.
   for (const [nom, r] of [["marges", ORDINATEUR], ["bord", PORTABLE]] as const) {

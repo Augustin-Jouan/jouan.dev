@@ -6,6 +6,14 @@
  * Le chemin n'est fait que de courbes de Bézier cubiques : leur longueur se mesure ici, sans DOM.
  */
 import { ordonnerReperes, ramenerSous, PAS_ECHANTILLON, type Point, type Repere } from "./progression";
+import {
+  SIGNATURE,
+  SIGNATURE_BAS,
+  SIGNATURE_DEPART,
+  SIGNATURE_DROITE,
+  SIGNATURE_GAUCHE,
+  SIGNATURE_HAUT,
+} from "./signature";
 
 export type { Point };
 export type Cercle = Point & { r: number };
@@ -35,6 +43,8 @@ export type Reperes = {
   envoi: Boite;
   /** Ordonnée la plus basse que la ligne de lecture atteint, page défilée jusqu'en bas. */
   finLecture: number;
+  /** Place libre sous l'adresse e-mail du Contact (colonne de droite), où le trait signe. */
+  signature?: Boite;
 };
 
 export type Cible = { type: "etape"; indice: number } | { type: "logo"; indice: number } | { type: "envoi" };
@@ -56,6 +66,8 @@ export type Trace = {
 export const MARGE_MIN = 56;
 /** Écart entre le trait et l'image d'un logo : il passe sur l'anneau pêche (2 px, décalé de 4 px). */
 export const ECART_LOGO = 6;
+/** Taille de la signature : au plus 1,3 fois son dessin ; en dessous de 0,7, elle serait illisible. */
+const ECHELLE_SIGNATURE: Bornes = [0.7, 1.3];
 /** Graine fixe : la même mise en page donne toujours le même trait. */
 const GRAINE = 20261014;
 /** Pas vertical moyen entre deux inflexions du tracé libre. */
@@ -242,13 +254,30 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
   chemin.ligne(retour2).arc(logoDroite, r2, angle(retour2, logoDroite), 90);
   const jalonApresLogos = chemin.jalon;
 
-  // Retour dans la marge droite, descente libre, puis arrivée sur le bord droit du bouton d'envoi.
+  // Retour dans la marge droite, descente libre, puis arrivée sur le bord droit du bouton d'envoi : en
+  // signant sous l'adresse e-mail quand la place le permet, le soulignement filant jusqu'au bouton.
   const reprise = { x: milieuDroite, y: bas2.y + 70 };
   chemin.courbe({ x: bas2.x + 60, y: bas2.y }, { x: reprise.x, y: reprise.y - 40 }, reprise);
   const arrivee = { x: r.envoi.droite, y: (r.envoi.haut + r.envoi.bas) / 2 };
-  const avantEnvoi = { x: milieuDroite, y: arrivee.y - 90 };
-  chemin.lisse([...inflexions(alea, reprise.y, avantEnvoi.y, resserre(droite)), avantEnvoi], BAS, BAS, droite);
-  chemin.courbe({ x: avantEnvoi.x, y: arrivee.y }, { x: arrivee.x + 80, y: arrivee.y }, arrivee);
+  const signature = r.signature && placerSignature(r.signature, arrivee, reprise.y);
+  let jalonSignature = 0;
+  if (signature) {
+    const { origine, echelle } = signature;
+    const local = (x: number, y: number) => ({ x: origine.x + x * echelle, y: origine.y + y * echelle });
+    const avant = { x: milieuDroite, y: origine.y + SIGNATURE_HAUT * echelle };
+    chemin.lisse([...inflexions(alea, reprise.y, avant.y, resserre(droite)), avant], BAS, BAS, droite);
+    chemin.courbe({ x: milieuDroite, y: origine.y - 60 * echelle }, local(44, -92), local(SIGNATURE_DEPART.x, SIGNATURE_DEPART.y));
+    jalonSignature = chemin.jalon;
+    for (let i = 0; i < SIGNATURE.length; i += 6) {
+      const [a, b, c, d, e, f] = SIGNATURE.slice(i, i + 6) as [number, number, number, number, number, number];
+      chemin.courbe(local(a, b), local(c, d), local(e, f));
+    }
+    chemin.ligne(arrivee);
+  } else {
+    const avantEnvoi = { x: milieuDroite, y: arrivee.y - 90 };
+    chemin.lisse([...inflexions(alea, reprise.y, avantEnvoi.y, resserre(droite)), avantEnvoi], BAS, BAS, droite);
+    chemin.courbe({ x: avantEnvoi.x, y: arrivee.y }, { x: arrivee.x + 80, y: arrivee.y }, arrivee);
+  }
   const jalonArrivee = chemin.jalon;
 
   return {
@@ -259,7 +288,13 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
       { jalon: jalonFin, y: n1.y + 0.25 * h },
       { jalon: jalonLogoDroite, y: Math.min(haut1.y, haut2.y) },
       { jalon: jalonApresLogos, y: Math.max(bas1.y, bas2.y) },
-      { jalon: jalonArrivee, y: arrivee.y },
+      // La signature s'écrit pendant que la ligne de lecture la traverse, étalée d'un peu plus d'un quart d'écran.
+      ...(signature
+        ? [
+            { jalon: jalonSignature, y: signature.origine.y + SIGNATURE_DEPART.y * signature.echelle - 0.15 * h },
+            { jalon: jalonArrivee, y: arrivee.y + 0.15 * h },
+          ]
+        : [{ jalon: jalonArrivee, y: arrivee.y }]),
     ],
     allumables: [
       ...etapes(r, jalonN1),
@@ -268,6 +303,23 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
       { jalon: jalonArrivee, decalage: 0, cible: { type: "envoi" } },
     ],
   };
+}
+
+/**
+ * Place de la signature dans la colonne de l'adresse : la plus grande échelle qui tient en largeur, et en
+ * hauteur entre l'e-mail et le bouton d'envoi (dont le soulignement prend la hauteur). `null` si elle serait
+ * trop petite, ou trop près de la descente qui suit les logos (`plancher`).
+ */
+function placerSignature(zone: Boite, arrivee: Point, plancher: number): { origine: Point; echelle: number } | null {
+  const echelle = Math.min(
+    ECHELLE_SIGNATURE[1],
+    (zone.droite - zone.gauche - 8) / (SIGNATURE_DROITE - SIGNATURE_GAUCHE),
+    (arrivee.y - zone.haut - 16) / (SIGNATURE_BAS - SIGNATURE_HAUT),
+  );
+  if (echelle < ECHELLE_SIGNATURE[0]) return null;
+  const origine = { x: zone.gauche - SIGNATURE_GAUCHE * echelle, y: arrivee.y - SIGNATURE_BAS * echelle };
+  if (origine.y + SIGNATURE_HAUT * echelle < plancher + 40) return null;
+  return { origine, echelle };
 }
 
 /**
@@ -328,14 +380,15 @@ export function tracer(r: Reperes): Trace {
   const { chemin, reperes, allumables } = variante === "marges" ? tracerMarges(r, alea) : tracerBord(r, alea);
   const { segments } = chemin;
 
-  // Mesure : chaque segment découpé en cordes d'environ 6 px.
+  // Mesure : chaque segment découpé en cordes d'environ 2 px, assez fines pour que la longueur mesurée colle à
+  // celle du navigateur jusque dans les boucles serrées de la signature : le point reste à la pointe du trait.
   const points: Point[] = [segments[0]![0]];
   const cumul = [0];
   const debutSegment: number[] = [];
   for (const segment of segments) {
     debutSegment.push(cumul.at(-1)!);
     const [p0, c1, c2, p1] = segment;
-    const n = Math.max(8, Math.ceil((distance(p0, c1) + distance(c1, c2) + distance(c2, p1)) / 6));
+    const n = Math.max(16, Math.ceil((distance(p0, c1) + distance(c1, c2) + distance(c2, p1)) / 2));
     for (let k = 1; k <= n; k++) {
       const p = bezier(segment, k / n);
       cumul.push(cumul.at(-1)! + distance(points.at(-1)!, p));

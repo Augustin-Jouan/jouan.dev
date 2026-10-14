@@ -9,7 +9,8 @@ export function SectionContact({ jeton }: { jeton?: string }) {
     <Section id={ANCRES.contact} {...sections.contact}>
       <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr]">
         <ContactForm jeton={jeton} />
-        <div className="flex flex-col gap-3 text-texte-doux">
+        {/* Le trait conducteur (lib/trait) signe dans la place libre sous l'adresse. */}
+        <div data-trait="signature" className="flex flex-col gap-3 text-texte-doux">
           <p>Vous préférez l&apos;e-mail ? Écrivez-moi directement :</p>
           <p>
             <a

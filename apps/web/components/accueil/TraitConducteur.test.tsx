@@ -75,6 +75,24 @@ describe("TraitConducteur", () => {
     expect(charge.arrete).toBe(1);
   });
 
+  it("attend une pause du défilement : rien ne démarre au milieu d'un glissé (il saccaderait)", async () => {
+    medias(false);
+    render(<TraitConducteur />);
+    // Trois secondes de défilement continu, un évènement toutes les 100 ms (glissé de la molette, de Lenis).
+    for (let i = 0; i < 30; i++) {
+      defiler(40 + i * 20);
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
+    }
+    await act(async () => {
+      await vi.dynamicImportSettled();
+    });
+    expect(charge.demarre).toBe(0);
+    await attendreTempsLibre();
+    expect(charge.demarre).toBe(1);
+  });
+
   it("page déjà défilée à l'affichage (lien vers #contact, défilement restauré) : démarre sans attendre", async () => {
     medias(false);
     vi.stubGlobal("scrollY", 3_000);

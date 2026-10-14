@@ -31,6 +31,7 @@ export function lireReperes(): Reperes | null {
   const noeuds = [...document.querySelectorAll(".methode-noeud")];
   const logos = [...document.querySelectorAll('[data-trait="logo"] img')];
   const envoi = document.querySelector('[data-trait="envoi"]');
+  const colonneSignature = document.querySelector('[data-trait="signature"]');
   if (!accroche || !realisations || !titreMethode || !fil || noeuds.length !== 5 || !envoi) return null;
 
   const ordinateur = window.matchMedia("(width >= 64rem)").matches;
@@ -56,6 +57,11 @@ export function lireReperes(): Reperes | null {
     }),
     envoi: boite(envoi),
     finLecture: document.documentElement.scrollHeight - window.innerHeight * (1 - LIGNE_DE_LECTURE),
+    // Sous le dernier élément de la colonne (l'adresse), jusqu'en bas de la colonne.
+    signature:
+      colonneSignature?.lastElementChild && ordinateur
+        ? { ...boite(colonneSignature), haut: boite(colonneSignature.lastElementChild).bas }
+        : undefined,
   };
 }
 

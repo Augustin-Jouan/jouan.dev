@@ -268,3 +268,6 @@ Le code a été écrit et vérifié une première fois avant le plan. Ce qui a c
 | « bord » sur 1024–1199 px | Non décrit (ligne supposée verticale) | Ligne horizontale, fin le long du bord droit | La Méthode y est horizontale |
 | Traversée sur téléphone | Étalée sur un demi-écran | Suit le défilement | La ligne y est verticale : elle se parcourt déjà en défilant |
 | Écran haut | Dernier repère sur le centre du bouton d'envoi | Fin des repères resserrée pour rester à portée de la ligne de lecture (bas de page − 34 % d'écran) | Relecture finale : au-delà d'environ 1 060 px de haut, le trait n'atteignait jamais le bouton |
+| Arrivée (ordinateur, « marges ») | Descente dans la marge droite jusqu'au bouton | Le trait signe « Augustin Jouan » d'un seul trait sous l'adresse e-mail (colonne de droite), puis le soulignement file jusqu'au bouton ; sans place, tracé d'avant | Demande d'Augustin après la mise en ligne |
+| Mesure du tracé | Cordes d'environ 6 px | Cordes d'environ 2 px | Dans les boucles de la signature, le point prenait jusqu'à 1,5 px de retard sur le bout du trait |
+| Chargement | Premier défilement | Première pause du défilement (200 ms sans évènement) | Démarré en plein glissé, le trait faisait saccader la molette (image de 60 à 80 ms, jusqu'à une seconde sous charge) |
