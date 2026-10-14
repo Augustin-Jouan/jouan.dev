@@ -47,22 +47,21 @@ aujourd'hui.
 ### 3.2 Ce qui disparaît
 
 - `couleurs.ts` et son test (couleurs attribuées aux visiteurs) ;
-- dans `salle.ts` : positions, ensembles `visibles` et `bouges`, `PLAFOND_CURSEURS`, `deplacer`, `masquer`,
-  `curseurs`, `extraireLot` ; la salle ne garde que les présents (un identifiant opaque interne par connexion, pour
-  retrouver la bonne au départ) et leur nombre ;
+- `salle.ts` et son test : sans curseurs, il ne restait que le compte des présents ; le serveur garde l'ensemble
+  des connexions ouvertes de l'accueil, dont la taille est ce nombre ;
 - dans `serveur.ts` : l'intervalle des lots (`intervalleLotMs`, 50 ms), la diffusion de `depart`, la lecture de
   `position` et `masque` ;
 - dans `protocole.ts` : `lireMessage`, `MessageClient`, `NB_SECTIONS_MAX`, `arrondir`.
 
 ### 3.3 Ce qui ne change pas
 
-`/sante` ; `/sonde` (écho de la page Coulisses, hors de la salle) ; le contrôle des origines ; les limites de
+`/sante` ; `/sonde` (écho de la page Coulisses, hors du compte) ; le contrôle des origines ; les limites de
 connexions (`CONNEXIONS_MAX`, `CONNEXIONS_PAR_IP`) ; le ping qui coupe les connexions mortes ; la file d'envoi
 bornée ; aucune journalisation d'IP ou de comportement.
 
 ### 3.4 Tests
 
-- protocole, salle et serveur mis à jour ; tests des couleurs supprimés ;
+- protocole et serveur mis à jour ; tests de la salle et des couleurs supprimés ;
 - nouveau : un ancien message `{"type":"position",…}` reçu par le service est ignoré, la connexion reste ouverte et
   le visiteur reçoit toujours `presents` ;
 - inchangés : sonde, origines, limites, envoi.

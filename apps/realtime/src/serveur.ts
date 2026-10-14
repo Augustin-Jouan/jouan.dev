@@ -1,9 +1,7 @@
 /**
  * Service temps réel de l'accueil : `/sante` pour les sondes de l'hébergeur, `/direct` pour le
- * WebSocket de l'accueil, `/sonde` pour l'écho de la page des coulisses (hors de la salle).
- * Une seule salle en mémoire ; les positions sont regroupées en lots
- * toutes les `intervalleLotMs`, et seuls les curseurs qui ont bougé partent.
- * Rien n'est journalisé qui permette d'identifier un visiteur (ni IP, ni position).
+ * compteur des personnes présentes sur l'accueil, `/sonde` pour l'écho de la page des
+ * coulisses (hors du compte). Rien n'est journalisé qui permette d'identifier un visiteur.
  */
 import { once } from "node:events";
 import type { AddressInfo } from "node:net";
@@ -26,8 +24,7 @@ import {
 } from "./limites.js";
 import { envoyer } from "./envoi.js";
 import { ipDuClient, origineAutorisee } from "./origines.js";
-import { encoder, lireMessage, TAILLE_MAX_MESSAGE, type MessageServeur } from "./protocole.js";
-import { Salle } from "./salle.js";
+import { encoder, TAILLE_MAX_MESSAGE, type MessageServeur } from "./protocole.js";
 
 export type OptionsServeur = {
   origines: string[];
@@ -35,22 +32,21 @@ export type OptionsServeur = {
   hote?: string;
   connexionsParIp?: number;
   sondeParIp?: number;
-  intervalleLotMs?: number;
   intervallePingMs?: number;
 };
 
 type Connecte = { ws: WSContext<WebSocket>; vivant: boolean };
 
 export async function demarrerServeur(options: OptionsServeur): Promise<{ port: number; fermer(): Promise<void> }> {
-  const salle = new Salle();
   const gardien = new Gardien(CONNEXIONS_MAX, options.connexionsParIp ?? CONNEXIONS_PAR_IP);
-  const connectes = new Map<string, Connecte>();
+  /** Les présents de l'accueil : leur nombre est tout ce que le service partage. */
+  const connectes = new Set<Connecte>();
   const gardienSonde = new Gardien(SONDE_CONNEXIONS_MAX, options.sondeParIp ?? SONDE_CONNEXIONS_PAR_IP);
   const sondes = new Set<Connecte>();
 
-  const diffuser = (message: MessageServeur, sauf?: string) => {
+  const diffuser = (message: MessageServeur, sauf?: Connecte) => {
     const texte = encoder(message);
-    for (const [id, c] of connectes) if (id !== sauf) envoyer(c.ws, texte, FILE_ENVOI_MAX);
+    for (const c of connectes) if (c !== sauf) envoyer(c.ws, texte, FILE_ENVOI_MAX);
   };
   const ipDe = (c: Context) => ipDuClient(c.req.header("x-forwarded-for"), getConnInfo(c).remote.address);
 
@@ -72,7 +68,7 @@ export async function demarrerServeur(options: OptionsServeur): Promise<{ port: 
     upgradeWebSocket((c) => {
       const ip = ipDe(c);
       const debit = new Debit();
-      let id: string | null = null;
+      let connecte: Connecte | null = null;
       return {
         onOpen(_evt, ws) {
           // Une autre connexion a pu prendre la dernière place entre le contrôle et l'ouverture.
@@ -80,44 +76,37 @@ export async function demarrerServeur(options: OptionsServeur): Promise<{ port: 
             ws.close(1013, "Trop de connexions");
             return;
           }
-          const arrivee = salle.rejoindre();
-          id = arrivee.id;
-          const connecte: Connecte = { ws: ws as WSContext<WebSocket>, vivant: true };
-          connectes.set(id, connecte);
-          connecte.ws.raw?.on("pong", () => {
-            connecte.vivant = true;
+          const nouveau: Connecte = { ws: ws as WSContext<WebSocket>, vivant: true };
+          connecte = nouveau;
+          connectes.add(nouveau);
+          nouveau.ws.raw?.on("pong", () => {
+            nouveau.vivant = true;
           });
-          ws.send(encoder({ type: "bienvenue", id, couleur: arrivee.couleur, presents: salle.nombre, curseurs: salle.curseurs(id) }));
-          diffuser({ type: "presents", nombre: salle.nombre }, id);
+          ws.send(encoder({ type: "bienvenue", presents: connectes.size }));
+          diffuser({ type: "presents", nombre: connectes.size }, nouveau);
         },
+        // Le navigateur n'a rien à envoyer : un message est ignoré, mais la taille et le débit
+        // restent bornés (une page ouverte sur une ancienne version envoie encore des positions).
         onMessage(evt, ws) {
-          if (id === null) return;
+          if (!connecte) return;
           if (typeof evt.data !== "string" || Buffer.byteLength(evt.data) > TAILLE_MAX_MESSAGE) {
             ws.close(1008, "Message trop long");
             return;
           }
-          if (!debit.accepter(Date.now())) {
-            ws.close(1008, "Trop de messages");
-            return;
-          }
-          const message = lireMessage(evt.data);
-          if (!message) return;
-          if (message.type === "position") salle.deplacer(id, message.s, message.x, message.y);
-          else if (salle.masquer(id)) diffuser({ type: "depart", id }, id);
+          if (!debit.accepter(Date.now())) ws.close(1008, "Trop de messages");
         },
         onClose() {
-          if (id === null) return;
+          if (!connecte) return;
           gardien.liberer(ip);
-          connectes.delete(id);
-          if (salle.quitter(id)) diffuser({ type: "depart", id });
-          diffuser({ type: "presents", nombre: salle.nombre });
-          id = null;
+          connectes.delete(connecte);
+          diffuser({ type: "presents", nombre: connectes.size });
+          connecte = null;
         },
       };
     }),
   );
 
-  // Écho pour la page des coulisses : mesure l'aller-retour, sans rejoindre la salle.
+  // Écho pour la page des coulisses : mesure l'aller-retour, sans compter parmi les présents.
   app.get(
     "/sonde",
     filtrer("sonde", gardienSonde),
@@ -164,18 +153,9 @@ export async function demarrerServeur(options: OptionsServeur): Promise<{ port: 
     }),
   );
 
-  const lots = setInterval(() => {
-    const lot = salle.extraireLot();
-    if (lot.length === 0) return;
-    for (const [id, c] of connectes) {
-      const autres = lot.filter((curseur) => curseur[0] !== id);
-      if (autres.length > 0) envoyer(c.ws, encoder({ type: "positions", curseurs: autres }), FILE_ENVOI_MAX);
-    }
-  }, options.intervalleLotMs ?? 50);
-
   // Une connexion qui ne répond plus au ping depuis le précédent est coupée.
   const pings = setInterval(() => {
-    for (const c of [...connectes.values(), ...sondes]) {
+    for (const c of [...connectes, ...sondes]) {
       if (!c.vivant) {
         c.ws.raw?.terminate();
         continue;
@@ -197,9 +177,8 @@ export async function demarrerServeur(options: OptionsServeur): Promise<{ port: 
   return {
     port: (serveur.address() as AddressInfo).port,
     async fermer() {
-      clearInterval(lots);
       clearInterval(pings);
-      for (const c of connectes.values()) c.ws.close(1001, "Arrêt du service");
+      for (const c of connectes) c.ws.close(1001, "Arrêt du service");
       for (const c of sondes) c.ws.close(1001, "Arrêt du service");
       await new Promise<void>((ok) => serveur.close(() => ok()));
     },

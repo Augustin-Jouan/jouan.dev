@@ -70,7 +70,7 @@ export const SONDE_TAILLE_MAX = 32;
 
 /**
  * Octets en attente d'envoi au-delà desquels un client qui ne lit plus est
- * coupé : une trentaine de lots de positions pour l'accueil, quelques échos
+ * coupé : largement de quoi pour le compteur de l'accueil, quelques échos
  * pour la sonde.
  */
 export const FILE_ENVOI_MAX = 256 * 1_024;
