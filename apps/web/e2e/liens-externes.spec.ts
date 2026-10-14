@@ -17,6 +17,8 @@ for (const chemin of PAGES) {
 }
 
 test("un lien externe ouvre un nouvel onglet et laisse le site affiché", async ({ page, context }) => {
+  // Intro déjà vue : ni WebGL ni retour en haut pendant le clic, qui ne porte que sur le lien.
+  await page.addInitScript(() => sessionStorage.setItem("jouan.dev:intro-vue", "1"));
   await page.goto("/");
   // Le nouvel onglet est fermé aussitôt : le test ne dépend pas du site visé.
   context.on("page", (onglet) => void onglet.close());
