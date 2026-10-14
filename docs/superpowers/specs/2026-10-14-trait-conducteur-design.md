@@ -1,6 +1,7 @@
 # Accueil — le trait conducteur
 
-Date : 2026-10-14 · Statut : design validé en conversation (questions 1 à 5, approche 1, parties 1 et 2), à relire par Augustin.
+Date : 2026-10-14 · Statut : design validé en conversation (questions 1 à 5, approche 1, parties 1 et 2), relu par
+Augustin ; révisé pendant la préparation du plan (§ 11).
 
 Branche : `trait-conducteur`, partie de `main` après la fusion de la PR #29 (Méthode à allumage déclenché).
 Mêmes règles que les sous-projets précédents : français uniquement, charte « Nuit mauve » (rôles de couleur, jamais
@@ -72,17 +73,22 @@ Coordonnées du document (px). `M` = marge (§ 3.1), `W` = largeur utile de l'é
 4. **Traversée** : segment droit le long de la ligne de la Méthode (`y` = centre des nœuds), du nœud 1 jusqu'au bout
    droit de la ligne (`.methode-fil`).
 5. **Sortie à droite** : courbe vers la marge droite, puis descente avec des abscisses dans `[W − M + 16, W − 12]`.
-6. **∞** : un huit couché autour des deux logos, à `rayon de l'image + 6 px` de chaque centre, croisement entre les
-   deux anneaux. Le trait y entre par le haut de l'anneau de droite et en ressort par le bas de ce même anneau.
+6. **∞** : un huit couché autour des deux logos, à `rayon de l'image + 6 px` de chaque centre (sur l'anneau pêche).
+   Le trait entre par le haut de l'anneau de droite et l'épouse jusqu'au point de tangence, croise en ligne droite
+   (tangentes intérieures communes aux deux anneaux), fait le tour de l'anneau de gauche par le bas, recroise et
+   ressort par le bas de l'anneau de droite. Il ne passe **jamais** sur les images.
 7. **Fin** : retour dans la marge droite, descente jusqu'à hauteur de la section Contact, puis courbe qui se termine
    au milieu du bord droit du bouton d'envoi, en passant sous les champs du formulaire.
 
 ### 3.4 Géométrie, variante « bord »
 
 1. Du départ (`x = 8`) jusqu'à hauteur du nœud 1 : ondulations douces, abscisses dans `[4, 12]`.
-2. Raccord au centre du nœud 1, puis le trait suit la ligne verticale de la Méthode jusqu'au bas de `.methode-fil`.
-3. Retour à `x = 8`, descente avec les mêmes ondulations, sans détour par les logos.
-4. Courbe finale vers le milieu du bord gauche du bouton d'envoi.
+2. Raccord au centre du nœud 1, puis le trait suit la ligne de la Méthode jusqu'à son bout.
+3. **Ligne verticale** (téléphone, tablette) : retour à `x = 8`, descente avec les mêmes ondulations, sans détour par
+   les logos, puis courbe finale vers le milieu du bord **gauche** du bouton d'envoi.
+4. **Ligne horizontale** (écrans de 1024 à 1199 px) : le trait ressort à droite et descend le long du bord droit
+   (`x ∈ [W − 12, W − 4]`), sans détour par les logos, puis courbe finale vers le milieu du bord **droit** du bouton
+   (la colonne de droite du Contact est vide à cette hauteur).
 
 ## 4. Comportement
 
@@ -91,8 +97,9 @@ Coordonnées du document (px). `M` = marge (§ 3.1), `W` = largeur utile de l'é
 - **Ligne de lecture** : `T = scrollY + 0,66 × innerHeight` (coordonnée du document).
 - Chaque point de passage *i* a une longueur `Lᵢ` le long du trait et une cible `Yᵢ` sur l'axe vertical :
   - en général, `Yᵢ` = l'ordonnée du point ;
-  - **traversée de la Méthode** : `Y(nœud 1) = y_ligne − 0,25 × innerHeight` et
-    `Y(bout de la ligne) = y_ligne + 0,25 × innerHeight` : la traversée s'étale sur un demi-écran de défilement ;
+  - **traversée d'une ligne horizontale** : `Y(nœud 1) = y_ligne − 0,25 × innerHeight` et
+    `Y(bout de la ligne) = y_ligne + 0,25 × innerHeight` : la traversée s'étale sur un demi-écran de défilement
+    (une ligne verticale suit le défilement sans étalement) ;
   - **∞** : de `Y = haut des logos` à `Y = bas des logos`.
   - Les `Yᵢ` sont rendus strictement croissants (`Yᵢ = max(Yᵢ, Yᵢ₋₁ + 1)`).
 - Longueur tracée `L(T)` : interpolation linéaire entre points consécutifs ; `0` avant le départ, la longueur totale
@@ -141,9 +148,11 @@ Aucune lecture de position pendant le défilement : il n'utilise que les valeurs
 
 ### 4.5 Démarrage et arrêt
 
-- Composant `TraitConducteur` (client) rendu par `Accueil`. Il ne rend rien lui-même. Dans un temps libre après
-  l'affichage (`quandLibre`, comme `DefilementDoux`), il importe dynamiquement `lib/trait/trait-conducteur.ts`
-  (DOM sans React) et appelle `demarrerTrait()`, qui renvoie une fonction d'arrêt.
+- Composant `TraitConducteur` (client) rendu par `Accueil`. Il ne rend rien lui-même. **Au premier défilement**
+  (ou dès l'affichage si la page arrive déjà défilée : lien vers `#contact`, défilement restauré), dans un temps libre
+  (`quandLibre`), il importe dynamiquement `lib/trait/trait-conducteur.ts` (DOM sans React) et appelle
+  `demarrerTrait()`, qui renvoie une fonction d'arrêt. Le trait ne se dessine qu'une fois la page défilée sous
+  l'accroche : une visite sans défilement (et Lighthouse) ne le télécharge pas.
 - Pas de démarrage si `prefers-reduced-motion: reduce`. Si la préférence passe à `reduce` pendant la visite, le
   trait s'arrête et son calque est retiré (les allumages déjà posés restent).
 - Morceau introuvable (déploiement en cours) : pas de trait, sans erreur ; la Méthode garde son repli.
@@ -156,13 +165,15 @@ Aucune lecture de position pendant le défilement : il n'utilise que les valeurs
   `100 %`, hauteur = bas de la section Contact, `overflow: hidden`, `pointer-events: none`, `aria-hidden="true"`,
   `z-index: 1` (au-dessus du contenu, sous les fenêtres et la palette, qui sont dans la couche supérieure). Il ne
   fait jamais déborder la page en largeur.
-- Trait : `stroke` = `var(--color-accent)`, épaisseur 2 px (« marges ») ou 1,5 px (« bord »), extrémités rondes,
-  halo `drop-shadow` en `color-mix` sur `--color-lueur`. Longueur tracée par `stroke-dasharray` /
-  `stroke-dashoffset` (avec `pathLength` égal à la longueur réelle).
+- Trait : `stroke` = `var(--color-accent)`, épaisseur 2 px (« marges ») ou 1,5 px (« bord »), extrémités rondes.
+  Halo : un second tracé dessous, 7 px (« bord » : 5 px), `color-mix` à 28 % de `--color-lueur`. **Aucun filtre**
+  sur les tracés : un `drop-shadow` sur un trait de toute la hauteur de la page, redessiné à chaque image, faisait
+  tomber le défilement doux de ~70 à ~16 images par seconde. Longueur tracée par `stroke-dasharray` /
+  `stroke-dashoffset` des deux tracés (avec `pathLength` égal à la longueur calculée).
 - Tête : un cercle de 4 px de rayon, `fill` = `var(--color-texte)`, halo pêche, déplacé par `transform`.
 - Masqué à l'impression (`@media print`).
-- Par image de défilement : deux écritures seulement (`stroke-dashoffset` du trait, `transform` de la tête), plus
-  les `data-allumee` éventuels.
+- Par image de défilement : trois écritures seulement (`stroke-dashoffset` des deux tracés, `transform` de la tête),
+  plus les `data-allumee` éventuels.
 
 ## 6. Fichiers
 
@@ -178,10 +189,15 @@ Aucune lecture de position pendant le défilement : il n'utilise que les valeurs
 | `components/contact/ContactForm.tsx` | `data-trait="envoi"` sur le bouton d'envoi |
 | `app/globals.css` | Méthode en mode trait, halo des logos, pulsation de l'envoi, impression |
 | `scripts/verifier-taille-defilement.mjs` | Vérifie aussi le morceau du trait (≤ 6 Ko compressés) |
+| `lib/methode-css.test.ts` | Étendu : masquage sous `[data-trait]`, pulsation sans mouvement réduit, impression, aucun filtre sur les tracés |
+| `e2e/trait.spec.ts` | Nouveau (§ 9) |
+| `e2e/methode.spec.ts` | Cascade et étape par étape testées **sans trait** (morceau bloqué) : c'est le repli |
 
 ## 7. Performances et budgets
 
-- Le morceau du trait est chargé après l'affichage : premier écran et LCP inchangés.
+- Le morceau du trait est chargé au premier défilement : premier écran, LCP et budget de scripts de l'accueil
+  inchangés (mesuré : 165 731 octets, comme sans le trait ; chargé en temps libre dès l'affichage, il les portait à
+  170 842, au-delà du budget).
 - Budget du morceau : **6 Ko compressés**, vérifié en CI par le script de taille (repéré par `MARQUEUR_TRAIT`), à
   côté de Lenis (8 Ko).
 - `TraitConducteur` dans le bundle de l'accueil : moins de 1 Ko ; le budget Lighthouse `resource-summary:script:size`
@@ -202,7 +218,8 @@ Aucune lecture de position pendant le défilement : il n'utilise que les valeurs
 - Variante « marges » : hors Méthode, ∞ et courbe finale, tous les points échantillonnés ont `x ∈ [12, M − 16]` à
   gauche ou `x ∈ [W − M + 16, W − 12]` à droite ; jamais `x < 0` ni `x > W`.
 - Le tracé passe par le centre des cinq nœuds, dans l'ordre, et les `Lᵢ` sont croissants.
-- ∞ : à la longueur de chaque logo, la distance au centre vaut `rayon + 6 ± 1 px` ; les deux anneaux sont entourés.
+- ∞ : à la longueur de chaque logo, la distance au centre vaut `rayon + 6 ± 1 px` ; l'anneau de gauche est longé
+  par le bas, la gauche et le haut ; aucun point du trait n'est à moins de `rayon + 5 px` d'un centre.
 - Fin du tracé sur le bord du bouton d'envoi.
 - Variante « bord » quand `M < 56` ou largeur < 64rem ; abscisses dans `[4, 12]` hors Méthode et courbe finale.
 - `progression` : `L` = 0 avant le départ, total après l'envoi, monotone en `T` ; traversée de la Méthode étalée sur
@@ -210,8 +227,9 @@ Aucune lecture de position pendant le défilement : il n'utilise que les valeurs
 
 **Composants :**
 
-- `TraitConducteur` : pas d'import en mouvement réduit ; import dans un temps libre sinon ; arrêt au démontage ;
-  import en échec sans erreur.
+- `TraitConducteur` : rien avant le premier défilement ; import au premier défilement (tout de suite si la page est
+  déjà défilée) ; pas d'import en mouvement réduit, même en défilant ; arrêt au démontage et au passage au
+  mouvement réduit.
 - `FriseMethode` : avec `data-trait` sur la frise, ses observateurs n'allument rien.
 - CSS (`lib/methode-css.test.ts` étendu) : les règles du mode trait sont sous `[data-trait]` ; rien n'est masqué
   hors de ce mode.
@@ -225,6 +243,8 @@ Aucune lecture de position pendant le défilement : il n'utilise que les valeurs
 - Téléphone : variante « bord » ; les étapes s'allument au passage du trait ; logos sans halo.
 - Page de prospect (`/?pour=exemple-0000`) : le trait atteint le bouton d'envoi.
 - Arrivée directe sur `/#contact` : le trait est tracé jusqu'à la position, les points dépassés sont allumés.
+- Sans défilement, le trait n'est pas chargé.
+- Le défilement doux reste fluide (test existant `e2e/defilement.spec.ts` : il échouait avec un filtre sur le trait).
 - Taille du morceau vérifiée après le build.
 
 **Visuel :** captures ordinateur (1440 px) et téléphone (390 px), dont une à mi-traversée de la Méthode et une
@@ -235,3 +255,15 @@ pendant le ∞, pour validation par Augustin avant la PR.
 - Les autres pages (réalisations, coulisses, mentions…).
 - Une variante du trait pour le thème clair (le site n'en a pas).
 - Des interactions avec le trait (survol, clic).
+
+## 11. Révisions pendant la préparation du plan
+
+Le code a été écrit et vérifié une première fois avant le plan. Ce qui a changé par rapport à la version relue :
+
+| Point | Avant | Après | Pourquoi |
+|---|---|---|---|
+| ∞ | Brins en diagonale du haut d'un anneau au croisement | Tangentes intérieures communes, arcs sur les anneaux | Les diagonales passaient sur le bord des photos |
+| Halo du trait | `drop-shadow` | Second tracé translucide, sans filtre | Défilement doux à ~16 images/s au lieu de ~70 (`e2e/defilement.spec.ts` échouait) |
+| Chargement | Temps libre après l'affichage | Premier défilement (ou page déjà défilée) | Budget Lighthouse des scripts dépassé de 1 882 octets |
+| « bord » sur 1024–1199 px | Non décrit (ligne supposée verticale) | Ligne horizontale, fin le long du bord droit | La Méthode y est horizontale |
+| Traversée sur téléphone | Étalée sur un demi-écran | Suit le défilement | La ligne y est verticale : elle se parcourt déjà en défilant |
