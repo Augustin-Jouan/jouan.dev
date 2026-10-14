@@ -267,3 +267,4 @@ Le code a été écrit et vérifié une première fois avant le plan. Ce qui a c
 | Chargement | Temps libre après l'affichage | Premier défilement (ou page déjà défilée) | Budget Lighthouse des scripts dépassé de 1 882 octets |
 | « bord » sur 1024–1199 px | Non décrit (ligne supposée verticale) | Ligne horizontale, fin le long du bord droit | La Méthode y est horizontale |
 | Traversée sur téléphone | Étalée sur un demi-écran | Suit le défilement | La ligne y est verticale : elle se parcourt déjà en défilant |
+| Écran haut | Dernier repère sur le centre du bouton d'envoi | Fin des repères resserrée pour rester à portée de la ligne de lecture (bas de page − 34 % d'écran) | Relecture finale : au-delà d'environ 1 060 px de haut, le trait n'atteignait jamais le bouton |

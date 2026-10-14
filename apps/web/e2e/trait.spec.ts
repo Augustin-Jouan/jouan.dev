@@ -99,6 +99,25 @@ test.describe("ordinateur", () => {
     await expect(page.locator(".methode-frise")).toHaveAttribute("data-trait", "");
   });
 
+  // Écran haut : la ligne de lecture ne descend pas sous le bas de page − 34 % de l'écran ; le trait doit
+  // pourtant finir sa course sur le bouton d'envoi.
+  for (const taille of [
+    { width: 1920, height: 1200 },
+    { width: 2560, height: 1440 },
+    { width: 1100, height: 1400 },
+  ]) {
+    test(`écran ${taille.width}×${taille.height} : tout en bas, le trait est entier et allume l'envoi`, async ({ page }) => {
+      await page.setViewportSize(taille);
+      await page.goto("/");
+      await attendreTrait(page);
+      await defiler(page, (await etat(page)).bas);
+      const e = await etat(page);
+      const total = await page.locator(".trait-ligne").evaluate((l) => Math.round(Number(l.getAttribute("pathLength"))));
+      expect(e.longueur).toBe(total);
+      expect(e.allumees).toContain("envoi");
+    });
+  }
+
   test("page de prospect : le trait mène aussi jusqu'au bouton d'envoi", async ({ page }) => {
     await page.goto("/?pour=exemple-0000");
     await attendreTrait(page);

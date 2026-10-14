@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { longueurPour, ordonnerReperes, pointA } from "./progression";
+import { longueurPour, ordonnerReperes, pointA, ramenerSous } from "./progression";
 
 describe("ordonnerReperes", () => {
   it("rend les ordonnées strictement croissantes, sans toucher aux longueurs", () => {
@@ -15,6 +15,29 @@ describe("ordonnerReperes", () => {
       { l: 10, y: 101 },
       { l: 20, y: 102 },
       { l: 30, y: 200 },
+    ]);
+  });
+});
+
+describe("ramenerSous", () => {
+  const reperes = [
+    { l: 0, y: 100 },
+    { l: 50, y: 1000 },
+    { l: 100, y: 1500 },
+    { l: 200, y: 2000 },
+  ];
+
+  it("ne change rien quand la ligne de lecture peut atteindre le dernier repère", () => {
+    expect(ramenerSous(reperes, 2000, 400)).toEqual(reperes);
+  });
+
+  it("resserre la fin, à partir du dernier repère assez haut, pour que le dernier tombe sur la ligne la plus basse", () => {
+    // Fin à 1800, recul de 400 : on garde tout jusqu'à 1400, ici le repère à 1000 ; le reste est resserré.
+    expect(ramenerSous(reperes, 1800, 400)).toEqual([
+      { l: 0, y: 100 },
+      { l: 50, y: 1000 },
+      { l: 100, y: 1400 },
+      { l: 200, y: 1800 },
     ]);
   });
 });

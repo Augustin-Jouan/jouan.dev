@@ -5,7 +5,7 @@
  *
  * Le chemin n'est fait que de courbes de Bézier cubiques : leur longueur se mesure ici, sans DOM.
  */
-import { ordonnerReperes, PAS_ECHANTILLON, type Point, type Repere } from "./progression";
+import { ordonnerReperes, ramenerSous, PAS_ECHANTILLON, type Point, type Repere } from "./progression";
 
 export type { Point };
 export type Cercle = Point & { r: number };
@@ -33,6 +33,8 @@ export type Reperes = {
   logos: Cercle[];
   /** Bouton d'envoi du formulaire de contact. */
   envoi: Boite;
+  /** Ordonnée la plus basse que la ligne de lecture atteint, page défilée jusqu'en bas. */
+  finLecture: number;
 };
 
 export type Cible = { type: "etape"; indice: number } | { type: "logo"; indice: number } | { type: "envoi" };
@@ -361,7 +363,12 @@ export function tracer(r: Reperes): Trace {
     d,
     longueur,
     echantillons,
-    reperes: ordonnerReperes(reperes.map(({ jalon, y }) => ({ l: debutSegment[jalon]!, y }))),
+    // Le dernier repère (le bouton d'envoi) doit rester à portée de la ligne de lecture, même sur un écran haut.
+    reperes: ramenerSous(
+      ordonnerReperes(reperes.map(({ jalon, y }) => ({ l: debutSegment[jalon]!, y }))),
+      r.finLecture,
+      0.25 * r.hauteurEcran,
+    ),
     allumables: allumables
       .map(({ jalon, decalage, cible }) => ({ l: Math.min(longueur, debutSegment[jalon]! + decalage), cible }))
       .sort((a, b) => a.l - b.l),

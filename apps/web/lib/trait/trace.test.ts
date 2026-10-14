@@ -17,6 +17,7 @@ const ORDINATEUR: Reperes = {
     { x: 1104, y: 3100, r: 80 },
   ],
   envoi: { gauche: 96, haut: 3900, droite: 210, bas: 3944 },
+  finLecture: 4155,
 };
 
 /** Accueil sur un téléphone de 390 px : gouttière de 20 px, Méthode verticale. */
@@ -34,6 +35,7 @@ const TELEPHONE: Reperes = {
     { x: 270, y: 5300, r: 56 },
   ],
   envoi: { gauche: 20, haut: 6400, droite: 134, bas: 6444 },
+  finLecture: 6613,
 };
 
 /** Portable de 1100 px : Méthode horizontale, mais marge trop étroite. */
@@ -172,6 +174,21 @@ describe("tracer, variante « marges »", () => {
       expect(r.l).toBeGreaterThanOrEqual(trace.reperes[i]!.l);
     });
   });
+});
+
+describe("tracer, écran haut", () => {
+  // Grand écran : sous le bouton, moins de 34 % d'écran de page ; la ligne de lecture s'arrête au-dessus.
+  for (const [nom, r] of [["marges", ORDINATEUR], ["bord", PORTABLE]] as const) {
+    it(`variante « ${nom} » : le trait finit quand même au bas de la page, la Méthode n'a pas bougé`, () => {
+      const normal = tracer(r);
+      const haut = tracer({ ...r, hauteurEcran: 1440, finLecture: 3800 });
+      expect(haut.reperes.at(-1)!.y).toBeLessThanOrEqual(3800);
+      expect(haut.reperes.at(-1)!.l).toBe(haut.longueur);
+      haut.reperes.slice(1).forEach((p, i) => expect(p.y).toBeGreaterThan(haut.reperes[i]!.y));
+      expect(haut.reperes.slice(0, 2).map((p) => p.l)).toEqual(normal.reperes.slice(0, 2).map((p) => p.l));
+      expect(haut.reperes[0]!.y).toBe(normal.reperes[0]!.y);
+    });
+  }
 });
 
 describe("tracer, variante « bord »", () => {

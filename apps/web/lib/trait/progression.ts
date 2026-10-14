@@ -20,6 +20,22 @@ export function ordonnerReperes(reperes: Repere[]): Repere[] {
   });
 }
 
+/**
+ * Sur un écran haut, la ligne de lecture s'arrête avant le bas de la page (`fin`) : les derniers repères
+ * seraient hors d'atteinte. On garde les repères jusqu'au dernier situé à `recul` au moins au-dessus de
+ * `fin`, et l'on resserre les suivants pour que le dernier tombe sur `fin`.
+ */
+export function ramenerSous(reperes: Repere[], fin: number, recul: number): Repere[] {
+  const dernier = reperes.at(-1);
+  if (!dernier || dernier.y <= fin) return reperes;
+  let k = reperes.length - 2;
+  while (k > 0 && reperes[k]!.y > fin - recul) k--;
+  const a = reperes[Math.max(k, 0)]!.y;
+  if (fin <= a) return reperes;
+  const echelle = (fin - a) / (dernier.y - a);
+  return reperes.map(({ l, y }, i) => ({ l, y: i > k ? a + (y - a) * echelle : y }));
+}
+
 /** Longueur tracée pour la ligne de lecture `t` : 0 avant le premier repère, la dernière longueur après. */
 export function longueurPour(t: number, reperes: Repere[]): number {
   const premier = reperes[0];

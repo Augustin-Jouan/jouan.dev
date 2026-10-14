@@ -55,6 +55,7 @@ export function lireReperes(): Reperes | null {
       return { x: (b.gauche + b.droite) / 2, y: (b.haut + b.bas) / 2, r: (b.droite - b.gauche) / 2 };
     }),
     envoi: boite(envoi),
+    finLecture: document.documentElement.scrollHeight - window.innerHeight * (1 - LIGNE_DE_LECTURE),
   };
 }
 
