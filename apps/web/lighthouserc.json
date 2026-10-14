@@ -9,7 +9,7 @@
         "http://127.0.0.1:3000/?pour=exemple-0000",
         "http://127.0.0.1:3000/coulisses"
       ],
-      "numberOfRuns": 5,
+      "numberOfRuns": 3,
       "settings": {
         "chromeFlags": "--no-sandbox --headless=new"
       }

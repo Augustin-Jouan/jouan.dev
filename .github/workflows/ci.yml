@@ -1,6 +1,7 @@
 # Vérifie chaque push et chaque pull request : lint, types, tests, build Next,
-# puis construction de l'image Docker. Sur `main`, l'image est publiée sur
-# GHCR et Coolify est prévenu : le VPS ne compile rien, il tire l'image.
+# tests de bout en bout et Lighthouse (trois jobs en parallèle), puis
+# construction de l'image Docker. Sur `main`, l'image est publiée sur GHCR et
+# Coolify est prévenu : le VPS ne compile rien, il tire l'image.
 name: CI
 
 on:
@@ -83,10 +84,10 @@ jobs:
       - run: pnpm build
 
   e2e:
-    name: Bout en bout et performances
+    name: Bout en bout
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Base de test : migrations appliquées puis tests d'intégration (verifier), e2e et Lighthouse (e2e).
+    # Base de test : migrations appliquées puis tests d'intégration (verifier), e2e et Lighthouse.
     services:
       postgres:
         image: postgres:17-alpine
@@ -104,7 +105,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://jouan:jouan@127.0.0.1:5432/jouan_test
       DATABASE_URL_TEST: postgresql://jouan:jouan@127.0.0.1:5432/jouan_test
-      # Service temps réel lancé par Playwright puis pour Lighthouse ; l'adresse est figée au build.
+      # Service temps réel lancé par Playwright ; l'adresse est figée au build.
       NEXT_PUBLIC_DIRECT_URL: ws://127.0.0.1:3201/direct
     steps:
       - uses: actions/checkout@v7
@@ -147,9 +148,66 @@ jobs:
 
       - run: pnpm --filter web verifier-taille-commandes
 
-      # Playwright a arrêté son service temps réel : Lighthouse mesure l'accueil
-      # avec un service démarré, comme en production.
-      - name: Service temps réel pour Lighthouse
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mesures-e2e
+          path: mesures-e2e-tests.json
+          retention-days: 7
+
+      - name: Rapports en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-e2e
+          path: apps/web/playwright-report
+          retention-days: 7
+
+  # En parallèle des tests de bout en bout : son propre build et sa propre base,
+  # pour ne pas attendre la fin de Playwright (près de 5 minutes).
+  lighthouse:
+    name: Performances (Lighthouse)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: jouan
+          POSTGRES_PASSWORD: jouan
+          POSTGRES_DB: jouan_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jouan"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://jouan:jouan@127.0.0.1:5432/jouan_test
+      # Accueil mesuré avec le service temps réel, comme en production ; l'adresse est figée au build.
+      NEXT_PUBLIC_DIRECT_URL: ws://127.0.0.1:3201/direct
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter web migrer
+
+      - run: pnpm build
+
+      - run: pnpm --filter realtime build
+
+      # Lien personnalisé mesuré par Lighthouse (`/?pour=exemple-0000`).
+      - run: pnpm --filter web semer-lien-exemple
+
+      - name: Service temps réel
         run: |
           ORIGINES_AUTORISEES=http://127.0.0.1:3000 PORT=3201 HOTE=127.0.0.1 nohup pnpm --filter realtime start > /tmp/direct.log 2>&1 &
           for i in $(seq 1 20); do curl -sf http://127.0.0.1:3201/sante && exit 0; sleep 0.5; done
@@ -162,22 +220,18 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: mesures-e2e
-          path: |
-            mesures-e2e-tests.json
-            mesures-lighthouse.json
+          name: mesures-lighthouse
+          path: mesures-lighthouse.json
           retention-days: 7
 
       - name: Rapports en cas d'échec
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: rapports
-          path: |
-            apps/web/playwright-report
-            apps/web/.lighthouseci
+          name: rapports-lighthouse
+          path: apps/web/.lighthouseci
           # Sans cette option, upload-artifact ignore les dossiers cachés
-          # (`.lighthouseci`) : les rapports Lighthouse manqueraient.
+          # (`.lighthouseci`) : les rapports manqueraient.
           include-hidden-files: true
           retention-days: 7
 
@@ -185,7 +239,7 @@ jobs:
     name: Image Docker (${{ matrix.nom }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [verifier, e2e]
+    needs: [verifier, e2e, lighthouse]
     permissions:
       contents: read
       packages: write
