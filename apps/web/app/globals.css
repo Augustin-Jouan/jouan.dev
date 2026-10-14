@@ -226,7 +226,6 @@ html[data-voile-intro] body::after {
  */
 .methode-frise {
   position: relative;
-  view-timeline-name: --methode;
 }
 .methode-fil {
   position: absolute;
@@ -333,106 +332,83 @@ html[data-voile-intro] body::after {
 }
 
 /*
- * Animation liée au défilement, sans JS. Ordinateur : le fil avance de gauche à
- * droite et allume chaque étape à son passage (`--i`, rang de l'étape). Téléphone :
- * chaque étape s'allume en montant vers le milieu de l'écran, le fil descend avec.
- * Une fois tout allumé, le paquet de lumière parcourt le fil en boucle.
+ * Allumage de la frise (components/accueil/FriseMethode.tsx) : déclenché par le
+ * défilement, mais joué en temps réel jusqu'au bout. Le script pose
+ * `data-animation` sur la frise, puis `data-allumee` sur chaque étape et
+ * `--avance` (part du fil tracée). Les animations attendent en pause, dans leur
+ * premier état, jusqu'à l'allumage. Ordinateur : une cascade, chaque étape
+ * décalée de 0,32 s (`--i`) au passage du fil.
  */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .methode-fil__plein {
-      animation: methode-remplir-y linear both;
-      animation-timeline: --methode;
-      animation-range: cover 12% cover 62%;
-    }
-    .methode-etape {
-      view-timeline-name: --etape;
-    }
-    .methode-noeud,
-    .methode-num,
-    .methode-num::before,
-    .methode-etape h3,
-    .methode-etape p {
-      animation: methode-monter linear both;
-      animation-timeline: --etape;
-    }
-    .methode-noeud {
-      animation-name: methode-allumer;
-      animation-range: cover 20% cover 32%;
-    }
-    .methode-num {
-      animation-name: methode-reveler;
-      animation-range: cover 22% cover 36%;
-    }
-    .methode-num::before {
-      animation-name: methode-goutte;
-      animation-range: cover 22% cover 46%;
-    }
-    .methode-etape h3 {
-      animation-range: cover 28% cover 40%;
-    }
-    .methode-etape p {
-      animation-range: cover 31% cover 44%;
-    }
-    .methode-paquet {
-      animation: methode-apparaitre linear both;
-      animation-timeline: --methode;
-      animation-range: cover 58% cover 64%;
-    }
-    .methode-paquet__trajet {
-      animation: methode-trajet-y 4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-    }
+@media (prefers-reduced-motion: no-preference) {
+  /* Transition seulement une fois allumée : à l'armement, le fil s'efface d'un coup, sans se « détracer ». */
+  .methode-frise[data-animation] .methode-fil__plein {
+    transform: scaleY(var(--avance, 0));
+  }
+  .methode-frise[data-animation]:has([data-allumee]) .methode-fil__plein {
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .methode-frise[data-animation] .methode-etape {
+    --delai: 0s;
+  }
+  .methode-frise[data-animation] .methode-noeud,
+  .methode-frise[data-animation] .methode-num,
+  .methode-frise[data-animation] .methode-num::before,
+  .methode-frise[data-animation] .methode-etape h3,
+  .methode-frise[data-animation] .methode-etape p {
+    animation: methode-monter 0.6s cubic-bezier(0.22, 1, 0.36, 1) both paused;
+  }
+  .methode-frise[data-animation] .methode-noeud {
+    animation-name: methode-allumer;
+    animation-duration: 0.45s;
+    animation-delay: var(--delai);
+  }
+  .methode-frise[data-animation] .methode-num {
+    animation-name: methode-reveler;
+    animation-delay: calc(var(--delai) + 0.05s);
+  }
+  .methode-frise[data-animation] .methode-num::before {
+    animation-name: methode-goutte;
+    animation-duration: 1.1s;
+    animation-delay: calc(var(--delai) + 0.05s);
+  }
+  .methode-frise[data-animation] .methode-etape h3 {
+    animation-delay: calc(var(--delai) + 0.2s);
+  }
+  .methode-frise[data-animation] .methode-etape p {
+    animation-delay: calc(var(--delai) + 0.3s);
+  }
+  .methode-frise[data-animation] .methode-etape[data-allumee] :is(.methode-noeud, .methode-num, h3, p),
+  .methode-frise[data-animation] .methode-etape[data-allumee] .methode-num::before {
+    animation-play-state: running;
+  }
+  /* Le paquet de lumière : il apparaît une fois toute la frise allumée, puis parcourt le fil en boucle. */
+  .methode-frise[data-animation][data-complete] .methode-paquet {
+    animation: methode-apparaitre 0.6s ease-out 0.5s both;
+  }
+  .methode-frise[data-animation][data-complete] .methode-paquet__trajet {
+    animation: methode-trajet-y 4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
 
-    @media (width >= 64rem) {
-      .methode-etape {
-        --debut: calc(18% + var(--i) * 6.4%);
-      }
-      .methode-noeud,
-      .methode-num,
-      .methode-num::before,
-      .methode-etape h3,
-      .methode-etape p {
-        animation-timeline: --methode;
-      }
-      .methode-fil__plein {
-        animation-name: methode-remplir-x;
-        animation-range: cover 18% cover 50%;
-      }
-      .methode-noeud {
-        animation-range: cover var(--debut) cover calc(var(--debut) + 2%);
-      }
-      .methode-num {
-        animation-range: cover var(--debut) cover calc(var(--debut) + 5%);
-      }
-      .methode-num::before {
-        animation-range: cover var(--debut) cover calc(var(--debut) + 10%);
-      }
-      .methode-etape h3 {
-        animation-range: cover calc(var(--debut) + 2%) cover calc(var(--debut) + 7%);
-      }
-      .methode-etape p {
-        animation-range: cover calc(var(--debut) + 3%) cover calc(var(--debut) + 8%);
-      }
-      .methode-paquet {
-        animation-range: cover 50% cover 54%;
-      }
-      .methode-paquet__trajet {
-        animation-name: methode-trajet-x;
-      }
+  @media (width >= 64rem) {
+    .methode-frise[data-animation] .methode-fil__plein {
+      transform: scaleX(var(--avance, 0));
+    }
+    .methode-frise[data-animation]:has([data-allumee]) .methode-fil__plein {
+      transition-duration: 1.6s;
+      transition-timing-function: linear;
+    }
+    .methode-frise[data-animation] .methode-etape {
+      --delai: calc(var(--i) * 0.32s);
+    }
+    .methode-frise[data-animation][data-complete] .methode-paquet {
+      animation-delay: 1.8s;
+    }
+    .methode-frise[data-animation][data-complete] .methode-paquet__trajet {
+      animation-name: methode-trajet-x;
     }
   }
 }
 
-@keyframes methode-remplir-y {
-  from {
-    transform: scaleY(0);
-  }
-}
-@keyframes methode-remplir-x {
-  from {
-    transform: scaleX(0);
-  }
-}
 @keyframes methode-allumer {
   from {
     border-color: var(--color-trait-fort);

@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const ETAPES = 5;
 
-/** Opacité de chaque titre d'étape, après le prochain rendu (l'animation suit le défilement). */
+/** Opacité de chaque titre d'étape, après le prochain rendu. */
 async function opacites(page: Page): Promise<number[]> {
   return page.evaluate(async () => {
     await new Promise((fin) => requestAnimationFrame(() => requestAnimationFrame(fin)));
@@ -24,20 +24,60 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("jouan.dev:intro-vue", "1"));
 });
 
-test("la méthode s'allume étape par étape au défilement, dans l'ordre, puis reste allumée", async ({ page }) => {
+/** Jamais une étape allumée après une éteinte : toujours un début de liste. */
+function enOrdre(allumees: boolean[]) {
+  const premiereEteinte = allumees.indexOf(false);
+  return premiereEteinte === -1 || !allumees.slice(premiereEteinte).includes(true);
+}
+
+test("ordinateur : la frise s'allume d'une traite en cascade, même si l'on cesse de défiler", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Cascade : ordinateur seulement.");
   await page.goto("/");
+  // Frise armée (hydratée) avant de défiler : sinon elle serait déjà à l'écran et resterait finie.
+  await expect(page.locator(".methode-frise[data-animation]")).toBeAttached();
+  // Fil effacé d'un coup à l'armement : s'il se « détraçait » en transition, la cascade partirait d'un fil plein.
+  expect(await page.locator(".methode-fil__plein").evaluate((f) => f.getBoundingClientRect().width)).toBe(0);
   await defilerVers(page, 0);
   expect(await opacites(page)).toEqual(Array(ETAPES).fill(0));
 
+  // Un seul coup de défilement, puis plus rien : la cascade doit aller au bout seule.
+  await defilerVers(page, 0.4);
   let partiel = false;
-  for (let f = 0; f <= 0.7; f += 0.02) {
-    await defilerVers(page, f);
+  const fin = Date.now() + 4_000;
+  while (Date.now() < fin) {
     const allumees = (await opacites(page)).map((o) => o > 0.99);
-    // Toujours un début de liste : jamais une étape allumée après une éteinte.
-    expect(allumees.indexOf(false) === -1 || !allumees.slice(allumees.indexOf(false)).includes(true), String(allumees)).toBe(true);
+    expect(enOrdre(allumees), String(allumees)).toBe(true);
     if (allumees.includes(true) && allumees.includes(false)) partiel = true;
+    if (!allumees.includes(false)) break;
   }
   expect(partiel).toBe(true);
+  await expect.poll(() => opacites(page), { timeout: 1_000 }).toEqual(Array(ETAPES).fill(1));
+});
+
+test("téléphone : chaque étape s'allume en arrivant à l'écran, et le reste", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Étape par étape : téléphone seulement.");
+  /** Place le haut (0) ou le bas (1) de la frise au milieu de l'écran. */
+  const centrer = (bord: 0 | 1) =>
+    page.evaluate((b) => {
+      const r = document.querySelector(".methode-frise")!.getBoundingClientRect();
+      window.scrollTo({ top: (b ? r.bottom : r.top) + window.scrollY - window.innerHeight / 2, behavior: "instant" });
+    }, bord);
+  await page.goto("/");
+  // Frise armée (hydratée) avant de défiler : sinon elle serait déjà à l'écran et resterait finie.
+  await expect(page.locator(".methode-frise[data-animation]")).toBeAttached();
+
+  // Haut de la frise au milieu de l'écran : les premières étapes y sont, pas la dernière.
+  await centrer(0);
+  await expect.poll(async () => (await opacites(page))[0], { timeout: 3_000 }).toBe(1);
+  await page.waitForTimeout(1_000);
+  const valeurs = await opacites(page);
+  expect(valeurs[ETAPES - 1]).toBe(0);
+  expect(enOrdre(valeurs.map((o) => o > 0.99)), String(valeurs)).toBe(true);
+
+  // Bas de la frise à l'écran : tout est allumé, et le reste en remontant.
+  await centrer(1);
+  await expect.poll(() => opacites(page), { timeout: 3_000 }).toEqual(Array(ETAPES).fill(1));
+  await defilerVers(page, 0);
   expect(await opacites(page)).toEqual(Array(ETAPES).fill(1));
 });
 

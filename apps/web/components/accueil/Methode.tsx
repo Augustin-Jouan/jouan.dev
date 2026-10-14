@@ -1,17 +1,19 @@
 import type { CSSProperties } from "react";
+import { FriseMethode } from "./FriseMethode";
 import { Section } from "./Section";
 import { ANCRES, etapes, sections } from "@/data/accueil";
 
 /**
- * Les étapes d'un projet, reliées par un fil qui se trace au défilement : chaque
- * étape s'allume à son passage (goutte de lumière sur le numéro), puis un paquet
- * de lumière parcourt le fil. Tout est en CSS (app/globals.css, « Méthode ») :
- * sans animation au défilement ou en mouvement réduit, la frise est affichée finie.
+ * Les étapes d'un projet, reliées par un fil qui se trace quand la frise arrive à
+ * l'écran : chaque étape s'allume à son passage (goutte de lumière sur le numéro),
+ * puis un paquet de lumière parcourt le fil. Déclenchement : FriseMethode ;
+ * effets : app/globals.css, « Méthode ». Sans JS ou en mouvement réduit, la frise
+ * est affichée finie.
  */
 export function Methode() {
   return (
     <Section id={ANCRES.methode} {...sections.methode}>
-      <div className="methode-frise">
+      <FriseMethode>
         <div aria-hidden="true" className="methode-fil">
           <span className="methode-fil__plein" />
           <span className="methode-paquet">
@@ -30,7 +32,7 @@ export function Methode() {
             </li>
           ))}
         </ol>
-      </div>
+      </FriseMethode>
     </Section>
   );
 }
