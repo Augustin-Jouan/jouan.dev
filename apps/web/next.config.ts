@@ -70,12 +70,14 @@ const securityHeaders = [
       ]),
 ];
 
-// La démo (public/demo, fichier statique commité) s'affiche dans
-// une iframe des études de cas : elle seule accepte d'être incluse, et
+// Les démos (public/demo, fichiers statiques commités) s'affichent dans
+// une iframe des études de cas : elles seules acceptent d'être incluses, et
 // seulement par le site lui-même. La dernière règle qui pose un en-tête l'emporte.
+// Pas d'indexation : la copie du site de l'artisan doublerait son vrai site.
 const entetesDemo = [
   { key: "Content-Security-Policy", value: csp.replace("frame-ancestors 'none'", "frame-ancestors 'self'") },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "X-Robots-Tag", value: "noindex" },
 ];
 
 // Monorepo : le lockfile pnpm et les dépendances hissées sont à la racine du
@@ -113,8 +115,14 @@ const nextConfig: NextConfig = {
   // Next ne sert pas l'index.html d'un dossier de `public` : l'adresse naturelle
   // de la démo est réécrite vers son fichier (les en-têtes ci-dessus s'appliquent
   // au chemin demandé). Les ressources de la démo sont en URL absolues (base Vite).
+  // La copie du site de l'artisan (export Next sans barre finale) range chaque page
+  // dans `<page>.html` : une adresse sans point, hors `_next/`, vise ce fichier.
   async rewrites() {
-    return [{ source: "/demo/suivi-de-marches", destination: "/demo/suivi-de-marches/index.html" }];
+    return [
+      { source: "/demo/suivi-de-marches", destination: "/demo/suivi-de-marches/index.html" },
+      { source: "/demo/site-artisan", destination: "/demo/site-artisan/index.html" },
+      { source: "/demo/site-artisan/:page((?!_next/)[^.]+)", destination: "/demo/site-artisan/:page.html" },
+    ];
   },
   async redirects() {
     return redirections;

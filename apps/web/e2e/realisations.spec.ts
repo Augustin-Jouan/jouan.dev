@@ -104,7 +104,13 @@ test("sans JavaScript, pas d'onglets : les deux études se suivent ; l'aperçu e
   await expect(titreMetier(page)).toBeVisible();
   await expect(titreVitrine(page)).toBeVisible();
   await expect(page.getByRole("img", { name: /Écran des marchés de la démo/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Ouvrir la démo en plein écran/ })).toHaveAttribute("href", "/demo/suivi-de-marches/index.html?theme=sombre");
+  await expect(
+    page.getByRole("tabpanel", { name: "Application métier" }).getByRole("link", { name: /Ouvrir la démo en plein écran/ }),
+  ).toHaveAttribute("href", "/demo/suivi-de-marches/index.html?theme=sombre");
+  await expect(page.getByRole("tabpanel", { name: "Site vitrine" }).getByRole("link", { name: /Ouvrir la démo en plein écran/ })).toHaveAttribute(
+    "href",
+    "/demo/site-artisan",
+  );
   await contexte.close();
 });
 
@@ -117,4 +123,121 @@ test("les en-têtes n'autorisent l'inclusion que de la démo, par le site seulem
   expect(courte.headers()["x-frame-options"]).toBe("SAMEORIGIN");
   const etude = await request.get("/realisations");
   expect(etude.headers()["x-frame-options"]).toBe("DENY");
+});
+
+test.describe("copie du site de l'artisan", () => {
+  const COPIE = "/demo/site-artisan";
+  const PAGES = [
+    "",
+    "/services",
+    "/services/electricite",
+    "/services/plomberie",
+    "/services/chauffage",
+    "/services/domotique",
+    "/realisations",
+    "/a-propos",
+    "/contact",
+    "/mentions-legales",
+    "/politique-de-confidentialite",
+  ];
+
+  test("dans la fenêtre de l'étude : on parcourt le site jusqu'au formulaire, qui n'envoie rien, sans requête externe", async ({
+    page,
+    isMobile,
+    baseURL,
+  }) => {
+    test.skip(isMobile, "Sous 768 px, la fenêtre garde l'aperçu.");
+    const erreurs = surveillerErreurs(page);
+    const externes: string[] = [];
+    const echecs: string[] = [];
+    page.on("request", (r) => {
+      const url = new URL(r.url());
+      if (url.protocol.startsWith("http") && url.origin !== new URL(baseURL!).origin) externes.push(r.url());
+    });
+    page.on("response", (r) => {
+      if (r.status() >= 400) echecs.push(`${r.status()} ${r.url()}`);
+    });
+    await page.goto("/realisations#site-vitrine");
+    await page.getByAltText("Page d'accueil du site de la SARL Dufourd Jérôme sur ordinateur").scrollIntoViewIfNeeded();
+    const iframe = page.getByTitle("Démo interactive : site vitrine de l'artisan");
+    await expect(iframe).toHaveAttribute("src", COPIE);
+    const site = page.frameLocator('iframe[title="Démo interactive : site vitrine de l\'artisan"]');
+    await expect(site.getByRole("heading", { level: 1 })).toContainText("électricien-plombier");
+    // Dans la fenêtre, pas de bandeau : la barre de titre suffit.
+    await expect(site.getByRole("complementary", { name: "Copie de démonstration" })).toBeHidden();
+
+    const nav = site.getByRole("navigation", { name: "Navigation principale" });
+    await nav.getByRole("link", { name: "Services" }).click();
+    await expect(site.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect.poll(() => page.frames().some((f) => f.url().endsWith(`${COPIE}/services`))).toBe(true);
+    await site.locator(`a[href="${COPIE}/services/electricite"]`).first().click();
+    await expect.poll(() => page.frames().some((f) => f.url().endsWith(`${COPIE}/services/electricite`))).toBe(true);
+    await nav.getByRole("link", { name: "Contact" }).click();
+    await expect.poll(() => page.frames().some((f) => f.url().endsWith(`${COPIE}/contact`))).toBe(true);
+
+    await site.getByLabel("Nom").fill("Visiteur du portfolio");
+    await site.getByLabel("Email").fill("visiteur@exemple.fr");
+    await site.getByLabel("Message").fill("Un message d'essai dans la démo.");
+    await site.locator('button[type="submit"]').click();
+    await expect(site.getByText("Démo : ce message n'est pas envoyé. Pour joindre l'entreprise, passez par son vrai site.")).toBeVisible();
+
+    expect(externes).toEqual([]);
+    expect(echecs).toEqual([]);
+    expect(erreurs).toEqual([]);
+  });
+
+  test("dans la fenêtre, téléphone et e-mail ne font rien : la page reste affichée", async ({ page, isMobile }) => {
+    test.skip(isMobile, "Sous 768 px, la fenêtre garde l'aperçu.");
+    const erreurs = surveillerErreurs(page);
+    await page.goto("/realisations#site-vitrine");
+    await page.getByAltText("Page d'accueil du site de la SARL Dufourd Jérôme sur ordinateur").scrollIntoViewIfNeeded();
+    const site = page.frameLocator('iframe[title="Démo interactive : site vitrine de l\'artisan"]');
+    await expect(site.getByRole("heading", { level: 1 })).toContainText("électricien-plombier");
+    await site.locator('a[href^="tel:"]:visible').first().click();
+    await site.locator('a[href^="mailto:"]:visible').first().click();
+    await expect(site.getByRole("heading", { level: 1 })).toContainText("électricien-plombier");
+    expect(page.frames().some((f) => f.url().endsWith(COPIE))).toBe(true);
+    expect(erreurs).toEqual([]);
+  });
+
+  test("ouverte directement : le bandeau dit que c'est une démo, avec le vrai site et le retour au portfolio", async ({ page }) => {
+    await page.goto(COPIE);
+    const bandeau = page.getByRole("complementary", { name: "Copie de démonstration" });
+    await expect(bandeau).toBeVisible();
+    await expect(bandeau).toContainText("Démo réalisée par Augustin Jouan");
+    await expect(bandeau.getByRole("link", { name: /Le vrai site/ })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
+    await bandeau.getByRole("link", { name: "Retour au portfolio" }).click();
+    await expect(page).toHaveURL(/\/realisations#site-vitrine$/);
+  });
+
+  test("ni indexée, ni incluse ailleurs que sur jouan.dev", async ({ request }) => {
+    for (const chemin of [COPIE, `${COPIE}/services`, `${COPIE}/services/electricite`]) {
+      const reponse = await request.get(chemin);
+      expect(reponse.status(), chemin).toBe(200);
+      expect(reponse.headers()["x-robots-tag"], chemin).toBe("noindex");
+      expect(reponse.headers()["x-frame-options"], chemin).toBe("SAMEORIGIN");
+    }
+  });
+
+  test("chaque lien et chaque ressource des pages de la copie existe, sous son préfixe", async ({ request }) => {
+    const adresses = new Set<string>();
+    for (const page of PAGES) {
+      const html = await (await request.get(`${COPIE}${page}`)).text();
+      for (const [, adresse] of html.matchAll(/(?:href|src)="(\/[^"]*)"/g)) {
+        if (adresse === "/realisations#site-vitrine") continue;
+        expect(adresse, `${page} → ${adresse}`).toMatch(new RegExp(`^${COPIE}(/|$)`));
+        adresses.add(adresse.split("#")[0]!);
+      }
+    }
+    for (const adresse of adresses) expect((await request.get(adresse)).status(), adresse).toBe(200);
+  });
+
+  test("sur téléphone, la fenêtre garde l'aperçu et ouvre la copie en plein écran", async ({ page, isMobile }) => {
+    test.skip(!isMobile, "Téléphone seulement.");
+    await page.goto("/realisations#site-vitrine");
+    await expect(page.getByAltText("Page d'accueil du site de la SARL Dufourd Jérôme sur ordinateur")).toBeVisible();
+    await expect(page.getByTitle("Démo interactive : site vitrine de l'artisan")).toHaveCount(0);
+    const pleinEcran = page.getByRole("tabpanel", { name: "Site vitrine" }).getByRole("link", { name: /Ouvrir la démo en plein écran/ });
+    await expect(pleinEcran).toHaveAttribute("href", COPIE);
+  });
 });

@@ -2,9 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import type { Image as ImageEtude } from "@/data/realisations";
-
-export const SOURCE_DEMO = "/demo/suivi-de-marches/index.html?theme=sombre";
+import type { Demo } from "@/data/realisations";
 
 /** Sous cette largeur, une iframe à défilement interne se manie mal : on ouvre la démo en plein écran. */
 const LARGEUR_MIN = 768;
@@ -14,7 +12,8 @@ const LARGEUR_MIN = 768;
  * pas sur le chargement de la page. Avant (et sans JavaScript), l'aperçu tient
  * sa place.
  */
-export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
+export function FenetreDemo({ demo }: { demo: Demo }) {
+  const { source, barre, titre, legende, apercu } = demo;
   const fenetre = useRef<HTMLDivElement>(null);
   const [chargee, setChargee] = useState(false);
   const [prete, setPrete] = useState(false);
@@ -48,12 +47,12 @@ export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
           <span className="size-3 rounded-full bg-trait" />
           <span className="size-3 rounded-full bg-trait" />
           <span className="size-3 rounded-full bg-trait" />
-          <span className="ml-3 text-xs text-texte-doux">Suivi de marchés — démo</span>
+          <span className="ml-3 text-xs text-texte-doux">{barre}</span>
         </div>
         {chargee ? (
           <iframe
-            src={SOURCE_DEMO}
-            title="Démo interactive : suivi de marchés de travaux"
+            src={source}
+            title={titre}
             onLoad={() => setPrete(true)}
             className={`block h-[720px] w-full bg-surface transition-opacity duration-300 ${prete ? "opacity-100" : "opacity-0"}`}
           />
@@ -69,9 +68,9 @@ export function FenetreDemo({ apercu }: { apercu: ImageEtude }) {
         )}
       </div>
       <figcaption className="flex flex-wrap items-center justify-between gap-3 text-sm text-texte-doux">
-        <span>Chantiers, entreprises et montants fictifs. Vos modifications sont oubliées à la fermeture de l&apos;onglet.</span>
+        <span>{legende}</span>
         <a
-          href={SOURCE_DEMO}
+          href={source}
           target="_blank"
           rel="noopener"
           className="rounded-full bg-accent px-5 py-2.5 font-medium text-sur-accent transition-opacity hover:opacity-85"

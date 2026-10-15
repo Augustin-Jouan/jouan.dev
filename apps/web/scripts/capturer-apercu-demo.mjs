@@ -1,7 +1,9 @@
 /**
- * Capture l'aperçu de la démo « suivi de marchés » (vignette de la page
- * d'étude de cas) : sert la build standalone sur le port 3200, ouvre la démo
- * en thème sombre, en 1280 × 720 et enregistre un WebP qualité 80.
+ * Capture l'aperçu des démos (vignettes des études de cas et de l'offre de
+ * l'accueil) : sert la build standalone sur le port 3200, ouvre chaque démo en
+ * 1280 × 720 et enregistre un WebP qualité 80. Le suivi de marchés en thème
+ * sombre, sur l'écran des marchés ; le site de l'artisan sur son accueil, en
+ * mouvement réduit (aucune animation figée à mi-course).
  *
  * Prérequis : `pnpm build`. Usage : `pnpm capturer-apercu-demo`.
  */
@@ -14,7 +16,8 @@ import sharp from "sharp";
 
 const app = join(dirname(fileURLToPath(import.meta.url)), "..");
 const port = 3200;
-const sortie = join(app, "public/realisations/suivi-de-marches/apercu.webp");
+const sortieMarches = join(app, "public/realisations/suivi-de-marches/apercu.webp");
+const sortieArtisan = join(app, "public/realisations/site-artisan/ordinateur.webp");
 
 const serveur = spawn(process.execPath, [join(app, "scripts/demarrer-standalone.mjs")], {
   stdio: "ignore",
@@ -38,20 +41,29 @@ try {
   await attendreServeur();
   const navigateur = await chromium.launch();
   try {
-    const page = await navigateur.newPage({
-      viewport: { width: 1280, height: 720 },
-      deviceScaleFactor: 1,
-    });
-    await page.goto(`http://127.0.0.1:${port}/demo/suivi-de-marches/index.html?theme=sombre`);
+    const enregistrer = async (page, sortie) => {
+      await page.evaluate(() => document.fonts.ready);
+      const png = await page.screenshot({ type: "png" });
+      mkdirSync(dirname(sortie), { recursive: true });
+      await sharp(png).webp({ quality: 80 }).toFile(sortie);
+      console.log(`Aperçu enregistré : ${sortie}`);
+    };
+    const options = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 };
+
+    const marches = await navigateur.newPage(options);
+    await marches.goto(`http://127.0.0.1:${port}/demo/suivi-de-marches/index.html?theme=sombre`);
     // L'aperçu montre l'écran des marchés du chantier fictif de référence
     // (la carte du chantier est un bouton dont le nom est sa référence).
-    await page.getByRole("button", { name: "LEFÈVRE — Rivebourg", exact: true }).click();
-    await page.locator("table").first().waitFor();
-    await page.evaluate(() => document.fonts.ready);
-    const png = await page.screenshot({ type: "png" });
-    mkdirSync(dirname(sortie), { recursive: true });
-    await sharp(png).webp({ quality: 80 }).toFile(sortie);
-    console.log(`Aperçu enregistré : ${sortie}`);
+    await marches.getByRole("button", { name: "LEFÈVRE — Rivebourg", exact: true }).click();
+    await marches.locator("table").first().waitFor();
+    await enregistrer(marches, sortieMarches);
+
+    const artisan = await navigateur.newPage({ ...options, reducedMotion: "reduce" });
+    await artisan.goto(`http://127.0.0.1:${port}/demo/site-artisan`, { waitUntil: "networkidle" });
+    // Comme dans la fenêtre de /realisations : sans le bandeau du plein écran. Puis l'apparition du titre finit.
+    await artisan.evaluate(() => document.documentElement.removeAttribute("data-plein-ecran"));
+    await artisan.waitForTimeout(3000);
+    await enregistrer(artisan, sortieArtisan);
   } finally {
     await navigateur.close();
   }
