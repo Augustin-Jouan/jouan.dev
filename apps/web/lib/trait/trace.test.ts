@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { pointA } from "./progression";
-import { choisirVariante, ECART_LOGO, MARGE_MIN, tracer, type Reperes, type Trace } from "./trace";
+import { LIGNE_DE_LECTURE, pointA } from "./progression";
+import { choisirVariante, ECART_ANNEAU, MARGE_MIN, tracer, type Reperes, type Trace } from "./trace";
 
 /** Accueil sur un écran de 1280 × 720 : marge de 96 px, Méthode horizontale. */
 const ORDINATEUR: Reperes = {
@@ -8,7 +8,7 @@ const ORDINATEUR: Reperes = {
   hauteurEcran: 720,
   ordinateur: true,
   marge: 96,
-  departY: 800,
+  portrait: { x: 176, y: 400, r: 80 },
   offreY: 1900,
   noeuds: [104, 324, 544, 764, 984].map((x) => ({ x, y: 2600 })),
   fil: { debut: { x: 96, y: 2600 }, fin: { x: 1184, y: 2600 } },
@@ -26,7 +26,7 @@ const TELEPHONE: Reperes = {
   hauteurEcran: 844,
   ordinateur: false,
   marge: 20,
-  departY: 700,
+  portrait: { x: 68, y: 300, r: 48 },
   offreY: 2200,
   noeuds: [0, 1, 2, 3, 4].map((i) => ({ x: 28, y: 3600 + i * 250 })),
   fil: { debut: { x: 28, y: 3590 }, fin: { x: 28, y: 4700 } },
@@ -43,6 +43,7 @@ const PORTABLE: Reperes = {
   ...ORDINATEUR,
   largeur: 1100,
   marge: 32,
+  portrait: { x: 112, y: 400, r: 80 },
   noeuds: [40, 246, 452, 658, 864].map((x) => ({ x, y: 2600 })),
   fil: { debut: { x: 32, y: 2600 }, fin: { x: 1068, y: 2600 } },
   logos: [
@@ -75,11 +76,11 @@ describe("tracer, variante « marges »", () => {
   it("est déterministe", () => {
     expect(trace.variante).toBe("marges");
     expect(tracer(ORDINATEUR).d).toBe(trace.d);
-    expect(trace.d.startsWith("M48 776C")).toBe(true);
+    expect(trace.d.startsWith("M176 314C")).toBe(true);
   });
 
   it("échantillonne le trait tous les 4 px, du départ à l'arrivée", () => {
-    expect(trace.echantillons[0]).toEqual({ x: M / 2, y: ORDINATEUR.departY - 24 });
+    expect(trace.echantillons[0]).toEqual({ x: 176, y: 400 - 80 - ECART_ANNEAU });
     expect(trace.echantillons.length).toBe(Math.ceil(trace.longueur / 4) + 1);
     const fin = trace.echantillons.at(-1)!;
     expect(fin.x).toBeCloseTo(ORDINATEUR.envoi.droite, 5);
@@ -88,12 +89,13 @@ describe("tracer, variante « marges »", () => {
 
   it("reste dans les marges, hors de la Méthode, des logos et de l'arrivée", () => {
     const n1 = ORDINATEUR.noeuds[0]!;
-    const hautLogos = 3100 - 80 - ECART_LOGO;
-    const basLogos = 3100 + 80 + ECART_LOGO;
+    const hautLogos = 3100 - 80 - ECART_ANNEAU;
+    const basLogos = 3100 + 80 + ECART_ANNEAU;
     for (const p of trace.echantillons) {
       expect(p.x).toBeGreaterThanOrEqual(0);
       expect(p.x).toBeLessThanOrEqual(W);
-      const aGauche = p.y < n1.y - 80;
+      // Sous la photo et sa sortie, jusqu'à l'approche de la Méthode.
+      const aGauche = p.y > 400 + 86 + 60 && p.y < n1.y - 80;
       const aDroite = (p.y > n1.y + 80 && p.y < hautLogos - 60) || (p.y > basLogos + 70 && p.y < 3922 - 90);
       if (aGauche) {
         expect(p.x, `(${p.x}, ${p.y})`).toBeGreaterThanOrEqual(12);
@@ -125,12 +127,12 @@ describe("tracer, variante « marges »", () => {
   it("enlace les deux logos sur leur anneau", () => {
     ORDINATEUR.logos.forEach((logo, i) => {
       const p = pointA(longueurDe(trace, "logo", i), trace.echantillons, trace.longueur);
-      expect(Math.abs(distance(p, logo) - (logo.r + ECART_LOGO)), `logo ${i + 1}`).toBeLessThanOrEqual(1);
+      expect(Math.abs(distance(p, logo) - (logo.r + ECART_ANNEAU)), `logo ${i + 1}`).toBeLessThanOrEqual(1);
     });
     // Le logo de gauche est longé du bas au haut, par la gauche : un demi-tour.
     const gauche = ORDINATEUR.logos[0]!;
     const angles = trace.echantillons
-      .filter((p) => Math.abs(distance(p, gauche) - (gauche.r + ECART_LOGO)) <= 1.5)
+      .filter((p) => Math.abs(distance(p, gauche) - (gauche.r + ECART_ANNEAU)) <= 1.5)
       .map((p) => (Math.atan2(p.y - gauche.y, p.x - gauche.x) * 180) / Math.PI);
     expect(angles.some((a) => Math.abs(Math.abs(a) - 180) < 5)).toBe(true);
     expect(angles.some((a) => Math.abs(a - 90) < 5)).toBe(true);
@@ -140,12 +142,13 @@ describe("tracer, variante « marges »", () => {
   it("ne passe jamais sur l'image d'un logo : il épouse leurs anneaux et croise entre les deux", () => {
     for (const logo of ORDINATEUR.logos) {
       const plusPres = Math.min(...trace.echantillons.map((p) => distance(p, logo)));
-      expect(plusPres).toBeGreaterThanOrEqual(logo.r + ECART_LOGO - 1);
+      expect(plusPres).toBeGreaterThanOrEqual(logo.r + ECART_ANNEAU - 1);
     }
   });
 
   it("allume les étapes, le logo de droite, celui de gauche, puis l'envoi", () => {
     expect(trace.allumables.map((a) => ("indice" in a.cible ? `${a.cible.type}${a.cible.indice}` : a.cible.type))).toEqual([
+      "portrait",
       "etape0",
       "etape1",
       "etape2",
@@ -167,12 +170,54 @@ describe("tracer, variante « marges »", () => {
   });
 
   it("a des repères strictement croissants, du départ (0) à l'envoi (longueur totale)", () => {
-    expect(trace.reperes[0]).toEqual({ l: 0, y: ORDINATEUR.departY - 24 });
+    expect(trace.reperes[0]!.l).toBe(0);
     expect(trace.reperes.at(-1)!.l).toBe(trace.longueur);
     trace.reperes.slice(1).forEach((r, i) => {
       expect(r.y).toBeGreaterThan(trace.reperes[i]!.y);
       expect(r.l).toBeGreaterThanOrEqual(trace.reperes[i]!.l);
     });
+  });
+});
+
+describe("tracer, départ sur la photo de l'accroche", () => {
+  for (const [nom, r] of [["marges", ORDINATEUR], ["téléphone", TELEPHONE], ["portable", PORTABLE]] as const) {
+    describe(nom, () => {
+      const trace = tracer(r);
+      const { portrait } = r;
+      const R = portrait.r + ECART_ANNEAU;
+      const lTour = longueurDe(trace, "portrait");
+
+      it("part du haut de l'anneau de la photo et en fait le tour complet, puis repart de sa gauche", () => {
+        expect(trace.echantillons[0]).toEqual({ x: portrait.x, y: portrait.y - R });
+        // Un tour et quart : du haut, par la gauche, le bas, la droite, le haut, jusqu'à la gauche.
+        expect(Math.abs(lTour - 2.5 * Math.PI * R)).toBeLessThan(2);
+        const tour = trace.echantillons.filter((_, i) => i * 4 <= lTour);
+        for (const p of tour) expect(Math.abs(distance(p, portrait) - R), `(${p.x}, ${p.y})`).toBeLessThanOrEqual(1);
+        const angles = tour.map((p) => (Math.atan2(p.y - portrait.y, p.x - portrait.x) * 180) / Math.PI);
+        for (const cap of [-90, 0, 90]) expect(angles.some((a) => Math.abs(a - cap) < 5), `${cap}°`).toBe(true);
+        expect(angles.some((a) => Math.abs(Math.abs(a) - 180) < 5)).toBe(true);
+        expect(distance(pointA(lTour, trace.echantillons, trace.longueur), { x: portrait.x - R, y: portrait.y })).toBeLessThan(1);
+      });
+
+      it("ne passe jamais sur la photo", () => {
+        const plusPres = Math.min(...trace.echantillons.map((p) => distance(p, portrait)));
+        expect(plusPres).toBeGreaterThanOrEqual(R - 1);
+      });
+
+      it("allume la photo d'abord : le tour s'étale sur un quart d'écran à partir de la ligne de lecture au repos", () => {
+        expect(trace.allumables[0]!.cible.type).toBe("portrait");
+        const debut = Math.max(portrait.y, LIGNE_DE_LECTURE * r.hauteurEcran);
+        expect(trace.reperes[0]!.l).toBe(0);
+        expect(trace.reperes[0]!.y).toBeCloseTo(debut, 5);
+        expect(trace.reperes[1]!.l).toBe(lTour);
+        expect(trace.reperes[1]!.y).toBeCloseTo(debut + 0.25 * r.hauteurEcran, 5);
+      });
+    });
+  }
+
+  it("photo sous la ligne de lecture au repos : le tour attend que la ligne de lecture atteigne son centre", () => {
+    const trace = tracer({ ...ORDINATEUR, portrait: { x: 176, y: 600, r: 80 } });
+    expect(trace.reperes[0]).toEqual({ l: 0, y: 600 });
   });
 });
 
@@ -224,7 +269,7 @@ describe("tracer, écran haut", () => {
       expect(haut.reperes.at(-1)!.l).toBe(haut.longueur);
       haut.reperes.slice(1).forEach((p, i) => expect(p.y).toBeGreaterThan(haut.reperes[i]!.y));
       expect(haut.reperes.slice(0, 2).map((p) => p.l)).toEqual(normal.reperes.slice(0, 2).map((p) => p.l));
-      expect(haut.reperes[0]!.y).toBe(normal.reperes[0]!.y);
+      expect(haut.reperes[0]!.y).toBeCloseTo(LIGNE_DE_LECTURE * 1440, 5);
     });
   }
 });
@@ -235,7 +280,8 @@ describe("tracer, variante « bord »", () => {
     expect(trace.variante).toBe("bord");
     const n1 = TELEPHONE.noeuds[0]!;
     for (const p of trace.echantillons) {
-      if (p.y < n1.y - 60 || (p.y > TELEPHONE.fil.fin.y + 60 && p.y < 6422 - 60)) {
+      const sousPhoto = p.y > 300 + 54 + 40;
+      if ((sousPhoto && p.y < n1.y - 60) || (p.y > TELEPHONE.fil.fin.y + 60 && p.y < 6422 - 60)) {
         expect(p.x, `(${p.x}, ${p.y})`).toBeGreaterThanOrEqual(4);
         expect(p.x, `(${p.x}, ${p.y})`).toBeLessThanOrEqual(12);
       }
@@ -261,7 +307,7 @@ describe("tracer, variante « bord »", () => {
     expect(trace.variante).toBe("bord");
     const n1 = PORTABLE.noeuds[0]!;
     for (const p of trace.echantillons) {
-      if (p.y < n1.y - 60) {
+      if (p.y > 400 + 86 + 40 && p.y < n1.y - 60) {
         expect(p.x).toBeGreaterThanOrEqual(4);
         expect(p.x).toBeLessThanOrEqual(12);
       }

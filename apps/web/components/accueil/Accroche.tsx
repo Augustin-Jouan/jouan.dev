@@ -20,11 +20,13 @@ export function Accroche({ angle = "application", nom }: { angle?: Angle; nom?: 
       <div className="md:flex md:items-center md:gap-10 2xl:gap-14">
         {/* Simple <img> : `next/image` ajouterait du JS client à l'accueil, au-delà
             du budget Lighthouse, pour un fichier qui fait déjà 9 Ko. Chargé tout de
-            suite, sans précharge (le titre reste l'élément LCP). */}
+            suite, sans précharge (le titre reste l'élément LCP). Le trait conducteur
+            part de son anneau (`data-trait`). */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/portrait/augustin-jouan.webp"
           alt="Augustin Jouan"
+          data-trait="portrait"
           width={400}
           height={400}
           decoding="async"

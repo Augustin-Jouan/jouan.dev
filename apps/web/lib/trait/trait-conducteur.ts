@@ -7,24 +7,28 @@
  * Les points de passage sont lus dans la page (sélecteurs écrits ici en clair : importer `data/` ferait
  * un morceau de JS de plus). Aucune lecture de position pendant le défilement : seulement aux recalculs.
  */
-import { longueurPour, pointA } from "./progression";
-import { tracer, type Boite, type Cible, type Reperes, type Trace } from "./trace";
+import { LIGNE_DE_LECTURE, longueurPour, pointA } from "./progression";
+import { tracer, type Boite, type Cercle, type Cible, type Reperes, type Trace } from "./trace";
 
 /** Repère ce morceau de JS dans le build (scripts/verifier-taille-defilement.mjs). */
 export const MARQUEUR_TRAIT = "trait-conducteur:v1";
 
 const SVG = "http://www.w3.org/2000/svg";
-/** La tête suit cette ligne de l'écran, à partir du haut. */
-const LIGNE_DE_LECTURE = 0.66;
 
 function boite(el: Element): Boite {
   const r = el.getBoundingClientRect();
   return { gauche: r.left + scrollX, haut: r.top + scrollY, droite: r.right + scrollX, bas: r.bottom + scrollY };
 }
 
+/** Image ronde (photo, logo) : son centre et son rayon. */
+function cercle(el: Element): Cercle {
+  const b = boite(el);
+  return { x: (b.gauche + b.droite) / 2, y: (b.haut + b.bas) / 2, r: (b.droite - b.gauche) / 2 };
+}
+
 /** Repères mesurés dans la page, ou null s'il en manque un : pas de trait. */
 export function lireReperes(): Reperes | null {
-  const accroche = document.querySelector('section[aria-labelledby="accroche-titre"]');
+  const portrait = document.querySelector('[data-trait="portrait"]');
   const offre = document.getElementById("offre");
   const titreMethode = document.querySelector("#methode h2");
   const fil = document.querySelector(".methode-fil");
@@ -32,7 +36,7 @@ export function lireReperes(): Reperes | null {
   const logos = [...document.querySelectorAll('[data-trait="logo"] img')];
   const envoi = document.querySelector('[data-trait="envoi"]');
   const colonneSignature = document.querySelector('[data-trait="signature"]');
-  if (!accroche || !offre || !titreMethode || !fil || noeuds.length !== 5 || !envoi) return null;
+  if (!portrait || !offre || !titreMethode || !fil || noeuds.length !== 5 || !envoi) return null;
 
   const ordinateur = window.matchMedia("(width >= 64rem)").matches;
   const f = boite(fil);
@@ -42,7 +46,7 @@ export function lireReperes(): Reperes | null {
     hauteurEcran: window.innerHeight,
     ordinateur,
     marge: titreMethode.getBoundingClientRect().left,
-    departY: boite(accroche).bas,
+    portrait: cercle(portrait),
     offreY: (o.haut + o.bas) / 2,
     noeuds: noeuds.map((n) => {
       const b = boite(n);
@@ -51,10 +55,7 @@ export function lireReperes(): Reperes | null {
     fil: ordinateur
       ? { debut: { x: f.gauche, y: (f.haut + f.bas) / 2 }, fin: { x: f.droite, y: (f.haut + f.bas) / 2 } }
       : { debut: { x: (f.gauche + f.droite) / 2, y: f.haut }, fin: { x: (f.gauche + f.droite) / 2, y: f.bas } },
-    logos: logos.map((l) => {
-      const b = boite(l);
-      return { x: (b.gauche + b.droite) / 2, y: (b.haut + b.bas) / 2, r: (b.droite - b.gauche) / 2 };
-    }),
+    logos: logos.map(cercle),
     envoi: boite(envoi),
     finLecture: document.documentElement.scrollHeight - window.innerHeight * (1 - LIGNE_DE_LECTURE),
     // Sous le dernier élément de la colonne (l'adresse), jusqu'en bas de la colonne.
@@ -91,6 +92,7 @@ export function demarrerTrait(): () => void {
 
   function element(cible: Cible): Element | null | undefined {
     if (cible.type === "envoi") return document.querySelector('[data-trait="envoi"]');
+    if (cible.type === "portrait") return document.querySelector('[data-trait="portrait"]');
     if (cible.type === "logo") return document.querySelectorAll('[data-trait="logo"]')[cible.indice];
     return methodeGeree ? frise!.querySelectorAll(".methode-etape")[cible.indice] : null;
   }
@@ -102,8 +104,8 @@ export function demarrerTrait(): () => void {
     const l = longueurPour(scrollY + innerHeight * LIGNE_DE_LECTURE, trace.reperes);
     halo.style.strokeDashoffset = ligne.style.strokeDashoffset = String(trace.longueur - l);
     const p = pointA(l, trace.echantillons, trace.longueur);
+    // Avant de défiler, le point attend déjà en haut de l'anneau de la photo.
     tete.setAttribute("transform", `translate(${p.x} ${p.y})`);
-    tete.style.visibility = l > 0 ? "" : "hidden";
     for (const { l: seuil, cible } of trace.allumables) {
       if (l < seuil) break;
       const el = element(cible);

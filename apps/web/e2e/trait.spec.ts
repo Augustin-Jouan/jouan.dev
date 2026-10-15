@@ -96,11 +96,13 @@ test.describe("ordinateur", () => {
     await page.goto("/");
     await attendreTrait(page);
     await expect(page.locator(".trait-calque")).toHaveAttribute("data-variante", "marges");
+    // Le tour de la photo commence au premier pixel défilé : en haut de page, rien n'est tracé.
+    await defiler(page, 0);
     expect((await etat(page)).longueur).toBe(0);
 
     const { ordre, longueurs } = await parcourir(page, 150);
-    // La Méthode d'abord, puis le ∞ (logo de droite, puis de gauche), enfin le bouton d'envoi.
-    expect(ordre).toEqual(["etape0", "etape1", "etape2", "etape3", "etape4", "logo1", "logo0", "envoi"]);
+    // La photo d'abord, puis la Méthode, le ∞ (logo de droite, puis de gauche), enfin le bouton d'envoi.
+    expect(ordre).toEqual(["portrait", "etape0", "etape1", "etape2", "etape3", "etape4", "logo1", "logo0", "envoi"]);
     longueurs.slice(1).forEach((l, i) => expect(l).toBeGreaterThanOrEqual(longueurs[i]!));
     expect(longueurs.at(-1)).toBeGreaterThan(1_000);
 
@@ -130,6 +132,42 @@ test.describe("ordinateur", () => {
       expect(e.allumees).toContain("envoi");
     });
   }
+
+  test("le point attend en haut de l'anneau de la photo ; le trait en fait le tour en début de défilement, puis l'allume", async ({ page }) => {
+    await page.goto("/");
+    await attendreTrait(page);
+    await defiler(page, 0);
+    const position = () =>
+      page.evaluate(async () => {
+        await new Promise((fin) => requestAnimationFrame(() => requestAnimationFrame(fin)));
+        const photo = document.querySelector('[data-trait="portrait"]')!;
+        const b = photo.getBoundingClientRect();
+        const [x, y] = document.querySelector(".trait-tete")!.getAttribute("transform")!.match(/[-\d.]+/g)!.map(Number);
+        return {
+          centre: { x: b.left + b.width / 2 + scrollX, y: b.top + b.height / 2 + scrollY },
+          rayon: b.width / 2 + 6,
+          tete: { x: x!, y: y! },
+          allumee: photo.hasAttribute("data-allumee"),
+        };
+      });
+
+    const auRepos = await position();
+    expect(Math.hypot(auRepos.tete.x - auRepos.centre.x, auRepos.tete.y - (auRepos.centre.y - auRepos.rayon))).toBeLessThan(2);
+    expect(auRepos.allumee).toBe(false);
+
+    // Un dixième d'écran : la tête tourne sur l'anneau, la photo attend.
+    const hauteur = page.viewportSize()!.height;
+    await defiler(page, Math.round(0.1 * hauteur));
+    const enChemin = await position();
+    expect(Math.abs(Math.hypot(enChemin.tete.x - enChemin.centre.x, enChemin.tete.y - enChemin.centre.y) - enChemin.rayon)).toBeLessThan(2);
+    expect(enChemin.allumee).toBe(false);
+
+    // Un quart d'écran : le tour est bouclé, la photo s'allume et le trait repart de sa gauche.
+    await defiler(page, Math.round(0.25 * hauteur) + 2);
+    const bouclee = await position();
+    expect(bouclee.allumee).toBe(true);
+    expect(bouclee.tete.x).toBeLessThan(bouclee.centre.x - bouclee.rayon + 2);
+  });
 
   test("le trait signe sous l'adresse e-mail, sans toucher le texte, avant de filer vers le bouton", async ({ page }) => {
     await page.goto("/");
@@ -205,7 +243,7 @@ test("téléphone : un trait fin le long du bord, qui allume la Méthode et l'en
   await attendreTrait(page);
   await expect(page.locator(".trait-calque")).toHaveAttribute("data-variante", "bord");
   const { ordre } = await parcourir(page, 200);
-  expect(ordre).toEqual(["etape0", "etape1", "etape2", "etape3", "etape4", "envoi"]);
+  expect(ordre).toEqual(["portrait", "etape0", "etape1", "etape2", "etape3", "etape4", "envoi"]);
 });
 
 test.describe("mouvement réduit", () => {

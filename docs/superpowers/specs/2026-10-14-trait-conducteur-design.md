@@ -19,8 +19,8 @@ du formulaire de contact. C'est un fil conducteur au sens propre : tout le parco
 | Sujet | Décision |
 |---|---|
 | Pages | L'accueil, y compris les pages personnalisées des prospects (`/?pour=…`) ; aucune autre page |
-| Départ, arrivée | Naît sous l'accroche (la goutte de l'intro « coule ») ; finit sur le bouton d'envoi du Contact, qu'il allume |
-| Côté gauche | Trait libre, comme tracé à la main, avec une petite boucle à hauteur des Réalisations |
+| Départ, arrivée | Naît sur l'anneau de la photo de l'accroche, en fait le tour et l'allume ; finit sur le bouton d'envoi du Contact, qu'il allume |
+| Côté gauche | Trait libre, comme tracé à la main, avec une petite boucle à hauteur de l'offre |
 | Méthode | Le trait **devient** le fil : il suit la ligne du nœud 01 au bout, et chaque étape s'allume à son passage |
 | Logos | Un ∞ enlace les deux anneaux ; chaque anneau s'illumine quand le trait le touche |
 | Téléphone | Trait fin le long du bord gauche, ondulations douces ; rejoint la ligne verticale de la Méthode ; pas de détour par les logos |
@@ -53,8 +53,8 @@ Repérés dans la page réelle, jamais codés en dur :
 
 | Point | Élément | Rôle |
 |---|---|---|
-| Départ | bas de la section de l'accroche (`section[aria-labelledby="accroche-titre"]`) | début du trait |
-| Boucle | milieu vertical de `#realisations` | centre de la petite boucle (variante « marges ») |
+| Photo | `[data-trait="portrait"]` (la photo de l'accroche) : centre et rayon de l'image | début du trait, qui en fait le tour ; allume la photo |
+| Boucle | milieu vertical de `#offre` | centre de la petite boucle (variante « marges ») |
 | Nœuds 1 à 5 | `.methode-noeud` (centres) | le trait suit le fil de la Méthode ; allument les étapes |
 | Logos 1 et 2 | `[data-trait="logo"]` (sur chaque lien du parcours qui a un logo) : centre et rayon de l'image | ∞ ; allument les anneaux |
 | Envoi | `[data-trait="envoi"]` (le bouton d'envoi de `ContactForm`) | fin du trait ; allume le bouton |
@@ -65,24 +65,28 @@ Les attributs `data-trait` sont ajoutés aux éléments existants ; aucun élém
 
 Coordonnées du document (px). `M` = marge (§ 3.1), `W` = largeur utile de l'écran (`document.documentElement.clientWidth`).
 
-1. **Descente à gauche** : du départ (`x = M / 2`, `y = bas de l'accroche − 24`) jusqu'au nœud 1, par une suite de
-   courbes de Bézier. Les abscisses restent dans `[12, M − 16]`. L'aléa du tracé libre est **fixé** (graine
+1. **Tour de la photo** : le trait naît en haut de l'anneau pêche de la photo (`rayon de l'image + 6 px`), en fait le
+   tour complet par la gauche, le bas et la droite, et repart de la gauche de l'anneau, vers le bas. Il ne passe
+   **jamais** sur la photo.
+2. **Descente à gauche** : de la gauche de l'anneau, une courbe rejoint la marge (`x = M / 2`, 60 px sous la photo),
+   puis le trait descend jusqu'au nœud 1 par une suite de courbes de Bézier. Les abscisses restent dans `[12, M − 16]`. L'aléa du tracé libre est **fixé** (graine
    constante dans le code) : la même mise en page donne toujours le même trait.
-2. **Boucle** : une seule, de rayon 10 à 14 px, centrée à hauteur du milieu de `#realisations`, dans la marge gauche.
-3. **Entrée dans la Méthode** : le trait arrive au centre du nœud 1 par la gauche, tangent à la ligne.
-4. **Traversée** : segment droit le long de la ligne de la Méthode (`y` = centre des nœuds), du nœud 1 jusqu'au bout
+3. **Boucle** : une seule, de rayon 10 à 14 px, centrée à hauteur du milieu de `#offre`, dans la marge gauche.
+4. **Entrée dans la Méthode** : le trait arrive au centre du nœud 1 par la gauche, tangent à la ligne.
+5. **Traversée** : segment droit le long de la ligne de la Méthode (`y` = centre des nœuds), du nœud 1 jusqu'au bout
    droit de la ligne (`.methode-fil`).
-5. **Sortie à droite** : courbe vers la marge droite, puis descente avec des abscisses dans `[W − M + 16, W − 12]`.
-6. **∞** : un huit couché autour des deux logos, à `rayon de l'image + 6 px` de chaque centre (sur l'anneau pêche).
+6. **Sortie à droite** : courbe vers la marge droite, puis descente avec des abscisses dans `[W − M + 16, W − 12]`.
+7. **∞** : un huit couché autour des deux logos, à `rayon de l'image + 6 px` de chaque centre (sur l'anneau pêche).
    Le trait entre par le haut de l'anneau de droite et l'épouse jusqu'au point de tangence, croise en ligne droite
    (tangentes intérieures communes aux deux anneaux), fait le tour de l'anneau de gauche par le bas, recroise et
    ressort par le bas de l'anneau de droite. Il ne passe **jamais** sur les images.
-7. **Fin** : retour dans la marge droite, descente jusqu'à hauteur de la section Contact, puis courbe qui se termine
+8. **Fin** : retour dans la marge droite, descente jusqu'à hauteur de la section Contact, puis courbe qui se termine
    au milieu du bord droit du bouton d'envoi, en passant sous les champs du formulaire.
 
 ### 3.4 Géométrie, variante « bord »
 
-1. Du départ (`x = 8`) jusqu'à hauteur du nœud 1 : ondulations douces, abscisses dans `[4, 12]`.
+1. Le même tour de la photo (§ 3.3), puis une courbe rejoint le bord (`x = 8`, 40 px sous la photo) ; de là jusqu'à
+   hauteur du nœud 1 : ondulations douces, abscisses dans `[4, 12]`.
 2. Raccord au centre du nœud 1, puis le trait suit la ligne de la Méthode jusqu'à son bout.
 3. **Ligne verticale** (téléphone, tablette) : retour à `x = 8`, descente avec les mêmes ondulations, sans détour par
    les logos, puis courbe finale vers le milieu du bord **gauche** du bouton d'envoi.
@@ -101,17 +105,21 @@ Coordonnées du document (px). `M` = marge (§ 3.1), `W` = largeur utile de l'é
     `Y(bout de la ligne) = y_ligne + 0,25 × innerHeight` : la traversée s'étale sur un demi-écran de défilement
     (une ligne verticale suit le défilement sans étalement) ;
   - **∞** : de `Y = haut des logos` à `Y = bas des logos`.
+  - **tour de la photo** : de `Y = max(centre de la photo, 0,66 × innerHeight)` (la ligne de lecture au repos, en
+    haut de page) à ce `Y` + `0,25 × innerHeight` : le tour se dessine dès le premier pixel défilé, sur un quart
+    d'écran ;
   - Les `Yᵢ` sont rendus strictement croissants (`Yᵢ = max(Yᵢ, Yᵢ₋₁ + 1)`).
 - Longueur tracée `L(T)` : interpolation linéaire entre points consécutifs ; `0` avant le départ, la longueur totale
   après l'envoi.
 - **Tête** : le point du trait à la longueur `L`, lu dans une table précalculée (un échantillon tous les 4 px de
-  longueur). Cachée quand `L = 0`.
+  longueur). Visible dès `L = 0` : avant de défiler, le point attend en haut de l'anneau de la photo.
 
 ### 4.2 Allumages
 
-- Un point allumable (nœud, logo, envoi) s'allume dès que `L ≥ Lᵢ`. Pour un logo, `Lᵢ` est le premier point du ∞
+- Un point allumable (photo, nœud, logo, envoi) s'allume dès que `L ≥ Lᵢ`. Pour la photo, `Lᵢ` est la fin de son
+  tour ; pour un logo, `Lᵢ` est le premier point du ∞
   sur son anneau ; pour l'envoi, la longueur totale. Le composant pose alors `data-allumee` sur
-  l'élément : l'étape (`.methode-etape`), le lien du logo, le bouton d'envoi. Un allumage est **définitif** : il
+  l'élément : la photo, l'étape (`.methode-etape`), le lien du logo, le bouton d'envoi. Un allumage est **définitif** : il
   reste en remontant.
 - **Méthode** : le trait ne prend la main que si la frise est armée et pas encore allumée
   (`.methode-frise[data-animation]` sans aucune `.methode-etape[data-allumee]`). Il pose alors `data-trait` sur la
@@ -272,3 +280,4 @@ Le code a été écrit et vérifié une première fois avant le plan. Ce qui a c
 | Mesure du tracé | Cordes d'environ 6 px | Cordes d'environ 2 px | Dans les boucles de la signature, le point prenait jusqu'à 1,5 px de retard sur le bout du trait |
 | Chargement | Premier défilement | Première pause du défilement (200 ms sans évènement) | Démarré en plein glissé, le trait faisait saccader la molette (image de 60 à 80 ms, jusqu'à une seconde sous charge) |
 | Chargement | Première pause du défilement | Première interaction (souris, toucher, clavier, molette, défilement), sans attendre de temps libre | En défilant sans s'arrêter, le trait n'apparaissait qu'au bout de quelques secondes ; mesuré ensuite, son démarrage ne fait aucune image lente, la saccade de la molette venait d'ailleurs |
+| Départ | Sous l'accroche, dans la marge gauche (la goutte de l'intro « coule ») ; tête cachée tant que `L = 0` | Sur l'anneau de la photo de l'accroche : un tour complet, étalé sur le premier quart d'écran de défilement, qui allume la photo (halo comme les logos), puis la descente ; le point attend sur l'anneau avant de défiler | Demande d'Augustin : que la ligne débute à sa photo |
