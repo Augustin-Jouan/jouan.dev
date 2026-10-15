@@ -2,6 +2,11 @@
 
 Date : 2026-10-15 · Statut : design validé en conversation (maquettes et prototype animé), à relire par Augustin.
 
+> **Révision du 2026-10-15 :** le champ de traits a été implémenté puis retiré. Vu en place, sur toute la
+> largeur du pied de page, il faisait kitsch, et son bord haut traçait une ligne dure sous la page. Seule la
+> mise en page en trois colonnes (§ 2) est livrée, sans la bande du mot : les indices viennent directement
+> sous les listes. Les § 3 et 4 restent ici pour mémoire.
+
 Branche : `pied-de-page`, partie de `main` (démo du site de l'artisan fusionnée). Mêmes règles que les sous-projets
 précédents : français uniquement, charte « Nuit mauve » (rôles de couleur, jamais de valeur brute), budgets
 Lighthouse inchangés (scripts de l'accueil ≤ 168 960 octets, CLS ≤ 0,05).
