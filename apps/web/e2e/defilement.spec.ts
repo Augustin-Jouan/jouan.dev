@@ -41,13 +41,13 @@ test.describe("avec une souris", () => {
   test("un lien du menu glisse jusqu'à sa section et garde la personnalisation", async ({ page }) => {
     await page.goto("/?pour=inconnu-0000");
     await attendreLenis(page);
-    await page.getByRole("banner").getByRole("link", { name: "Offre" }).click();
+    await page.getByRole("banner").getByRole("link", { name: "Contact" }).click();
     const positions = await relever(page, 2_000);
     expect(new Set(positions.filter((y) => y > 5 && y < positions.at(-1)! - 5)).size, positions.join(" ")).toBeGreaterThanOrEqual(3);
     expect(new URL(page.url()).search).toBe("?pour=inconnu-0000");
-    expect(new URL(page.url()).hash).toBe("#offre");
+    expect(new URL(page.url()).hash).toBe("#contact");
     // Arrivée sous la marge de défilement de la section (`scroll-mt-8`, 32 px).
-    const haut = await page.evaluate(() => document.getElementById("offre")!.getBoundingClientRect().top);
+    const haut = await page.evaluate(() => document.getElementById("contact")!.getBoundingClientRect().top);
     expect(Math.abs(haut - 32)).toBeLessThanOrEqual(2);
   });
 

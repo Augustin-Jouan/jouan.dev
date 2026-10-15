@@ -41,7 +41,7 @@ export function Accroche({ angle = "application", nom }: { angle?: Angle; nom?: 
             className="max-w-4xl font-serif text-5xl leading-[0.98] tracking-[-0.01em] break-words sm:text-7xl lg:text-8xl 2xl:max-w-6xl 2xl:text-9xl"
           >
             {accroche.titreAvant}
-            <em className="text-accent">{accroche.titreAccent}</em>
+            <span className="text-accent">{accroche.titreAccent}</span>
             {accroche.titreApres}
           </h1>
         </div>
