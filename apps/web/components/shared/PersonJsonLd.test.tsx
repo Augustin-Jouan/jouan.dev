@@ -17,7 +17,7 @@ describe("PersonJsonLd", () => {
     expect(jsonLd.name).toBe(siteName);
     expect(jsonLd.url).toBe(siteUrl);
     expect(jsonLd.jobTitle).toMatch(/full stack/i);
-    expect(jsonLd.sameAs).toEqual([contact.github]);
+    expect(jsonLd.sameAs).toEqual([contact.github, "https://www.linkedin.com/in/augustinjouan"]);
     expect(jsonLd.knowsAbout).toContain("Next.js");
   });
 

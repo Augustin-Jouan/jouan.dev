@@ -15,7 +15,7 @@ export function PersonJsonLd() {
     // Vignette générée par app/opengraph-image.tsx.
     image: `${siteUrl}/opengraph-image`,
     email: `mailto:${contact.email}`,
-    sameAs: [contact.github],
+    sameAs: [contact.github, contact.linkedin],
     knowsAbout: ["Next.js", "React", "TypeScript", "Node.js", "PostgreSQL", "Docker"],
   };
 
