@@ -48,6 +48,29 @@ function traverse(a: Point, b: Point, r: Boite): boolean {
 const ids = NOEUDS.map((n) => n.id);
 
 describe("architecture", () => {
+  it("chaque nœud dit où il tourne, d'après ses propres textes", () => {
+    const lieux = Object.fromEntries(NOEUDS.map((n) => [n.id, n.lieu]));
+    expect(lieux).toEqual({
+      navigateur: "chez-vous",
+      proxy: "vps",
+      site: "vps",
+      base: "vps",
+      tempsReel: "vps",
+      deploiement: "vps",
+      integration: "github",
+      registre: "github",
+      statistiques: "externe",
+      mails: "externe",
+    });
+    for (const n of NOEUDS) {
+      if (n.lieu === "github") expect(n.techno, n.id).toMatch(/GitHub/);
+      if (n.lieu === "externe") expect(n.techno, n.id).toMatch(/Cloud|fournisseur/);
+    }
+    // Le VPS est nommé là où on le présente : le proxy et le déploiement (« le même VPS »).
+    expect(NOEUDS.find((n) => n.id === "proxy")!.techno).toMatch(/VPS/);
+    expect(NOEUDS.find((n) => n.id === "deploiement")!.techno).toMatch(/Coolify, sur le même VPS/);
+  });
+
   it("des identifiants uniques et un nœud par défaut qui existe", () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toContain(NOEUD_PAR_DEFAUT);

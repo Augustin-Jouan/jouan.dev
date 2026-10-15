@@ -560,6 +560,12 @@ html[data-voile-intro] body::after {
     animation: trait-pulsation 1.2s ease-out;
   }
 }
+/* Vue 3D des coulisses : elle apparaît en fondu sur le schéma 2D qu'elle remplace (ArchitectureVivante). */
+@keyframes apparition-3d {
+  from {
+    opacity: 0;
+  }
+}
 @keyframes trait-halo {
   from {
     filter: drop-shadow(0 0 0 transparent);

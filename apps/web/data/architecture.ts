@@ -18,6 +18,8 @@ export type IdNoeud =
   | "registre"
   | "deploiement";
 export type Point = { x: number; y: number };
+/** Où le service tourne : chez le visiteur, sur le VPS (Coolify), chez GitHub ou chez un service externe. */
+export type Lieu = "chez-vous" | "vps" | "github" | "externe";
 export type Variante = "large" | "etroite";
 
 export type Noeud = {
@@ -27,6 +29,7 @@ export type Noeud = {
   techno: string;
   pourquoi: string;
   groupe: "requete" | "deploiement";
+  lieu: Lieu;
   mesure?: Serie;
   positions: Record<Variante, Point>;
 };
@@ -46,6 +49,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "React 19, pages rendues par le serveur puis rendues interactives",
     pourquoi: "Les pages arrivent déjà rendues : le contenu s'affiche avant le JavaScript, qui n'ajoute que l'interactivité.",
     groupe: "requete",
+    lieu: "chez-vous",
     positions: { large: { x: 95, y: 90 }, etroite: { x: 180, y: 50 } },
   },
   {
@@ -55,6 +59,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "Traefik, géré par Coolify, sur un VPS en France",
     pourquoi: "Un seul point d'entrée chiffré pour le site et le temps réel ; les certificats se renouvellent seuls.",
     groupe: "requete",
+    lieu: "vps",
     positions: { large: { x: 335, y: 90 }, etroite: { x: 100, y: 160 } },
   },
   {
@@ -64,6 +69,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "Next.js 16 sur Node 22, dans une image Docker",
     pourquoi: "La plupart des pages sont générées au build : servies telles quelles, elles restent rapides même sous charge.",
     groupe: "requete",
+    lieu: "vps",
     mesure: "site",
     positions: { large: { x: 575, y: 90 }, etroite: { x: 100, y: 290 } },
   },
@@ -74,6 +80,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "PostgreSQL 17, client Prisma",
     pourquoi: "Des données relationnelles simples : une base éprouvée et un client typé évitent les surprises.",
     groupe: "requete",
+    lieu: "vps",
     mesure: "base",
     positions: { large: { x: 830, y: 50 }, etroite: { x: 80, y: 420 } },
   },
@@ -84,6 +91,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "Hono et WebSocket, sur Node 22",
     pourquoi: "Séparé du site : il garde ses connexions ouvertes sans ralentir le rendu des pages, et se déploie à part.",
     groupe: "requete",
+    lieu: "vps",
     mesure: "tempsReel",
     positions: { large: { x: 335, y: 220 }, etroite: { x: 270, y: 290 } },
   },
@@ -94,6 +102,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "Umami Cloud",
     pourquoi: "Une mesure d'audience sans donnée personnelle : pas de bandeau de consentement à imposer.",
     groupe: "requete",
+    lieu: "externe",
     positions: { large: { x: 95, y: 220 }, etroite: { x: 270, y: 160 } },
   },
   {
@@ -103,6 +112,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "SMTP chez un fournisseur de messagerie",
     pourquoi: "Confier l'envoi à un fournisseur établi garantit que les messages arrivent, plutôt qu'en indésirables.",
     groupe: "requete",
+    lieu: "externe",
     positions: { large: { x: 830, y: 150 }, etroite: { x: 288, y: 420 } },
   },
   {
@@ -112,6 +122,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "GitHub Actions",
     pourquoi: "Rien n'est mis en ligne sans avoir passé toutes les vérifications ; les chiffres de cette page en viennent.",
     groupe: "deploiement",
+    lieu: "github",
     positions: { large: { x: 335, y: 360 }, etroite: { x: 270, y: 780 } },
   },
   {
@@ -121,6 +132,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "GitHub Container Registry",
     pourquoi: "Le serveur ne compile rien : il tire une image déjà construite et vérifiée.",
     groupe: "deploiement",
+    lieu: "github",
     positions: { large: { x: 575, y: 360 }, etroite: { x: 270, y: 670 } },
   },
   {
@@ -130,6 +142,7 @@ export const NOEUDS: readonly Noeud[] = [
     techno: "Coolify, sur le même VPS",
     pourquoi: "Un déploiement déclenché par la CI, sans intervention manuelle sur le serveur.",
     groupe: "deploiement",
+    lieu: "vps",
     positions: { large: { x: 830, y: 360 }, etroite: { x: 270, y: 560 } },
   },
 ];

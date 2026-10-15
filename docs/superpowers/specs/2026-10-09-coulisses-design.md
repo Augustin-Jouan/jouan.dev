@@ -167,6 +167,9 @@ une minute pour la route, le temps de la connexion pour la sonde (oubliée à sa
 
 ### 5.3 Vue 3D (à la demande)
 
+> Remplacé par `2026-10-15-coulisses-3d-design.md` : la 3D est désormais affichée d'emblée (au premier
+> geste du visiteur), en objets par rôle sur les plateaux de leur lieu. Ce paragraphe garde la version d'origine.
+
 - Le bouton « Voir en 3D » est toujours rendu, pour que son apparition ne décale rien : invisible et hors
   de l'arbre d'accessibilité au rendu serveur et sans WebGL, visible une fois WebGL vérifié dans le
   navigateur.
