@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EtudeComplete } from "@/components/realisations/EtudeComplete";
-import { enTeteRealisations, etudesDeCas } from "@/data/realisations";
+import { OngletsRealisations } from "@/components/realisations/OngletsRealisations";
+import { enTeteRealisations, etudesDeCas, type Categorie } from "@/data/realisations";
 import { siteName } from "@/data/site";
 
 const description = `Les projets de ${siteName} : une application de suivi de marchés de travaux et le site vitrine d'un artisan, en détail.`;
@@ -17,7 +18,11 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: "Réalisations", description },
 };
 
-/** Les études de cas à la suite, dans l'ordre des données : le suivi de marchés d'abord. */
+/** Les études d'une catégorie, dans l'ordre des données. */
+const etudesDe = (categorie: Categorie) =>
+  etudesDeCas.filter((etude) => etude.categorie === categorie).map((etude) => <EtudeComplete key={etude.slug} etude={etude} />);
+
+/** Les études de cas, rangées sous deux onglets (application métier, site vitrine), dans l'ordre des données. */
 export default function RealisationsPage() {
   return (
     <div>
@@ -25,9 +30,7 @@ export default function RealisationsPage() {
         <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{enTeteRealisations.surtitre}</p>
         <h1 className="max-w-4xl font-serif text-5xl leading-[1.02] sm:text-7xl">{enTeteRealisations.titre}</h1>
       </header>
-      {etudesDeCas.map((etude) => (
-        <EtudeComplete key={etude.slug} etude={etude} />
-      ))}
+      <OngletsRealisations panneaux={{ "application-metier": etudesDe("application-metier"), "site-vitrine": etudesDe("site-vitrine") }} />
       <footer className="mx-auto flex w-full max-w-6xl 2xl:max-w-page flex-col items-start gap-6 border-t border-trait px-5 py-14 sm:px-8 sm:py-20">
         <p className="font-serif text-3xl">Un projet similaire ?</p>
         <Link
