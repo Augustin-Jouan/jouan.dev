@@ -47,7 +47,7 @@ test("le portrait est chargé et visible dès le premier écran", async ({ page 
 
 test("le passage en couleur du titre ne se coupe pas entre deux lignes", async ({ page }) => {
   await page.goto("/");
-  const accent = page.getByRole("heading", { level: 1 }).locator("em");
+  const accent = page.getByRole("heading", { level: 1 }).locator("span");
   await expect(accent).toHaveText(accroche.titreAccent);
   expect(await accent.evaluate((element) => element.getClientRects().length)).toBe(1);
 });
@@ -67,8 +67,8 @@ test("les liens de l'en-tête ramènent aux sections depuis une page légale", a
   await page.goto("/mentions-legales");
   await page
     .getByRole("navigation", { name: "Navigation principale" })
-    .getByRole("link", { name: "Offre" })
+    .getByRole("link", { name: "Contact" })
     .click();
-  await expect(page).toHaveURL(/\/#offre$/);
-  await expect(page.getByRole("heading", { level: 2, name: sections.offre.titre })).toBeInViewport();
+  await expect(page).toHaveURL(/\/#contact$/);
+  await expect(page.getByRole("heading", { level: 2, name: sections.contact.titre })).toBeInViewport();
 });
