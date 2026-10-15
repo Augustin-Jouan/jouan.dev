@@ -40,10 +40,23 @@ function defiler(y: number) {
   });
 }
 
+/** Le morceau du trait importé, sans faire avancer le temps : le trait ne doit rien attendre d'autre. */
+async function attendreImport() {
+  await act(async () => {
+    await vi.dynamicImportSettled();
+  });
+}
+
 async function attendreTempsLibre() {
   await act(async () => {
-    vi.advanceTimersByTime(1_500);
+    vi.advanceTimersByTime(3_500);
     await vi.dynamicImportSettled();
+  });
+}
+
+function interagir(type: string) {
+  act(() => {
+    window.dispatchEvent(new Event(type));
   });
 }
 
@@ -59,37 +72,38 @@ afterEach(() => {
 });
 
 describe("TraitConducteur", () => {
-  it("ne charge rien tant qu'on n'a pas défilé, démarre au premier défilement, et s'arrête au démontage", async () => {
+  it("ne charge rien sans interaction, démarre dès la première, et s'arrête au démontage", async () => {
     medias(false);
     const { container, unmount } = render(<TraitConducteur />);
     expect(container.innerHTML).toBe("");
     await attendreTempsLibre();
     expect(charge.demarre).toBe(0);
-    defiler(40);
-    await attendreTempsLibre();
+    interagir("pointermove");
+    await attendreImport();
     expect(charge.demarre).toBe(1);
     defiler(400);
+    interagir("keydown");
     await attendreTempsLibre();
     expect(charge.demarre).toBe(1);
     unmount();
     expect(charge.arrete).toBe(1);
   });
 
-  it("attend une pause du défilement : rien ne démarre au milieu d'un glissé (il saccaderait)", async () => {
+  for (const type of ["pointerdown", "touchstart", "keydown", "wheel", "scroll"]) {
+    it(`« ${type} » suffit à le démarrer, sans attendre de temps libre`, async () => {
+      medias(false);
+      render(<TraitConducteur />);
+      interagir(type);
+      await attendreImport();
+      expect(charge.demarre).toBe(1);
+    });
+  }
+
+  it("en plein défilement continu, le trait est là dès le premier évènement : pas de pause attendue", async () => {
     medias(false);
     render(<TraitConducteur />);
-    // Trois secondes de défilement continu, un évènement toutes les 100 ms (glissé de la molette, de Lenis).
-    for (let i = 0; i < 30; i++) {
-      defiler(40 + i * 20);
-      act(() => {
-        vi.advanceTimersByTime(100);
-      });
-    }
-    await act(async () => {
-      await vi.dynamicImportSettled();
-    });
-    expect(charge.demarre).toBe(0);
-    await attendreTempsLibre();
+    defiler(40);
+    await attendreImport();
     expect(charge.demarre).toBe(1);
   });
 
@@ -97,13 +111,14 @@ describe("TraitConducteur", () => {
     medias(false);
     vi.stubGlobal("scrollY", 3_000);
     render(<TraitConducteur />);
-    await attendreTempsLibre();
+    await attendreImport();
     expect(charge.demarre).toBe(1);
   });
 
   it("mouvement réduit : rien n'est chargé, même en défilant", async () => {
     medias(true);
     render(<TraitConducteur />);
+    interagir("pointermove");
     defiler(400);
     await attendreTempsLibre();
     expect(charge.demarre).toBe(0);
@@ -113,7 +128,7 @@ describe("TraitConducteur", () => {
     const { changer } = medias(false);
     render(<TraitConducteur />);
     defiler(40);
-    await attendreTempsLibre();
+    await attendreImport();
     expect(charge.demarre).toBe(1);
     changer(true);
     expect(charge.arrete).toBe(1);

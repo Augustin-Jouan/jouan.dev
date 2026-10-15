@@ -21,11 +21,13 @@ test.describe("ordinateur", () => {
     });
     await page.keyboard.press("Control+k");
     await expect(palette(page)).toBeVisible();
-    // Chaque morceau chargé à l'ouverture est celui que compte verifier-taille-commandes.
-    expect(charges.length).toBeGreaterThan(0);
-    for (const chemin of charges) {
-      const fichier = join(process.cwd(), ".next", chemin.replace(/^\/_next\//, ""));
-      expect(readFileSync(fichier, "utf8"), `${chemin} n'est pas le morceau de la palette`).toContain(MARQUEUR);
+    // Chaque morceau chargé à l'ouverture est celui que compte verifier-taille-commandes. Seule exception :
+    // le trait conducteur de l'accueil, chargé à la première interaction, touche du clavier comprise.
+    const lire = (chemin: string) => readFileSync(join(process.cwd(), ".next", chemin.replace(/^\/_next\//, "")), "utf8");
+    const morceaux = charges.filter((chemin) => !lire(chemin).includes("trait-conducteur:v1"));
+    expect(morceaux.length).toBeGreaterThan(0);
+    for (const chemin of morceaux) {
+      expect(lire(chemin), `${chemin} n'est pas le morceau de la palette`).toContain(MARQUEUR);
     }
     await page.getByRole("combobox").fill("contact");
     await page.keyboard.press("Enter");
