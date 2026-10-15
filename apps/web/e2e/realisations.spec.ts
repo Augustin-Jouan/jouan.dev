@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { surveillerErreurs } from "./outils";
 
-test("depuis l'accueil, la carte du site d'artisan descend à son étude sur /realisations", async ({ page }) => {
+test("depuis l'accueil, l'exemple du site vitrine descend à son étude sur /realisations", async ({ page }) => {
   const erreurs = surveillerErreurs(page);
   await page.goto("/");
-  await page.getByRole("link", { name: "Site vitrine d'artisan" }).click();
+  await page.getByRole("link", { name: "Voir l'exemple : Site vitrine d'artisan" }).click();
   await expect(page).toHaveURL(/\/realisations#site-vitrine$/);
   await expect(page.getByRole("heading", { level: 2, name: /Un site d'artisan rapide/ })).toBeInViewport();
   expect(erreurs).toEqual([]);

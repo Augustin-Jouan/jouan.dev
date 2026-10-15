@@ -25,25 +25,25 @@ function boite(el: Element): Boite {
 /** Repères mesurés dans la page, ou null s'il en manque un : pas de trait. */
 export function lireReperes(): Reperes | null {
   const accroche = document.querySelector('section[aria-labelledby="accroche-titre"]');
-  const realisations = document.getElementById("realisations");
+  const offre = document.getElementById("offre");
   const titreMethode = document.querySelector("#methode h2");
   const fil = document.querySelector(".methode-fil");
   const noeuds = [...document.querySelectorAll(".methode-noeud")];
   const logos = [...document.querySelectorAll('[data-trait="logo"] img')];
   const envoi = document.querySelector('[data-trait="envoi"]');
   const colonneSignature = document.querySelector('[data-trait="signature"]');
-  if (!accroche || !realisations || !titreMethode || !fil || noeuds.length !== 5 || !envoi) return null;
+  if (!accroche || !offre || !titreMethode || !fil || noeuds.length !== 5 || !envoi) return null;
 
   const ordinateur = window.matchMedia("(width >= 64rem)").matches;
   const f = boite(fil);
-  const r = boite(realisations);
+  const o = boite(offre);
   return {
     largeur: document.documentElement.clientWidth,
     hauteurEcran: window.innerHeight,
     ordinateur,
     marge: titreMethode.getBoundingClientRect().left,
     departY: boite(accroche).bas,
-    realisationsY: (r.haut + r.bas) / 2,
+    offreY: (o.haut + o.bas) / 2,
     noeuds: noeuds.map((n) => {
       const b = boite(n);
       return { x: (b.gauche + b.droite) / 2, y: (b.haut + b.bas) / 2 };

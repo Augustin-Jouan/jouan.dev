@@ -18,6 +18,9 @@ export type EtudeDeCas = {
   site?: string;
 };
 
+/** En-tête de la page /realisations. */
+export const enTeteRealisations = { surtitre: "Réalisations", titre: "Quelques projets récents" };
+
 /** Ancre de chaque étude sur /realisations, où elles se suivent. */
 export const ancresEtudes: Record<SlugEtude, string> = {
   "suivi-de-marches": "suivi-de-marches",
@@ -108,6 +111,12 @@ export const etudesDeCas: EtudeDeCas[] = [
     },
   },
 ];
+
+/** Image de l'étude qui l'illustre dans l'offre de l'accueil : l'aperçu de la démo, ou la capture sur ordinateur. */
+export function apercuEtude(slug: SlugEtude): Image {
+  const { media } = trouverEtude(slug)!;
+  return media.type === "demo" ? media.apercu : media.images[0]!;
+}
 
 export function trouverEtude(slug: string): EtudeDeCas | undefined {
   return etudesDeCas.find((etude) => etude.slug === slug);
