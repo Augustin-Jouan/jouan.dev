@@ -35,7 +35,7 @@ Critères de réussite :
 | Couleur | Par lieu : VPS corail, GitHub sauge, services externes mauve clair, navigateur papier ; élément choisi en pêche, avec un halo |
 | Vue par défaut | 3D, chargée au premier geste du visiteur ; la page arrive avec la 2D, qui reste l'option (« Voir en 2D ») |
 | Restent en 2D d'office | Pas de WebGL 2, rendu au processeur, économie de données, mouvement réduit, clavier |
-| Téléphone | La scène pivote d'un quart de tour : sa longueur part en profondeur et remplit le cadre haut |
+| Téléphone | Une disposition propre au cadre étroit, en colonne (GitHub au fond, le VPS sur deux colonnes, le visiteur et les services externes devant), caméra plus plongeante : la scène remplit le cadre haut |
 | Poids | Rien d'autre que le cœur de Three.js et les deux modules déjà utilisés ; pas de post-traitement |
 
 ## 3. La scène
@@ -52,7 +52,8 @@ Chaque nœud reçoit un **lieu**, ajouté à `data/architecture.ts` (champ `lieu
 | `chez-vous` | Navigateur | un socle rond, sans nom (son étiquette suffit) |
 
 Les nœuds sont posés **au sol** (plan `x`, `z`, `y` vers le haut), selon une disposition propre à la 3D :
-elle ne reprend plus le plan du schéma 2D. Positions de départ, en unités de la scène, ajustables à l'œil :
+elle ne reprend plus le plan du schéma 2D. Comme lui, elle a deux variantes, « large » et « étroite » (§ 3.5).
+Positions de la variante large, en unités de la scène, ajustables à l'œil :
 
 | Nœud | x | z | Nœud | x | z |
 |---|---|---|---|---|---|
@@ -64,7 +65,9 @@ elle ne reprend plus le plan du schéma 2D. Positions de départ, en unités de 
 
 Les plateaux ne sont pas positionnés à la main : chacun est le rectangle qui englobe les nœuds de son lieu, plus
 une marge (environ 1,2 unité) ; les socles sont centrés sur leur nœud. La liaison Registre → Déploiement
-traverse le vide entre les plateaux GitHub et VPS : c'est la mise en ligne.
+traverse le vide entre les plateaux GitHub et VPS : c'est la mise en ligne. Le nom d'un plateau se lit sous son
+bord avant ; celui d'un plateau caché par un autre devant lui (GitHub, derrière le VPS) se met au-dessus de son
+bord arrière, plus haut que les étiquettes de ses nœuds, comme un titre.
 
 ### 3.2 Formes par rôle
 
@@ -107,18 +110,26 @@ Toutes sont faites de géométries simples de Three.js (boîtes, cylindres, tore
 ### 3.4 Interactions
 
 - Orbite à la souris ou au doigt (`OrbitControls`), sans déplacement latéral ; angle vertical borné pour ne
-  jamais passer sous le sol ni à la verticale ; zoom borné ; rotation automatique lente, interrompue par un
-  geste.
+  jamais passer sous le sol ni à la verticale ; zoom borné.
+- Au lieu d'une rotation complète (qui ferait sortir la scène du cadre), un **balancement** lent autour du
+  centre de la scène (± 0,35 radian en large, ± 0,1 en étroite, période de 24 s), suspendu pendant un geste et
+  les trois secondes qui suivent ; aucun en mouvement réduit.
 - **Survol** (pointeur fin seulement) : l'objet survolé se soulève légèrement, le curseur devient une main.
 - **Clic** sans glisser sur un objet : il est choisi, dans le même panneau de détail qu'aujourd'hui. La rangée
   de boutons « Nœuds » sous la scène reste.
 
 ### 3.5 Téléphone et cadres étroits
 
-- Sur un cadre plus haut que large, le monde pivote d'un quart de tour autour de l'axe vertical : la longueur de
-  la scène (le navigateur à gauche, les mails à droite) part en profondeur, et la scène remplit le cadre haut.
+- Sous `sm` (cadre plus haut que large), la disposition **étroite** : la scène s'allonge en profondeur, de
+  l'arrière vers l'avant GitHub (CI, Registre), le VPS sur deux colonnes (Base et Déploiement, Site, Proxy et
+  Temps réel), puis le Navigateur et les Mails, enfin les Statistiques derrière le Navigateur (aucune liaison
+  ne les traverse). La caméra y plonge davantage (0,6 radian depuis la verticale, contre 0,95 en large), pour
+  que la longueur de la scène occupe la hauteur du cadre. La scène est recréée quand le cadre change de
+  variante, comme pour le mouvement réduit.
+- Premier essai écarté : faire pivoter la disposition large d'un quart de tour. Pivotée, elle restait trop
+  large pour le cadre (environ 9,5 unités) : la largeur imposait le recul et la scène flottait au milieu.
 - La distance de la caméra est calculée pour que toute la scène (plateaux, socles, étiquettes) tienne dans le
-  cadre, dans les deux orientations (`distanceCamera`, réécrite pour la disposition au sol).
+  cadre, balancement compris (`cadrage`), sans recul inutile.
 - Le cadre garde exactement la taille de la 2D (`aspect-[360/820]`, `sm:aspect-[960/420]`) : passer de l'une à
   l'autre ne décale rien.
 
@@ -185,8 +196,8 @@ visiteur n'avait rien demandé) ; le bouton reste proposé.
 ## 7. Organisation du code
 
 - `data/architecture.ts` : champ `lieu` sur chaque nœud (type `Lieu`).
-- `lib/coulisses/geometrie3d.ts` (pur, testé) : positions au sol, plateaux et socles déduits des lieux, noms des
-  plateaux, quart de tour sur cadre étroit, distance de la caméra, `periodePaquet` (inchangé).
+- `lib/coulisses/geometrie3d.ts` (pur, testé) : positions au sol des deux dispositions, plateaux et socles
+  déduits des lieux, noms des plateaux, cadrage de la caméra, `periodePaquet` (inchangé).
 - `lib/coulisses/formes3d.ts` (nouveau, dans le morceau 3D) : construit l'objet de chaque forme ; ses
   géométries sont partagées et libérables.
 - `lib/coulisses/scene3d.ts` : scène, ambiance, plateaux, liaisons, paquets, interactions, boucle. Garde le
@@ -199,9 +210,11 @@ visiteur n'avait rien demandé) ; le bouton reste proposé.
 ## 8. Tests
 
 - **Unitaires** :
-  - `geometrie3d` : chaque nœud est dans le plateau ou sur le socle de son lieu ; les plateaux et socles ne se
-    chevauchent pas ; quart de tour sur cadre étroit ; la scène entière tient dans le champ dans les deux
-    orientations ; `periodePaquet` inchangé.
+  - `geometrie3d`, pour chaque disposition : chaque nœud est dans le plateau ou sur le socle de son lieu ; les
+    plateaux et socles ne se chevauchent pas ; le nom de GitHub passe derrière ; la scène entière tient dans le
+    champ, balancement compris, sans recul inutile ; sur téléphone, elle occupe plus des trois quarts de la
+    hauteur ; `periodePaquet` inchangé.
+  - `formes3d` : chaque nœud a son objet, posé au sol, sous son étiquette ; géométries partagées.
   - `architecture` : chaque nœud a un lieu, et les lieux reprennent les textes (Coolify et VPS pour `vps`,
     GitHub pour `github`, etc.).
   - `couleurs3d` : chaque couleur égale son rôle de la charte.

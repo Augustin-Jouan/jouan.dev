@@ -6,7 +6,7 @@ import { mesurerHttp } from "@/lib/coulisses/http";
 import { MagasinMesures, type EtatMesures } from "@/lib/coulisses/magasin";
 import { Releveur } from "@/lib/coulisses/releveur";
 import { SondeTempsReel } from "@/lib/coulisses/sonde";
-import { webglDisponible } from "@/lib/coulisses/webgl";
+import { renduAuProcesseur, webglDisponible } from "@/lib/coulisses/webgl";
 import { quandLibre } from "@/lib/quand-libre";
 import { DetailNoeud } from "./DetailNoeud";
 import { PanneauEnDirect } from "./PanneauEnDirect";
@@ -24,11 +24,50 @@ type Cadre3d = ComponentType<{
 }>;
 
 const jamais = () => () => {};
-/** Posé au premier clic ; vit dans le morceau 3D, pas dans le JS initial. */
+/** Posé au premier chargement de la 3D ; vit dans le morceau 3D, pas dans le JS initial. */
 let Cadre: Cadre3d | null = null;
 
+/** Choix « Voir en 2D » du visiteur : gardé pour la session, ou pour la page si le stockage est bloqué. */
+const CLE_CHOIX = "jouan.dev:coulisses-vue";
+let choix2dPage = false;
+function choix2d(): boolean {
+  if (choix2dPage) return true;
+  try {
+    return sessionStorage.getItem(CLE_CHOIX) === "2d";
+  } catch {
+    return false;
+  }
+}
+function garderChoix2d() {
+  choix2dPage = true;
+  try {
+    sessionStorage.setItem(CLE_CHOIX, "2d");
+  } catch {}
+}
+/** Réservé aux tests. */
+export function oublierChoix2d() {
+  choix2dPage = false;
+}
+
+/** Ce qui compte comme premier geste : pas le clavier, pour ne pas retirer la 2D à qui la parcourt. */
+const GESTES = ["pointermove", "pointerdown", "touchstart", "wheel", "scroll"] as const;
+
+/** La 3D peut-elle s'ouvrir d'elle-même ? Pas au processeur, ni en économie de données, ni en mouvement réduit. */
+function troisDDOffice(): boolean {
+  const connexion = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  return (
+    !renduAuProcesseur() &&
+    !connexion?.saveData &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+    !choix2d()
+  );
+}
+
 /**
- * Schéma de l'architecture, détail du nœud choisi et mesures en direct. Les
+ * Schéma de l'architecture, détail du nœud choisi et mesures en direct. La
+ * page arrive avec le schéma 2D ; au premier geste du visiteur, la vue 3D le
+ * remplace si l'appareil s'y prête (spec 2026-10-15-coulisses-3d-design, § 4).
+ * Les
  * mesures démarrent une fois la page chargée, dans un temps libre, et
  * s'arrêtent quand l'onglet est caché. Sans `NEXT_PUBLIC_DIRECT_URL` (figée au
  * build), la mesure du temps réel est « indisponible ».
@@ -42,18 +81,16 @@ export function ArchitectureVivante() {
   const [vue, setVue] = useState<Vue>("2d");
   const boutonRef = useRef<HTMLButtonElement>(null);
   const figureRef = useRef<HTMLElement>(null);
+  // La 3D a-t-elle été demandée (bouton, `?vue=3d`) ? Sinon, un échec ramène à la 2D sans rien dire.
+  const demandee = useRef(false);
   const surPerte3d = useCallback(() => {
     // La rangée « Nœuds » va disparaître : le focus qu'elle avait revient sur le bouton 3D.
     if (figureRef.current?.contains(document.activeElement)) boutonRef.current?.focus();
-    setVue("echec");
+    setVue(demandee.current ? "echec" : "2d");
   }, []);
 
-  const basculer3d = () => {
-    if (vue === "chargement") return;
-    if (vue === "3d") {
-      setVue("2d");
-      return;
-    }
+  const ouvrir3d = (parLeVisiteur: boolean) => {
+    demandee.current = parLeVisiteur;
     setVue("chargement");
     import("./CadreScene3d")
       .then((m) => {
@@ -63,6 +100,32 @@ export function ArchitectureVivante() {
       .catch(surPerte3d);
   };
 
+  const basculer3d = () => {
+    if (vue === "chargement") return;
+    if (vue === "3d") {
+      garderChoix2d();
+      setVue("2d");
+      return;
+    }
+    ouvrir3d(true);
+  };
+
+  // Premier geste du visiteur (une fois WebGL connu) : la 3D remplace la 2D, si l'appareil s'y prête et
+  // tant que le focus n'est pas dans la figure.
+  const geste = useRef(false);
+  useEffect(() => {
+    if (!webgl || vue !== "2d" || geste.current || !troisDDOffice()) return;
+    const surGeste = () => {
+      if (figureRef.current?.contains(document.activeElement)) return;
+      geste.current = true;
+      retirer();
+      ouvrir3d(false);
+    };
+    const retirer = () => GESTES.forEach((g) => window.removeEventListener(g, surGeste));
+    GESTES.forEach((g) => window.addEventListener(g, surGeste, { passive: true }));
+    return retirer;
+  });
+
   // `/coulisses?vue=3d` (commande « Voir l'architecture en 3D ») : la 3D s'ouvre
   // d'elle-même, une fois WebGL connu ; sans WebGL, le schéma 2D reste.
   const vueDemandee = useRef(false);
@@ -70,7 +133,7 @@ export function ArchitectureVivante() {
     if (!webgl || vueDemandee.current) return;
     vueDemandee.current = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- l'adresse et WebGL ne se lisent qu'au navigateur
-    if (new URLSearchParams(window.location.search).get("vue") === "3d") basculer3d();
+    if (new URLSearchParams(window.location.search).get("vue") === "3d") ouvrir3d(true);
   });
 
   useEffect(() => {
@@ -109,14 +172,16 @@ export function ArchitectureVivante() {
           tabIndex={webgl ? undefined : -1}
           className={`rounded-full border border-trait-fort px-4 py-2 text-sm font-semibold transition-[color,background-color] hover:bg-accent hover:text-sur-accent aria-disabled:opacity-60 ${webgl ? "" : "invisible"}`}
         >
-          {vue === "3d" ? "Revenir en 2D" : vue === "chargement" ? "Chargement…" : "Voir en 3D"}
+          {vue === "3d" ? "Voir en 2D" : vue === "chargement" ? "Chargement…" : "Voir en 3D"}
         </button>
       </div>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="flex flex-col gap-6">
           <figure ref={figureRef} className="flex flex-col gap-2">
             {vue === "3d" && Cadre ? (
-              <Cadre choisi={choisi} choisir={setChoisi} mesures={mesures} surPerte={surPerte3d} />
+              <div className="flex flex-col gap-2 motion-safe:animate-[apparition-3d_0.4s_ease-out]">
+                <Cadre choisi={choisi} choisir={setChoisi} mesures={mesures} surPerte={surPerte3d} />
+              </div>
             ) : (
               <div className="relative aspect-[360/820] w-full sm:aspect-[960/420]">
                 <Schema choisi={choisi} choisir={setChoisi} mesures={mesures} />

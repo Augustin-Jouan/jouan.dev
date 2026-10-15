@@ -12,6 +12,14 @@ const abonnerMouvement = (fn: () => void) => {
   return () => mq.removeEventListener("change", fn);
 };
 const lireMouvement = () => window.matchMedia(REQUETE_MOUVEMENT).matches;
+/** Cadre large à partir de `sm`, comme le schéma 2D (`sm:aspect-[960/420]`). */
+const REQUETE_LARGE = "(width >= 40rem)";
+const abonnerLarge = (fn: () => void) => {
+  const mq = window.matchMedia(REQUETE_LARGE);
+  mq.addEventListener("change", fn);
+  return () => mq.removeEventListener("change", fn);
+};
+const lireLarge = () => window.matchMedia(REQUETE_LARGE).matches;
 const dernieres = (m: EtatMesures) => ({ site: derniere(m.site), base: derniere(m.base), tempsReel: derniere(m.tempsReel) });
 
 type Props = {
@@ -28,6 +36,7 @@ type Props = {
  */
 export function Cadre({ choisi, choisir, mesures, surPerte }: Props) {
   const mouvementReduit = useSyncExternalStore(abonnerMouvement, lireMouvement, () => false);
+  const disposition = useSyncExternalStore(abonnerLarge, lireLarge, () => true) ? "large" : "etroite";
   const mesuresRef = useRef(mesures);
   const choisiRef = useRef(choisi);
   const sceneRef = useRef<Scene3D | null>(null);
@@ -49,6 +58,7 @@ export function Cadre({ choisi, choisir, mesures, surPerte }: Props) {
           conteneur: cadre,
           noeuds: NOEUDS,
           liaisons: LIAISONS,
+          disposition,
           latences: () => dernieres(mesuresRef.current),
           mouvementReduit,
           choisi: choisiRef.current,
@@ -65,7 +75,7 @@ export function Cadre({ choisi, choisir, mesures, surPerte }: Props) {
         sceneRef.current = null;
       };
     },
-    [choisir, mouvementReduit, surPerte],
+    [choisir, disposition, mouvementReduit, surPerte],
   );
 
   return (
