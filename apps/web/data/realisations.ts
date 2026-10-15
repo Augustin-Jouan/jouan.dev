@@ -1,9 +1,13 @@
 export type SlugEtude = "suivi-de-marches" | "site-artisan";
 
+export type Categorie = "application-metier" | "site-vitrine";
+
 export type Image = { src: string; alt: string; largeur: number; hauteur: number };
 
 export type EtudeDeCas = {
   slug: SlugEtude;
+  /** L'onglet de /realisations qui la montre. */
+  categorie: Categorie;
   surtitre: string;
   titre: string;
   sousTitre: string;
@@ -29,6 +33,12 @@ export const ancresEtudes: Record<SlugEtude, string> = {
 
 export const cheminEtude = (slug: SlugEtude) => `/realisations#${ancresEtudes[slug]}`;
 
+/** Les onglets de /realisations, dans l'ordre ; le premier s'affiche quand l'adresse n'en choisit aucun. */
+export const categories: { id: Categorie; libelle: string }[] = [
+  { id: "application-metier", libelle: "Application métier" },
+  { id: "site-vitrine", libelle: "Site vitrine" },
+];
+
 /**
  * Site du client artisan : sa prévisualisation, jusqu'à la bascule de son
  * domaine (www.sdj-elec.fr affiche encore l'ancien site).
@@ -42,6 +52,7 @@ export const SITE_ARTISAN = "https://sdj-elec.jouan.dev/";
 export const etudesDeCas: EtudeDeCas[] = [
   {
     slug: "suivi-de-marches",
+    categorie: "application-metier",
     surtitre: "Application métier · BTP",
     titre: "Le suivi des marchés de travaux, sans tableur ni courrier retapé",
     sousTitre:
@@ -75,6 +86,7 @@ export const etudesDeCas: EtudeDeCas[] = [
   },
   {
     slug: "site-artisan",
+    categorie: "site-vitrine",
     surtitre: "Site vitrine · SARL Dufourd Jérôme, électricien-plombier à Châteaubriant",
     site: SITE_ARTISAN,
     titre: "Un site d'artisan rapide, bien référencé, et enfin entre ses mains",
@@ -120,4 +132,23 @@ export function apercuEtude(slug: SlugEtude): Image {
 
 export function trouverEtude(slug: string): EtudeDeCas | undefined {
   return etudesDeCas.find((etude) => etude.slug === slug);
+}
+
+/**
+ * Onglet choisi par chaque ancre : celle d'un onglet (`#site-vitrine`), ou celle
+ * d'une étude, qui ouvre son onglet. Recopiée telle quelle dans le script lu
+ * avant l'affichage (components/realisations/OngletsRealisations.tsx).
+ */
+export const CATEGORIES_DES_ANCRES: Record<string, Categorie> = Object.fromEntries([
+  ...categories.map(({ id }) => [id, id]),
+  ...etudesDeCas.map((e) => [ancresEtudes[e.slug], e.categorie]),
+]);
+
+/** Onglet choisi par l'ancre de l'adresse (`location.hash`) ; le premier sans ancre connue. */
+export function categorieDeAncre(hash: string): Categorie {
+  try {
+    return CATEGORIES_DES_ANCRES[decodeURIComponent(hash.slice(1))] ?? categories[0]!.id;
+  } catch {
+    return categories[0]!.id;
+  }
 }

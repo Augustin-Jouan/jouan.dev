@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { realisations } from "./accueil";
-import { apercuEtude, cheminEtude, etudesDeCas, trouverEtude } from "./realisations";
+import { apercuEtude, categorieDeAncre, categories, cheminEtude, etudesDeCas, trouverEtude } from "./realisations";
 
 describe("études de cas", () => {
   it("ont des slugs uniques et trois chiffres clés", () => {
@@ -26,5 +26,25 @@ describe("études de cas", () => {
   });
   it("une seule étude porte la démo", () => {
     expect(etudesDeCas.filter((e) => e.media.type === "demo")).toHaveLength(1);
+  });
+});
+
+describe("catégories de /realisations", () => {
+  it("deux onglets, l'application métier d'abord ; chacun a au moins une étude", () => {
+    expect(categories).toEqual([
+      { id: "application-metier", libelle: "Application métier" },
+      { id: "site-vitrine", libelle: "Site vitrine" },
+    ]);
+    for (const { id } of categories) expect(etudesDeCas.some((e) => e.categorie === id), id).toBe(true);
+    expect(trouverEtude("suivi-de-marches")!.categorie).toBe("application-metier");
+    expect(trouverEtude("site-artisan")!.categorie).toBe("site-vitrine");
+  });
+  it("l'ancre de l'adresse choisit l'onglet : celle d'un onglet, ou celle d'une étude ; sinon le premier", () => {
+    expect(categorieDeAncre("#site-vitrine")).toBe("site-vitrine");
+    expect(categorieDeAncre("#application-metier")).toBe("application-metier");
+    expect(categorieDeAncre("#suivi-de-marches")).toBe("application-metier");
+    expect(categorieDeAncre("")).toBe("application-metier");
+    expect(categorieDeAncre("#inconnue")).toBe("application-metier");
+    expect(categorieDeAncre("#%E0%A4%A")).toBe("application-metier");
   });
 });
