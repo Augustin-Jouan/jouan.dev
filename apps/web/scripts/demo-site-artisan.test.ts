@@ -132,6 +132,22 @@ describe("copie de démo du site de l'artisan : adaptations", () => {
     expect(source).toContain('href="/realisations#site-vitrine"');
   });
 
+  it("un clic sur un lien téléphone ou e-mail ne fait rien (dans l'iframe, Chrome bloquerait la navigation)", () => {
+    const source = bandeauDemo("https://sdj-elec.jouan.dev/");
+    const script = source.match(/__html: ("[^\n]*"),?\n/)![1]!;
+    document.documentElement.removeAttribute("data-plein-ecran");
+    document.body.innerHTML = '<a href="tel:+33600000000"><span>06</span></a><a href="mailto:a@b.fr">mail</a><a href="/services">ok</a>';
+    new Function(JSON.parse(script))();
+    const cliquer = (selecteur: string) => {
+      const evenement = new MouseEvent("click", { bubbles: true, cancelable: true });
+      document.querySelector(selecteur)!.dispatchEvent(evenement);
+      return evenement.defaultPrevented;
+    };
+    expect(cliquer('a[href^="tel:"] span')).toBe(true);
+    expect(cliquer('a[href^="mailto:"]')).toBe(true);
+    expect(cliquer('a[href="/services"]')).toBe(false);
+  });
+
   it("une cible introuvable arrête tout, en nommant le fichier", () => {
     expect(() => adapterConfig("export default {};")).toThrow(/next\.config\.ts/);
     expect(() => adapterActions("export {};")).toThrow(/actions\.ts/);

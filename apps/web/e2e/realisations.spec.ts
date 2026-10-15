@@ -186,6 +186,20 @@ test.describe("copie du site de l'artisan", () => {
     expect(erreurs).toEqual([]);
   });
 
+  test("dans la fenêtre, téléphone et e-mail ne font rien : la page reste affichée", async ({ page, isMobile }) => {
+    test.skip(isMobile, "Sous 768 px, la fenêtre garde l'aperçu.");
+    const erreurs = surveillerErreurs(page);
+    await page.goto("/realisations#site-vitrine");
+    await page.getByAltText("Page d'accueil du site de la SARL Dufourd Jérôme sur ordinateur").scrollIntoViewIfNeeded();
+    const site = page.frameLocator('iframe[title="Démo interactive : site vitrine de l\'artisan"]');
+    await expect(site.getByRole("heading", { level: 1 })).toContainText("électricien-plombier");
+    await site.locator('a[href^="tel:"]:visible').first().click();
+    await site.locator('a[href^="mailto:"]:visible').first().click();
+    await expect(site.getByRole("heading", { level: 1 })).toContainText("électricien-plombier");
+    expect(page.frames().some((f) => f.url().endsWith(COPIE))).toBe(true);
+    expect(erreurs).toEqual([]);
+  });
+
   test("ouverte directement : le bandeau dit que c'est une démo, avec le vrai site et le retour au portfolio", async ({ page }) => {
     await page.goto(COPIE);
     const bandeau = page.getByRole("complementary", { name: "Copie de démonstration" });

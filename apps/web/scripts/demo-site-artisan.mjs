@@ -96,6 +96,10 @@ export function adapterLayout(source) {
  * Bandeau de la copie, visible hors d'une iframe seulement : un script lu avant
  * l'affichage pose `data-plein-ecran` sur <html>, rien ne bouge à l'arrivée.
  * Liens `<a>` simples : `basePath` ne les préfixe pas.
+ *
+ * Le même script rend inertes les liens téléphone et e-mail : dans l'iframe,
+ * Chrome bloque leur navigation (« This content is blocked »), et en plein
+ * écran un visiteur du portfolio appellerait l'artisan par erreur.
  */
 export function bandeauDemo(siteEnLigne) {
   return `// Copie de démo (jouan.dev) : rappelle, en plein écran, que ce n'est pas le vrai site.
@@ -104,7 +108,7 @@ export function BandeauDemo() {
     <>
       <script
         dangerouslySetInnerHTML={{
-          __html: "if(window.self===window.top)document.documentElement.setAttribute('data-plein-ecran','')",
+          __html: "if(window.self===window.top)document.documentElement.setAttribute('data-plein-ecran','');document.addEventListener('click',function(e){var a=e.target instanceof Element&&e.target.closest('a');if(a&&(a.protocol==='tel:'||a.protocol==='mailto:'))e.preventDefault()},true)",
         }}
       />
       <aside

@@ -113,6 +113,9 @@ directement). Dans la fenêtre de `/realisations`, la barre de titre suffit.
 - **Sans saut d'affichage :** un script de deux lignes, lu avant l'affichage, pose `data-plein-ecran` sur `<html>`
   quand `window.self === window.top`. Le bandeau est masqué en CSS sans cet attribut, donc rien ne bouge à l'arrivée.
   Sans JavaScript, il reste masqué.
+- **Téléphone et e-mail inertes :** le même script annule le clic sur les liens `tel:` et `mailto:`, dans la fenêtre
+  comme en plein écran. Dans l'iframe, Chrome bloque leur navigation (« This content is blocked ») ; en plein écran, un
+  visiteur du portfolio appellerait l'artisan par erreur.
 - **Style :** couleurs et typographie de la copie (ses propres classes Tailwind), lisible et contrasté, sans imiter la
   charte de jouan.dev. Le texte exact et l'adresse en ligne sont passés au script, pas recopiés à la main.
 
