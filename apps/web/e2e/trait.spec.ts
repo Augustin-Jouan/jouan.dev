@@ -68,12 +68,25 @@ async function parcourir(page: Page, pas: number) {
   return { ordre, longueurs };
 }
 
-test("tant qu'on ne défile pas, le trait n'est pas chargé (budget des scripts de l'accueil)", async ({ page }) => {
+test("sans aucune interaction, le trait n'est pas chargé (budget des scripts de l'accueil, Lighthouse)", async ({ page }) => {
   await page.goto("/");
   await page.waitForLoadState("load");
-  // Au-delà du délai maximal du temps libre (3 s).
   await page.waitForTimeout(3_500);
   await expect(page.locator(".trait-calque")).toHaveCount(0);
+});
+
+test("le trait est prêt dès le premier geste, avant même de défiler : il est là quand on commence", async ({ page, isMobile }) => {
+  await page.goto("/");
+  await page.waitForLoadState("load");
+  // Un geste avant l'hydratation n'est pas vu (comme pour un visiteur, le suivant le sera) : on le répète.
+  let i = 0;
+  await expect(async () => {
+    i++;
+    if (isMobile) await page.touchscreen.tap(200, 300 + i);
+    else await page.mouse.move(640, 400 + i);
+    await expect(page.locator(".trait-calque")).toBeAttached({ timeout: 500 });
+  }).toPass({ timeout: 10_000 });
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });
 
 test.describe("ordinateur", () => {
@@ -201,9 +214,10 @@ test.describe("mouvement réduit", () => {
   test("pas de trait, même en défilant : la page est celle d'avant, Méthode affichée finie", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("load");
+    await page.mouse.move(200, 300);
     await defiler(page, 400);
-    // Au-delà du délai maximal du temps libre (3 s) : le trait se serait chargé.
-    await page.waitForTimeout(3_500);
+    // Sans mouvement réduit, le trait se serait chargé dès ces gestes.
+    await page.waitForTimeout(2_000);
     await expect(page.locator(".trait-calque")).toHaveCount(0);
     await expect(page.locator(".methode-frise")).not.toHaveAttribute("data-trait");
     const opacites = await page.locator("#methode li h3").evaluateAll((h) => h.map((e) => getComputedStyle(e).opacity));
