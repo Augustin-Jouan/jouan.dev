@@ -141,7 +141,7 @@ export function trouverEtude(slug: string): EtudeDeCas | undefined {
  */
 export const CATEGORIES_DES_ANCRES: Record<string, Categorie> = Object.fromEntries([
   ...categories.map(({ id }) => [id, id]),
-  ...etudesDeCas.map((e) => [ancresEtudes[e.slug], e.categorie]),
+  ...etudesDeCas.map((e) => [ancresEtudes[e.slug], e.categorie]), // placeholder-ok
 ]);
 
 /** Onglet choisi par l'ancre de l'adresse (`location.hash`) ; le premier sans ancre connue. */
