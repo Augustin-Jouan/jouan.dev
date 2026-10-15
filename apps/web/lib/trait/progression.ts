@@ -5,6 +5,9 @@
 
 export type Point = { x: number; y: number };
 
+/** La tête suit cette ligne de l'écran, à partir du haut (fraction de la hauteur de l'écran). */
+export const LIGNE_DE_LECTURE = 0.66;
+
 /** Écart, en longueur, entre deux échantillons du trait. */
 export const PAS_ECHANTILLON = 4;
 

@@ -5,7 +5,7 @@
  *
  * Le chemin n'est fait que de courbes de Bézier cubiques : leur longueur se mesure ici, sans DOM.
  */
-import { ordonnerReperes, ramenerSous, PAS_ECHANTILLON, type Point, type Repere } from "./progression";
+import { LIGNE_DE_LECTURE, ordonnerReperes, ramenerSous, PAS_ECHANTILLON, type Point, type Repere } from "./progression";
 import {
   SIGNATURE,
   SIGNATURE_BAS,
@@ -29,8 +29,8 @@ export type Reperes = {
   ordinateur: boolean;
   /** Du bord de l'écran au bord gauche du contenu (`#methode h2`). */
   marge: number;
-  /** Bas de l'accroche. */
-  departY: number;
+  /** Photo de l'accroche : le trait part de son anneau. */
+  portrait: Cercle;
   /** Milieu vertical de la section de l'offre (« Ce que je fais ») : le trait y fait sa boucle. */
   offreY: number;
   /** Centres des cinq nœuds de la Méthode. */
@@ -47,7 +47,11 @@ export type Reperes = {
   signature?: Boite;
 };
 
-export type Cible = { type: "etape"; indice: number } | { type: "logo"; indice: number } | { type: "envoi" };
+export type Cible =
+  | { type: "portrait" }
+  | { type: "etape"; indice: number }
+  | { type: "logo"; indice: number }
+  | { type: "envoi" };
 
 export type Trace = {
   variante: Variante;
@@ -64,8 +68,8 @@ export type Trace = {
 
 /** Marge sous laquelle le trait longe le bord de l'écran au lieu de dessiner dans la marge. */
 export const MARGE_MIN = 56;
-/** Écart entre le trait et l'image d'un logo : il passe sur l'anneau pêche (2 px, décalé de 4 px). */
-export const ECART_LOGO = 6;
+/** Écart entre le trait et l'image de la photo ou d'un logo : il passe sur l'anneau pêche (2 px, décalé de 4 px). */
+export const ECART_ANNEAU = 6;
 /** Taille de la signature : au plus 1,3 fois son dessin ; en dessous de 0,7, elle serait illisible. */
 const ECHELLE_SIGNATURE: Bornes = [0.7, 1.3];
 /** Graine fixe : la même mise en page donne toujours le même trait. */
@@ -187,6 +191,30 @@ function etapes(r: Reperes, jalon: Jalon) {
   return r.noeuds.map((noeud, indice) => ({ jalon, decalage: distance(n1, noeud), cible: { type: "etape", indice } as Cible }));
 }
 
+/**
+ * Départ : le trait naît en haut de l'anneau de la photo, en fait le tour complet (par la gauche, le bas, la
+ * droite) et repart de sa gauche, vers le bas. Le tour s'étale sur un quart d'écran de défilement, dès que la
+ * ligne de lecture quitte sa position au repos (ou atteint le centre de la photo, si elle est plus bas) ; la
+ * photo s'allume quand il se referme.
+ */
+function tourPortrait(r: Reperes) {
+  const { portrait: p, hauteurEcran: h } = r;
+  const rayon = p.r + ECART_ANNEAU;
+  const chemin = new Chemin({ x: p.x, y: p.y - rayon }).arc(p, rayon, -90, -540);
+  const debut = Math.max(p.y, LIGNE_DE_LECTURE * h);
+  return {
+    chemin,
+    /** Gauche de l'anneau, où le trait repart vers le bas. */
+    sortie: { x: p.x - rayon, y: p.y },
+    bas: p.y + rayon,
+    reperes: [
+      { jalon: 0, y: debut },
+      { jalon: chemin.jalon, y: debut + 0.25 * h },
+    ],
+    allumable: { jalon: chemin.jalon, decalage: 0, cible: { type: "portrait" } as Cible },
+  };
+}
+
 function tracerMarges(r: Reperes, alea: () => number): Construction {
   const { marge: M, largeur: W, hauteurEcran: h } = r;
   const gauche: Bornes = [12, M - 16];
@@ -195,8 +223,11 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
   const milieuGauche = (gauche[0] + gauche[1]) / 2;
   const milieuDroite = (droite[0] + droite[1]) / 2;
 
-  const depart = { x: M / 2, y: r.departY - 24 };
-  const chemin = new Chemin(depart);
+  // Le tour de la photo, puis la sortie dans la marge gauche.
+  const tour = tourPortrait(r);
+  const { chemin } = tour;
+  const depart = { x: milieuGauche, y: tour.bas + 60 };
+  chemin.courbe({ x: tour.sortie.x, y: tour.sortie.y + 50 }, { x: depart.x, y: depart.y - 40 }, depart);
 
   // Descente libre jusqu'à la boucle, à hauteur de l'offre, puis la boucle.
   const rayon = Math.min(14, Math.max(10, (gauche[1] - gauche[0]) / 2));
@@ -219,8 +250,8 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
   const sortie = { x: milieuDroite, y: fin.y + 80 };
   chemin.courbe({ x: fin.x + 40, y: fin.y }, { x: sortie.x, y: sortie.y - 40 }, sortie);
   const [logoGauche, logoDroite] = [...r.logos].sort((a, b) => a.x - b.x) as [Cercle, Cercle];
-  const r1 = logoGauche.r + ECART_LOGO;
-  const r2 = logoDroite.r + ECART_LOGO;
+  const r1 = logoGauche.r + ECART_ANNEAU;
+  const r2 = logoDroite.r + ECART_ANNEAU;
   const haut2 = { x: logoDroite.x, y: logoDroite.y - r2 };
   const avantLogos = { x: milieuDroite, y: haut2.y - 60 };
   chemin.lisse([...inflexions(alea, sortie.y, avantLogos.y, resserre(droite)), avantLogos], BAS, BAS, droite);
@@ -283,7 +314,7 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
   return {
     chemin,
     reperes: [
-      { jalon: 0, y: depart.y },
+      ...tour.reperes,
       { jalon: jalonN1, y: n1.y - 0.25 * h },
       { jalon: jalonFin, y: n1.y + 0.25 * h },
       { jalon: jalonLogoDroite, y: Math.min(haut1.y, haut2.y) },
@@ -297,6 +328,7 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
         : [{ jalon: jalonArrivee, y: arrivee.y }]),
     ],
     allumables: [
+      tour.allumable,
       ...etapes(r, jalonN1),
       { jalon: jalonLogoDroite, decalage: 0, cible: { type: "logo", indice: r.logos.indexOf(logoDroite) } },
       { jalon: jalonLogoGauche, decalage: 0, cible: { type: "logo", indice: r.logos.indexOf(logoGauche) } },
@@ -328,8 +360,10 @@ function placerSignature(zone: Boite, arrivee: Point, plancher: number): { origi
  */
 function tracerBord(r: Reperes, alea: () => number): Construction {
   const { largeur: W, hauteurEcran: h, ordinateur } = r;
-  const depart = { x: 8, y: r.departY - 24 };
-  const chemin = new Chemin(depart);
+  const tour = tourPortrait(r);
+  const { chemin } = tour;
+  const depart = { x: 8, y: tour.bas + 40 };
+  chemin.courbe({ x: tour.sortie.x, y: tour.sortie.y + 30 }, { x: 8, y: depart.y - 30 }, depart);
 
   const n1 = r.noeuds[0]!;
   const approche = { x: 8, y: n1.y - 60 };
@@ -354,12 +388,12 @@ function tracerBord(r: Reperes, alea: () => number): Construction {
   return {
     chemin,
     reperes: [
-      { jalon: 0, y: depart.y },
+      ...tour.reperes,
       { jalon: jalonN1, y: ordinateur ? n1.y - 0.25 * h : n1.y },
       { jalon: jalonFin, y: ordinateur ? n1.y + 0.25 * h : fin.y },
       { jalon: jalonArrivee, y: arrivee.y },
     ],
-    allumables: [...etapes(r, jalonN1), { jalon: jalonArrivee, decalage: 0, cible: { type: "envoi" } }],
+    allumables: [tour.allumable, ...etapes(r, jalonN1), { jalon: jalonArrivee, decalage: 0, cible: { type: "envoi" } }],
   };
 }
 

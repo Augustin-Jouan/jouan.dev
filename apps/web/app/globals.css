@@ -538,8 +538,9 @@ html[data-voile-intro] body::after {
 .methode-frise[data-trait] .methode-paquet {
   display: none;
 }
-/* Logos touchés et bouton d'envoi atteint : un halo qui reste. Animations et non transitions : les
-   classes Tailwind de ces éléments ont déjà leurs propres transitions. */
+/* Photo et logos touchés, bouton d'envoi atteint : un halo qui reste. Animations et non transitions :
+   les classes Tailwind de ces éléments ont déjà leurs propres transitions. */
+[data-trait="portrait"][data-allumee],
 [data-trait="logo"][data-allumee] img {
   filter: drop-shadow(0 0 14px color-mix(in srgb, var(--color-lueur) 60%, transparent));
 }
@@ -551,6 +552,7 @@ html[data-voile-intro] body::after {
   .methode-frise[data-animation][data-trait] .methode-etape {
     --delai: 0s;
   }
+  [data-trait="portrait"][data-allumee],
   [data-trait="logo"][data-allumee] img {
     animation: trait-halo 0.6s ease-out;
   }
