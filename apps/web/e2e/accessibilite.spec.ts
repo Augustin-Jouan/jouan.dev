@@ -16,10 +16,19 @@ const PAGES = [
   "/politique-de-confidentialite",
   "/admin/connexion",
   "/demo/suivi-de-marches/index.html?theme=sombre",
+  "/demo/site-artisan",
 ];
 
-async function violations(page: Page): Promise<string[]> {
-  const resultat = await new AxeBuilder({ page }).withTags(NORMES).analyze();
+/**
+ * Défauts connus d'une page qui ne se corrigent pas ici. La copie du site de
+ * l'artisan reproduit son vrai site (dépôt sdjElec) : ses liens téléphone et
+ * e-mail en ligne dans le texte sont trop petits (`target-size`). À corriger
+ * dans sdjElec, puis refabriquer la copie et retirer l'exception.
+ */
+const EXCEPTIONS: Record<string, string[]> = { "/demo/site-artisan": ["target-size"] };
+
+async function violations(page: Page, regles: string[] = []): Promise<string[]> {
+  const resultat = await new AxeBuilder({ page }).withTags(NORMES).disableRules(regles).analyze();
   return resultat.violations.map((v) => `${v.id} : ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`);
 }
 
@@ -29,7 +38,7 @@ test.describe("mouvement réduit (page posée)", () => {
   for (const chemin of PAGES) {
     test(`${chemin} : aucune violation WCAG A/AA`, async ({ page }) => {
       await page.goto(chemin);
-      expect(await violations(page)).toEqual([]);
+      expect(await violations(page, EXCEPTIONS[chemin])).toEqual([]);
     });
   }
 

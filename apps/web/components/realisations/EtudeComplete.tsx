@@ -56,7 +56,7 @@ export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
           {avecDemo ? "La démo" : "Le résultat"}
         </h3>
         {etude.media.type === "demo" ? (
-          <FenetreDemo apercu={etude.media.apercu} />
+          <FenetreDemo demo={etude.media} />
         ) : (
           <Captures images={etude.media.images} />
         )}

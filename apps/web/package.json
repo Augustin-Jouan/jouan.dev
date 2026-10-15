@@ -24,7 +24,8 @@
     "verifier-taille-3d": "node scripts/verifier-taille-3d.mjs",
     "verifier-taille-commandes": "node scripts/verifier-taille-commandes.mjs",
     "verifier-placeholders": "node scripts/verifier-placeholders.mjs",
-    "capturer-apercu-demo": "node scripts/capturer-apercu-demo.mjs"
+    "capturer-apercu-demo": "node scripts/capturer-apercu-demo.mjs",
+    "fabriquer-demo-site-artisan": "node scripts/fabriquer-demo-site-artisan.mjs"
   },
   "dependencies": {
     "@fontsource/instrument-serif": "^5.3.0",

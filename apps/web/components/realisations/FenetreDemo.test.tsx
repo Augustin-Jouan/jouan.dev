@@ -1,8 +1,16 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { FenetreDemo, SOURCE_DEMO } from "./FenetreDemo";
+import type { Demo } from "@/data/realisations";
+import { FenetreDemo } from "./FenetreDemo";
 
 const apercu = { src: "/apercu.webp", alt: "Aperçu de la démo", largeur: 1280, hauteur: 720 };
+const demo: Demo = {
+  source: "/demo/essai/index.html?theme=sombre",
+  barre: "Essai — démo",
+  titre: "Démo interactive : essai",
+  legende: "Données fictives.",
+  apercu,
+};
 
 let declencher: (visible: boolean) => void = () => {};
 
@@ -34,13 +42,12 @@ describe("FenetreDemo", () => {
 
   it("charge l'iframe quand la fenêtre approche sur un grand écran", () => {
     simulerEcran(true);
-    render(<FenetreDemo apercu={apercu} />);
-    expect(screen.queryByTitle("Démo interactive : suivi de marchés de travaux")).toBeNull();
+    render(<FenetreDemo demo={demo} />);
+    expect(screen.queryByTitle("Démo interactive : essai")).toBeNull();
     expect(screen.getByAltText(apercu.alt)).toBeInTheDocument();
     act(() => declencher(true));
-    const iframe = screen.getByTitle("Démo interactive : suivi de marchés de travaux");
-    expect(iframe).toHaveAttribute("src", SOURCE_DEMO);
-    expect(SOURCE_DEMO).toContain("?theme=sombre");
+    const iframe = screen.getByTitle("Démo interactive : essai");
+    expect(iframe).toHaveAttribute("src", demo.source);
     // Invisible jusqu'à son chargement : pas d'éclair clair avant le passage en sombre.
     expect(iframe).toHaveClass("opacity-0");
     fireEvent.load(iframe);
@@ -50,21 +57,20 @@ describe("FenetreDemo", () => {
 
   it("garde l'aperçu sur un petit écran et propose le plein écran", () => {
     simulerEcran(false);
-    render(<FenetreDemo apercu={apercu} />);
+    render(<FenetreDemo demo={demo} />);
     act(() => declencher(true));
-    expect(screen.queryByTitle("Démo interactive : suivi de marchés de travaux")).toBeNull();
+    expect(screen.queryByTitle("Démo interactive : essai")).toBeNull();
     expect(screen.getByAltText(apercu.alt)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /^Ouvrir la démo en plein écran\s*\(nouvel onglet\)$/ })).toHaveAttribute(
       "href",
-      SOURCE_DEMO,
+      demo.source,
     );
   });
 
-  it("annonce des données fictives, oubliées à la fermeture de l'onglet", () => {
+  it("affiche la barre et la légende de sa démo", () => {
     simulerEcran(true);
-    render(<FenetreDemo apercu={apercu} />);
-    expect(
-      screen.getByText("Chantiers, entreprises et montants fictifs. Vos modifications sont oubliées à la fermeture de l'onglet."),
-    ).toBeInTheDocument();
+    render(<FenetreDemo demo={demo} />);
+    expect(screen.getByText("Essai — démo")).toBeInTheDocument();
+    expect(screen.getByText("Données fictives.")).toBeInTheDocument();
   });
 });

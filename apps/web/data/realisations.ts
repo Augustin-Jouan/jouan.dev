@@ -1,8 +1,23 @@
 export type SlugEtude = "suivi-de-marches" | "site-artisan";
 
+import { COPIE_SITE_ARTISAN } from "./demo-site-artisan";
+
 export type Categorie = "application-metier" | "site-vitrine";
 
 export type Image = { src: string; alt: string; largeur: number; hauteur: number };
+
+/** Une démo navigable dans la fenêtre de l'étude (fichiers statiques de public/demo). */
+export type Demo = {
+  /** Adresse de la démo, ouverte aussi en plein écran. */
+  source: string;
+  /** Texte de la barre de la fenêtre. */
+  barre: string;
+  /** Titre de l'iframe, pour les lecteurs d'écran. */
+  titre: string;
+  legende: string;
+  /** Tient la place de la démo avant son chargement, sans JavaScript et sur petit écran. */
+  apercu: Image;
+};
 
 export type EtudeDeCas = {
   slug: SlugEtude;
@@ -17,7 +32,7 @@ export type EtudeDeCas = {
   livre: { titre: string; texte: string }[];
   stack: string[];
   choix: { titre: string; texte: string }[];
-  media: { type: "demo"; apercu: Image } | { type: "captures"; images: Image[] };
+  media: ({ type: "demo" } & Demo) | { type: "captures"; images: Image[] };
   /** Adresse du site en ligne, quand le client accepte d'être cité. */
   site?: string;
 };
@@ -49,6 +64,11 @@ export const SITE_ARTISAN = "https://sdj-elec.jouan.dev/";
  * Le suivi de marchés reste anonyme (ni nom de client, ni lieu, ni montant réel) ;
  * le site d'artisan est nommé, avec l'accord de son client.
  */
+/** « 2026-10-15 » → « 15 octobre 2026 ». */
+function dateEnFrancais(iso: string): string {
+  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
+}
+
 export const etudesDeCas: EtudeDeCas[] = [
   {
     slug: "suivi-de-marches",
@@ -81,6 +101,10 @@ export const etudesDeCas: EtudeDeCas[] = [
     ],
     media: {
       type: "demo",
+      source: "/demo/suivi-de-marches/index.html?theme=sombre",
+      barre: "Suivi de marchés — démo",
+      titre: "Démo interactive : suivi de marchés de travaux",
+      legende: "Chantiers, entreprises et montants fictifs. Vos modifications sont oubliées à la fermeture de l'onglet.",
       apercu: { src: "/realisations/suivi-de-marches/apercu.webp", alt: "Écran des marchés de la démo : tableau des lots d'un chantier fictif", largeur: 1280, hauteur: 720 },
     },
   },
@@ -115,11 +139,17 @@ export const etudesDeCas: EtudeDeCas[] = [
       { titre: "Déploiement automatique", texte: "Chaque modification passe les tests, puis le site se met à jour seul sur le serveur, sans coupure." },
     ],
     media: {
-      type: "captures",
-      images: [
-        { src: "/realisations/site-artisan/ordinateur.webp", alt: "Page d'accueil du site sur ordinateur (nom et coordonnées de l'artisan remplacés)", largeur: 1440, hauteur: 900 },
-        { src: "/realisations/site-artisan/mobile.webp", alt: "Page d'accueil du site sur téléphone (nom et coordonnées de l'artisan remplacés)", largeur: 390, hauteur: 844 },
-      ],
+      type: "demo",
+      source: "/demo/site-artisan",
+      barre: "SARL Dufourd Jérôme — démo",
+      titre: "Démo interactive : site vitrine de l'artisan",
+      legende: `Copie du site au ${dateEnFrancais(COPIE_SITE_ARTISAN.date)}. Le formulaire n'envoie rien.`,
+      apercu: {
+        src: "/realisations/site-artisan/ordinateur.webp",
+        alt: "Page d'accueil du site de la SARL Dufourd Jérôme sur ordinateur",
+        largeur: 1280,
+        hauteur: 720,
+      },
     },
   },
 ];

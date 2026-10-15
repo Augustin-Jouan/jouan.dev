@@ -24,8 +24,15 @@ describe("études de cas", () => {
       expect([fichier.readUInt16LE(26) & 0x3fff, fichier.readUInt16LE(28) & 0x3fff]).toEqual([largeur, hauteur]);
     }
   });
-  it("une seule étude porte la démo", () => {
-    expect(etudesDeCas.filter((e) => e.media.type === "demo")).toHaveLength(1);
+  it("chaque étude porte une démo navigable, servie sous /demo/", () => {
+    for (const { media } of etudesDeCas) {
+      expect(media.type).toBe("demo");
+      if (media.type === "demo") expect(media.source).toMatch(/^\/demo\//);
+    }
+  });
+  it("la légende de la copie du site d'artisan donne sa date, en toutes lettres", () => {
+    const media = trouverEtude("site-artisan")!.media;
+    expect(media.type === "demo" && media.legende).toMatch(/^Copie du site au \d{1,2} [a-zéû]+ \d{4}\. Le formulaire n'envoie rien\.$/);
   });
 });
 
