@@ -1,7 +1,12 @@
 import { Section } from "./Section";
-import { ANCRES, offresPour, sections, type Angle, type Offre as OffreType } from "@/data/accueil";
+import { LienAuSurvol } from "@/components/layout/LienAuSurvol";
+import { ANCRES, offresPour, realisations, sections, type Angle, type Offre as OffreType } from "@/data/accueil";
+import { apercuEtude, cheminEtude } from "@/data/realisations";
 
-/** Les deux paliers de l'offre ; l'offre mise en avant est plus large et sombre. */
+/**
+ * Les deux paliers de l'offre, chacun avec son exemple en image ; l'offre mise en avant est plus large et
+ * sombre. Le détail des réalisations est sur /realisations.
+ */
 export function Offre({ angle = "application" }: { angle?: Angle }) {
   return (
     <Section id={ANCRES.offre} {...sections.offre}>
@@ -10,6 +15,10 @@ export function Offre({ angle = "application" }: { angle?: Angle }) {
           <CarteOffre key={offre.id} offre={offre} />
         ))}
       </div>
+      {/* Préchargé à l'intention seulement : le JS de /realisations hors du budget de l'accueil. */}
+      <LienAuSurvol href="/realisations" className="mt-8 inline-block font-medium text-accent underline-offset-4 hover:underline">
+        Toutes les réalisations<span aria-hidden="true"> →</span>
+      </LienAuSurvol>
     </Section>
   );
 }
@@ -42,7 +51,46 @@ function CarteOffre({ offre }: { offre: OffreType }) {
           </li>
         ))}
       </ul>
-      <p className="mt-auto text-sm text-texte-doux">{offre.exemple}</p>
+      <Exemple offre={offre} />
     </article>
+  );
+}
+
+/** La preuve de l'offre : la capture de la réalisation, dans une fenêtre, qui mène à son étude de cas. */
+function Exemple({ offre }: { offre: OffreType }) {
+  const realisation = realisations.find((r) => r.slug === offre.etude)!;
+  const image = apercuEtude(offre.etude);
+
+  return (
+    <LienAuSurvol
+      href={cheminEtude(offre.etude)}
+      className="group mt-auto block overflow-hidden rounded-2xl border border-trait transition-[border-color] hover:border-accent focus-visible:border-accent"
+    >
+      <span aria-hidden="true" className="flex gap-1.5 border-b border-trait px-3 py-2">
+        <span className="size-2 rounded-full bg-trait" />
+        <span className="size-2 rounded-full bg-trait" />
+        <span className="size-2 rounded-full bg-trait" />
+      </span>
+      {/* Simple <img> : `next/image` ajouterait du JS client à l'accueil, au-delà du budget Lighthouse.
+          Chargée à l'approche de la section, à ses dimensions réelles : rien ne bouge. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={image.src}
+        alt=""
+        width={image.largeur}
+        height={image.hauteur}
+        loading="lazy"
+        decoding="async"
+        className="aspect-video w-full object-cover object-top"
+      />
+      <span className="flex items-center justify-between gap-4 border-t border-trait px-4 py-3 text-sm">
+        <span className="font-medium">
+          <span className="sr-only">Voir l&apos;exemple :</span> {realisation.titre}
+        </span>
+        <span aria-hidden="true" className="shrink-0 text-accent">
+          Voir l&apos;exemple →
+        </span>
+      </span>
+    </LienAuSurvol>
   );
 }

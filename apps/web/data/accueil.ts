@@ -9,7 +9,6 @@ import { SITE_ARTISAN, type SlugEtude } from "./realisations";
 /** Identifiants des sections de l'accueil, cibles des ancres (`/#offre`). */
 export const ANCRES = {
   offre: "offre",
-  realisations: "realisations",
   methode: "methode",
   parcours: "parcours",
   contact: "contact",
@@ -21,7 +20,6 @@ export type EnTeteSection = { surtitre: string; titre: string };
 
 export const sections: Record<CleSection, EnTeteSection> = {
   offre: { surtitre: "Ce que je fais", titre: "Deux façons de travailler ensemble" },
-  realisations: { surtitre: "Réalisations", titre: "Quelques projets récents" },
   methode: { surtitre: "Comment je travaille", titre: "Un cadre clair, du premier échange au suivi" },
   parcours: { surtitre: "Parcours", titre: "Développeur, étudiant et indépendant" },
   contact: { surtitre: "Contact", titre: "Parlons de votre projet" },
@@ -59,7 +57,8 @@ export type Offre = {
   miseEnAvant: boolean;
   pourQui: string;
   livrables: string[];
-  exemple: string;
+  /** L'étude de cas qui sert d'exemple à l'offre : sa capture, sur l'accueil, mène à l'étude. */
+  etude: SlugEtude;
 };
 
 export const offres: Offre[] = [
@@ -74,8 +73,7 @@ export const offres: Offre[] = [
       "Tableaux de bord, suivi, devis et documents PDF générés automatiquement",
       "Hébergement, sauvegardes et maintenance inclus",
     ],
-    exemple:
-      "Exemple : le suivi des marchés de travaux d'une entreprise du BTP, du planning aux finances.",
+    etude: "suivi-de-marches",
   },
   {
     id: "vitrine",
@@ -88,7 +86,7 @@ export const offres: Offre[] = [
       "Formulaire de contact, pages légales et mesure d'audience sans cookie",
       "Mise en ligne et hébergement gérés pour vous",
     ],
-    exemple: "Exemple : le site d'un artisan électricien-plombier, livré clé en main.",
+    etude: "site-artisan",
   },
 ];
 
@@ -212,17 +210,6 @@ export function offresPour(angle: Angle): Offre[] {
   return offres
     .map((offre) => ({ ...offre, miseEnAvant: offre.id === angle }))
     .sort((a, b) => Number(b.miseEnAvant) - Number(a.miseEnAvant));
-}
-
-const etudeParAngle: Record<Angle, SlugEtude> = {
-  application: "suivi-de-marches",
-  vitrine: "site-artisan",
-};
-
-/** Les réalisations, celle de l'angle en premier. */
-export function realisationsPour(angle: Angle): Realisation[] {
-  const premiere = etudeParAngle[angle];
-  return [...realisations].sort((a, b) => Number(b.slug === premiere) - Number(a.slug === premiere));
 }
 
 export function salutation(nom: string): string {

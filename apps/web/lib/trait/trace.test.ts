@@ -9,7 +9,7 @@ const ORDINATEUR: Reperes = {
   ordinateur: true,
   marge: 96,
   departY: 800,
-  realisationsY: 1900,
+  offreY: 1900,
   noeuds: [104, 324, 544, 764, 984].map((x) => ({ x, y: 2600 })),
   fil: { debut: { x: 96, y: 2600 }, fin: { x: 1184, y: 2600 } },
   logos: [
@@ -27,7 +27,7 @@ const TELEPHONE: Reperes = {
   ordinateur: false,
   marge: 20,
   departY: 700,
-  realisationsY: 2200,
+  offreY: 2200,
   noeuds: [0, 1, 2, 3, 4].map((i) => ({ x: 28, y: 3600 + i * 250 })),
   fil: { debut: { x: 28, y: 3590 }, fin: { x: 28, y: 4700 } },
   logos: [
@@ -106,8 +106,8 @@ describe("tracer, variante « marges »", () => {
     }
   });
 
-  it("fait une boucle à hauteur des Réalisations", () => {
-    const autour = trace.echantillons.filter((p) => Math.abs(p.y - ORDINATEUR.realisationsY) <= 14);
+  it("fait une boucle à hauteur de l'offre", () => {
+    const autour = trace.echantillons.filter((p) => Math.abs(p.y - ORDINATEUR.offreY) <= 14);
     // Une descente simple passe une fois par chaque hauteur ; la boucle y repasse.
     const montees = autour.filter((p, i) => i > 0 && p.y < autour[i - 1]!.y);
     expect(montees.length).toBeGreaterThan(3);

@@ -32,7 +32,9 @@ describe("Accueil", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Un site vitrine qui vous ressemble");
     const titres = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
     expect(titres.indexOf("Site vitrine")).toBeLessThan(titres.indexOf("Application métier sur mesure"));
-    expect(titres.indexOf("Site vitrine d'artisan")).toBeLessThan(titres.indexOf("Suivi de marchés de travaux"));
+    // Chaque offre emporte son exemple : celui du site d'artisan vient donc en premier.
+    const exemples = screen.getAllByRole("link", { name: /^Voir l'exemple : / }).map((a) => a.getAttribute("href"));
+    expect(exemples).toEqual(["/realisations#site-vitrine", "/realisations#suivi-de-marches"]);
     expect(container.querySelector('input[name="pour"]')).toHaveValue("boulangerie-k7f3");
     expect(within(container).getByText("Mon cœur de métier").closest("article")).toHaveTextContent("Site vitrine");
     // Plus de repère de section pour les curseurs du direct : seul le compteur reste.

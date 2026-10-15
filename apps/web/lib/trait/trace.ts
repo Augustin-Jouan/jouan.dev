@@ -31,8 +31,8 @@ export type Reperes = {
   marge: number;
   /** Bas de l'accroche. */
   departY: number;
-  /** Milieu vertical de la section Réalisations. */
-  realisationsY: number;
+  /** Milieu vertical de la section de l'offre (« Ce que je fais ») : le trait y fait sa boucle. */
+  offreY: number;
   /** Centres des cinq nœuds de la Méthode. */
   noeuds: Point[];
   /** Axe de la ligne de la Méthode, de son début à sa fin. */
@@ -198,9 +198,9 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
   const depart = { x: M / 2, y: r.departY - 24 };
   const chemin = new Chemin(depart);
 
-  // Descente libre jusqu'à la boucle, à hauteur des Réalisations, puis la boucle.
+  // Descente libre jusqu'à la boucle, à hauteur de l'offre, puis la boucle.
   const rayon = Math.min(14, Math.max(10, (gauche[1] - gauche[0]) / 2));
-  const boucle = { x: milieuGauche, y: r.realisationsY };
+  const boucle = { x: milieuGauche, y: r.offreY };
   const pied = { x: boucle.x, y: boucle.y + rayon };
   chemin.lisse([...inflexions(alea, depart.y, pied.y, resserre(gauche)), pied], BAS, DROITE, gauche);
   chemin.arc(boucle, rayon, 90, 0).arc(boucle, rayon, 0, -90).arc(boucle, rayon, -90, -180).arc(boucle, rayon, -180, -270);

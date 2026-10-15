@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EtudeComplete } from "@/components/realisations/EtudeComplete";
-import { sections } from "@/data/accueil";
-import { etudesDeCas } from "@/data/realisations";
+import { enTeteRealisations, etudesDeCas } from "@/data/realisations";
 import { siteName } from "@/data/site";
 
 const description = `Les projets de ${siteName} : une application de suivi de marchés de travaux et le site vitrine d'un artisan, en détail.`;
@@ -23,8 +22,8 @@ export default function RealisationsPage() {
   return (
     <div>
       <header className="mx-auto w-full max-w-6xl 2xl:max-w-page px-5 pb-10 pt-16 sm:px-8 sm:pt-24">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{sections.realisations.surtitre}</p>
-        <h1 className="max-w-4xl font-serif text-5xl leading-[1.02] sm:text-7xl">{sections.realisations.titre}</h1>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{enTeteRealisations.surtitre}</p>
+        <h1 className="max-w-4xl font-serif text-5xl leading-[1.02] sm:text-7xl">{enTeteRealisations.titre}</h1>
       </header>
       {etudesDeCas.map((etude) => (
         <EtudeComplete key={etude.slug} etude={etude} />

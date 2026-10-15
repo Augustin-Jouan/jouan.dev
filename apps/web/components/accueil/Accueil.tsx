@@ -4,7 +4,6 @@ import { NuageFige } from "./NuageFige";
 import { Methode } from "./Methode";
 import { Offre } from "./Offre";
 import { Parcours } from "./Parcours";
-import { Realisations } from "./Realisations";
 import { SectionContact } from "./SectionContact";
 import { SignalVisite } from "./SignalVisite";
 import { TraitConducteur } from "./TraitConducteur";
@@ -25,7 +24,6 @@ export function Accueil({
       <IntroEncre repli={<NuageFige />} />
       <Accroche angle={angle} nom={personnalisation?.nom} />
       <Offre angle={angle} />
-      <Realisations angle={angle} />
       <Methode />
       <Parcours />
       <SectionContact jeton={personnalisation?.jeton} />

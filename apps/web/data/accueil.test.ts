@@ -8,7 +8,6 @@ import {
   offresPour,
   parcours,
   realisations,
-  realisationsPour,
   salutation,
   sections,
   texteParcours,
@@ -30,6 +29,19 @@ describe("contenu de l'accueil", () => {
     const misesEnAvant = offres.filter((offre) => offre.miseEnAvant);
     expect(misesEnAvant.map((offre) => offre.id)).toEqual(["application"]);
     expect(offres[0].id).toBe("application");
+  });
+
+  it("illustre chaque offre par une étude de cas existante, à la place d'une phrase d'exemple", () => {
+    expect(offres.map((offre) => offre.etude)).toEqual(["suivi-de-marches", "site-artisan"]);
+    for (const offre of offres) {
+      expect(realisations.some((r) => r.slug === offre.etude)).toBe(true);
+      expect(offre).not.toHaveProperty("exemple");
+    }
+  });
+
+  it("n'a plus de section Réalisations sur l'accueil (elle vit dans l'offre et sur /realisations)", () => {
+    expect(Object.keys(ANCRES)).not.toContain("realisations");
+    expect(Object.keys(sections)).not.toContain("realisations");
   });
 
   it("décrit chaque offre avec au moins un livrable", () => {
@@ -122,9 +134,9 @@ describe("angles de l'accueil", () => {
       expect(seconde.miseEnAvant).toBe(false);
     }
   });
-  it("met l'étude de l'angle en premier", () => {
-    expect(realisationsPour("application")[0].slug).toBe("suivi-de-marches");
-    expect(realisationsPour("vitrine")[0].slug).toBe("site-artisan");
+  it("met l'exemple de l'angle en premier, avec son offre", () => {
+    expect(offresPour("application")[0].etude).toBe("suivi-de-marches");
+    expect(offresPour("vitrine")[0].etude).toBe("site-artisan");
   });
   it("salue le prospect", () => {
     expect(salutation("Boulangerie Martin")).toBe("Bonjour Boulangerie Martin,");
