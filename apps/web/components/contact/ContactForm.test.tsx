@@ -42,11 +42,12 @@ describe("ContactForm", () => {
     expect(screen.getByLabelText("Message")).toBeRequired();
   });
 
-  it("informe au point de collecte : base légale, durée, droits et lien", () => {
+  it("informe au point de collecte en une phrase : la finalité, puis le lien vers le détail et les droits", () => {
     render(<ContactForm />);
-    expect(screen.getByText(/mesures précontractuelles/i)).toBeInTheDocument();
-    expect(screen.getByText(/trois ans/i)).toBeInTheDocument();
-    expect(screen.getByText(/portabilité/i)).toBeInTheDocument();
+    const mention = screen.getByText(/Vos données servent uniquement à vous répondre/);
+    expect(mention).toHaveTextContent(
+      "Vos données servent uniquement à vous répondre. Détail et droits : politique de confidentialité."
+    );
     expect(
       screen.getByRole("link", { name: /politique de confidentialité/i })
     ).toHaveAttribute("href", "/politique-de-confidentialite");

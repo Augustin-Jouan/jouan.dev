@@ -7,7 +7,6 @@ import {
   type ContactFormState,
 } from "@/app/contact/actions";
 import { LIMITES } from "@/app/contact/limites";
-import { siteName } from "@/data/site";
 
 const initialState: ContactFormState = { status: "idle", message: "" };
 
@@ -100,16 +99,10 @@ export function ContactForm({ jeton }: { jeton?: string }) {
         {pending ? "Envoi…" : "Envoyer"}
       </button>
 
-      {/* Information au point de collecte, article 13 du RGPD / CNIL. */}
+      {/* Information au point de collecte (article 13 du RGPD), en deux niveaux comme le
+          recommande la CNIL : l'essentiel ici, le détail dans la politique de confidentialité. */}
       <p className="text-xs text-texte-doux">
-        Le responsable du traitement est {siteName}. Nom, email et message sont
-        obligatoires ; le téléphone est facultatif. Ces données servent
-        uniquement à répondre à votre demande (mesures précontractuelles,
-        art. 6.1.b du RGPD). Elles sont conservées trois ans à compter du
-        dernier contact, puis supprimées — ou dix ans si une relation
-        contractuelle s&apos;ensuit. Vous disposez d&apos;un droit
-        d&apos;accès, de rectification, d&apos;effacement, de limitation,
-        d&apos;opposition et de portabilité. Détail :{" "}
+        Vos données servent uniquement à vous répondre. Détail et droits :{" "}
         <Link href="/politique-de-confidentialite" className="underline">
           politique de confidentialité
         </Link>
