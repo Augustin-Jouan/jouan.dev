@@ -15,12 +15,13 @@ describe("Accueil", () => {
     expect(container.querySelector('input[name="pour"]')).toBeNull();
   });
 
-  it("montre le portrait d'Augustin au-dessus du surtitre, pour qu'on voie tout de suite à qui l'on parle", () => {
+  it("montre le portrait d'Augustin avant le titre, sans surtitre, pour qu'on voie tout de suite à qui l'on parle", () => {
     render(<Accueil />);
     const portrait = screen.getByRole("img", { name: "Augustin Jouan" });
     expect(portrait.getAttribute("src")).toContain("augustin-jouan.webp");
-    const surtitre = screen.getByText("Développeur full stack · indépendant");
-    expect(portrait.compareDocumentPosition(surtitre) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const titre = screen.getByRole("heading", { level: 1 });
+    expect(portrait.compareDocumentPosition(titre) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByText("Développeur full stack · indépendant")).toBeNull();
   });
 
   it("angle vitrine : salutation échappée, accroche, offre et étude vitrine d'abord, champ caché", () => {
