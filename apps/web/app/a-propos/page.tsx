@@ -48,7 +48,7 @@ export default function AProposPage() {
         </h2>
         <div className="flex flex-col gap-20 sm:gap-28">
           {projetsEcole.map((projet, i) => (
-            <BlocProjet key={projet.slug} projet={projet} inverse={i % 2 === 1} />
+            <BlocProjet key={projet.slug} projet={projet} inverse={i % 2 === 1} prioritaire={i === 0} />
           ))}
         </div>
         <p className={`mb-6 mt-20 sm:mt-28 ${surtitre}`}>En freelance</p>

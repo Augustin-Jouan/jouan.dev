@@ -47,14 +47,31 @@ describe("VideoProjet", () => {
     vi.restoreAllMocks();
   });
 
-  it("visible : lit la vidéo ; hors écran : la met en pause", () => {
+  it("visible : attend le premier geste du visiteur, puis lit la vidéo ; hors écran : la met en pause", () => {
     simulerMouvementReduit(false);
     render(<VideoProjet video={video} />);
-    expect(lire).not.toHaveBeenCalled();
     act(() => declencher(true));
+    // Avant tout geste, Chrome compterait la première image de la vidéo comme LCP.
+    expect(lire).not.toHaveBeenCalled();
+    act(() => {
+      window.dispatchEvent(new Event("scroll"));
+    });
     expect(lire).toHaveBeenCalledTimes(1);
     act(() => declencher(false));
     expect(suspendre).toHaveBeenCalled();
+    act(() => declencher(true));
+    expect(lire).toHaveBeenCalledTimes(2);
+  });
+
+  it("après un geste, une vidéo qui arrive à l'écran démarre aussitôt", () => {
+    simulerMouvementReduit(false);
+    render(<VideoProjet video={video} />);
+    act(() => {
+      window.dispatchEvent(new Event("pointerdown"));
+    });
+    expect(lire).not.toHaveBeenCalled();
+    act(() => declencher(true));
+    expect(lire).toHaveBeenCalledTimes(1);
   });
 
   it("mouvement réduit : jamais de lecture automatique, et des contrôles pour la lancer", () => {
@@ -74,11 +91,40 @@ describe("VideoProjet", () => {
     expect(sources[1]).toHaveAttribute("type", "video/mp4");
   });
 
+  it("l'affiche est une vraie image par-dessus la vidéo jusqu'au début de la lecture (LCP), puis s'efface", () => {
+    simulerMouvementReduit(false);
+    const { container } = render(<VideoProjet video={video} />);
+    const image = () => container.querySelector(`img[src="${video.affiche.src}"]`);
+    expect(image()).toHaveAttribute("alt", "");
+    expect(image()).toHaveAttribute("loading", "lazy");
+    act(() => {
+      container.querySelector("video")!.dispatchEvent(new Event("playing"));
+    });
+    expect(image()).toBeNull();
+  });
+
+  it("prioritaire (premier écran) : l'image d'affiche se charge tout de suite, en priorité haute", () => {
+    simulerMouvementReduit(false);
+    const { container } = render(<VideoProjet video={video} prioritaire />);
+    const image = container.querySelector(`img[src="${video.affiche.src}"]`);
+    expect(image).toHaveAttribute("fetchpriority", "high");
+    expect(image).not.toHaveAttribute("loading", "lazy");
+  });
+
+  it("mouvement réduit : pas d'image par-dessus, l'affiche passe sur la vidéo et les contrôles restent accessibles", () => {
+    simulerMouvementReduit(true);
+    const { container } = render(<VideoProjet video={video} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("video")).toHaveAttribute("poster", video.affiche.src);
+  });
+
   it("affiche et dimensions posées dès le rendu, rien de préchargé, nommée par sa description", () => {
     simulerMouvementReduit(false);
     const { container } = render(<VideoProjet video={video} />);
     const element = container.querySelector("video")!;
-    expect(element).toHaveAttribute("poster", video.affiche.src);
+    // L'affiche est l'image posée dessus, seule candidate au LCP : pas de poster en double sur la vidéo.
+    expect(element).not.toHaveAttribute("poster");
+    expect(container.querySelector("img")).toHaveAttribute("width", "1280");
     expect(element).toHaveAttribute("width", "1280");
     expect(element).toHaveAttribute("height", "800");
     expect(element).toHaveAttribute("preload", "none");

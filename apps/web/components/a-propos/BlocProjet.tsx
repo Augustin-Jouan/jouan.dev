@@ -42,7 +42,16 @@ function Graphiques({ images }: { images: ImageProjet[] }) {
  * dans l'autre. `inverse` passe le média à droite sur ordinateur, pour alterner d'un projet à l'autre ;
  * sur téléphone, le média reste au-dessus du texte.
  */
-export function BlocProjet({ projet, inverse }: { projet: ProjetEcole; inverse: boolean }) {
+export function BlocProjet({
+  projet,
+  inverse,
+  prioritaire = false,
+}: {
+  projet: ProjetEcole;
+  inverse: boolean;
+  /** Le premier bloc de la page : son média est le plus grand élément du premier écran. */
+  prioritaire?: boolean;
+}) {
   const { slug, contexte, titre, description, part, stack, media } = projet;
   return (
     <article
@@ -50,7 +59,7 @@ export function BlocProjet({ projet, inverse }: { projet: ProjetEcole; inverse: 
       className={`grid items-center gap-8 md:gap-12 ${inverse ? "md:grid-cols-[1fr_1.3fr]" : "md:grid-cols-[1.3fr_1fr]"}`}
     >
       <div data-media className={inverse ? "md:order-last" : undefined}>
-        {media.type === "video" ? <VideoProjet video={media} /> : <Graphiques images={media.images} />}
+        {media.type === "video" ? <VideoProjet video={media} prioritaire={prioritaire} /> : <Graphiques images={media.images} />}
       </div>
       <div>
         <p className={`mb-2 ${surtitre}`}>{contexte}</p>
