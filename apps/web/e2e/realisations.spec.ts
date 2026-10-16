@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { surveillerErreurs } from "./outils";
 
 const titreMetier = (page: Page) => page.getByRole("heading", { level: 2, name: /suivi des marchés de travaux/ });
@@ -27,7 +27,7 @@ test("« Voir mes réalisations » ouvre l'onglet Application métier ; « Site 
   await expect(page).toHaveURL(/\/realisations#site-vitrine$/);
   await expect(titreVitrine(page)).toBeVisible();
   await expect(titreMetier(page)).toBeHidden();
-  await expect(page.getByRole("img", { name: /sur ordinateur/ })).toBeVisible();
+  await expect(page.getByRole("tabpanel", { name: "Site vitrine" }).getByRole("figure")).toBeVisible();
   await expect(page.getByRole("link", { name: "Voir le site (nouvel onglet)" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
   expect(erreurs).toEqual([]);
 });
@@ -90,6 +90,27 @@ test("les anciennes pages d'étude redirigent vers leur ancre", async ({ page, r
   await page.goto("/realisations/suivi-de-marches");
   await expect(page).toHaveURL(/\/realisations#suivi-de-marches$/);
 });
+
+for (const onglet of ["Application métier", "Site vitrine"]) {
+  test(`${onglet} : la démo d'abord, juste sous le titre de l'étude, puis les explications`, async ({ page, isMobile }) => {
+    await page.goto("/realisations");
+    await page.getByRole("tab", { name: onglet }).click();
+    const panneau = page.getByRole("tabpanel", { name: onglet });
+    await expect(panneau.getByRole("figure")).toBeVisible();
+    const haut = (element: Locator) => element.evaluate((e) => e.getBoundingClientRect().top + window.scrollY);
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    const titre = await haut(panneau.getByRole("heading", { level: 2 }));
+    const demo = await haut(panneau.getByRole("figure"));
+    const besoin = await haut(panneau.getByRole("heading", { level: 3, name: "Le besoin" }));
+    expect(titre).toBeLessThan(demo);
+    expect(demo).toBeLessThan(besoin);
+    await expect(panneau.locator("dl")).toHaveCount(0);
+    // Sans défiler, on voit au moins 150 px de la fenêtre sur ordinateur ; sur téléphone, son aperçu est à un écran au plus.
+    const ecran = page.viewportSize()!.height;
+    if (isMobile) expect(demo).toBeLessThan(ecran * 2);
+    else expect(demo).toBeLessThan(ecran - 150);
+  });
+}
 
 test("pas de débordement horizontal", async ({ page }) => {
   await page.goto("/realisations");
@@ -158,7 +179,8 @@ test.describe("copie du site de l'artisan", () => {
       if (r.status() >= 400) echecs.push(`${r.status()} ${r.url()}`);
     });
     await page.goto("/realisations#site-vitrine");
-    await page.getByAltText("Page d'accueil du site de la SARL Dufourd Jérôme sur ordinateur").scrollIntoViewIfNeeded();
+    // La fenêtre est en haut de l'étude : la démo s'y charge dès l'arrivée, à la place de l'aperçu.
+    await page.getByRole("tabpanel", { name: "Site vitrine" }).getByRole("figure").scrollIntoViewIfNeeded();
     const iframe = page.getByTitle("Démo interactive : site vitrine de l'artisan");
     await expect(iframe).toHaveAttribute("src", COPIE);
     const site = page.frameLocator('iframe[title="Démo interactive : site vitrine de l\'artisan"]');
@@ -190,7 +212,8 @@ test.describe("copie du site de l'artisan", () => {
     test.skip(isMobile, "Sous 768 px, la fenêtre garde l'aperçu.");
     const erreurs = surveillerErreurs(page);
     await page.goto("/realisations#site-vitrine");
-    await page.getByAltText("Page d'accueil du site de la SARL Dufourd Jérôme sur ordinateur").scrollIntoViewIfNeeded();
+    // La fenêtre est en haut de l'étude : la démo s'y charge dès l'arrivée, à la place de l'aperçu.
+    await page.getByRole("tabpanel", { name: "Site vitrine" }).getByRole("figure").scrollIntoViewIfNeeded();
     const site = page.frameLocator('iframe[title="Démo interactive : site vitrine de l\'artisan"]');
     await expect(site.getByRole("heading", { level: 1 })).toContainText("électricien-plombier");
     await site.locator('a[href^="tel:"]:visible').first().click();

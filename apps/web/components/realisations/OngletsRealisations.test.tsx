@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
-import { afterEach, describe, expect, it } from "vitest";
+import { useInsertionEffect, useState } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { OngletsRealisations } from "./OngletsRealisations";
 
 const panneaux = { "application-metier": <p>Étude métier</p>, "site-vitrine": <p>Étude vitrine</p> };
@@ -14,7 +15,29 @@ function afficher(hash = "") {
 
 const onglet = (nom: string) => screen.getByRole("tab", { name: nom });
 
-afterEach(() => window.history.replaceState(null, "", "/"));
+afterEach(() => {
+  window.history.replaceState(null, "", "/");
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+/**
+ * Le routeur de Next écrit l'historique dans un `useInsertionEffect` (HistoryUpdater) ; l'API Navigation
+ * signale alors `currententrychange` de façon synchrone, en plein effet d'insertion.
+ */
+function RouteurFactice({ navigation }: { navigation: EventTarget }) {
+  const [ancre, setAncre] = useState("");
+  useInsertionEffect(() => {
+    if (!ancre) return;
+    window.history.pushState(null, "", `/realisations${ancre}`);
+    navigation.dispatchEvent(new Event("currententrychange"));
+  }, [ancre, navigation]);
+  return (
+    <button type="button" onClick={() => setAncre("#site-vitrine")}>
+      Naviguer
+    </button>
+  );
+}
 
 describe("onglets de /realisations", () => {
   it("deux onglets ; sans ancre, l'application métier est choisie", () => {
@@ -82,5 +105,26 @@ describe("onglets de /realisations", () => {
     });
     expect(onglet("Site vitrine")).toHaveAttribute("aria-selected", "true");
     expect(racine).toHaveAttribute("data-categorie", "site-vitrine");
+  });
+
+  it("suit une navigation de Next (historique écrit en plein effet d'insertion) sans y changer d'état", async () => {
+    const navigation = new EventTarget();
+    vi.stubGlobal("navigation", navigation);
+    const erreurs = vi.spyOn(console, "error").mockImplementation(() => {});
+    window.history.replaceState(null, "", "/realisations");
+    const { container } = render(
+      <>
+        <RouteurFactice navigation={navigation} />
+        <OngletsRealisations panneaux={panneaux} />
+      </>,
+    );
+    const racine = container.querySelector("[data-categorie]") as HTMLElement;
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Naviguer" }));
+    });
+    expect(erreurs.mock.calls.flat().join(" ")).not.toMatch(/useInsertionEffect must not schedule updates/);
+    // L'étude est affichée tout de suite (le défilement vers l'ancre la trouve), et l'onglet suit.
+    expect(racine).toHaveAttribute("data-categorie", "site-vitrine");
+    expect(onglet("Site vitrine")).toHaveAttribute("aria-selected", "true");
   });
 });

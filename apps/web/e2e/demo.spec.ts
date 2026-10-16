@@ -45,26 +45,20 @@ async function ajouterAvenant(page: Page) {
 test.describe("ordinateur", () => {
   test.skip(({ isMobile }) => isMobile, "La démo s'ouvre en plein écran sur mobile.");
 
-  test("la démo n'est chargée qu'à l'approche de sa fenêtre", async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 600 });
-    const requetes: string[] = [];
-    page.on("request", (r) => r.url().includes("/demo/") && requetes.push(r.url()));
+  test("la page arrive avec l'aperçu ; la démo, en haut de l'étude, s'y charge sans défiler", async ({ page, request }) => {
+    // Le HTML ne contient que l'aperçu : la démo ne pèse pas sur le premier affichage.
+    const html = await (await request.get(ETUDE)).text();
+    expect(html).toContain("Écran des marchés de la démo");
+    expect(html).not.toContain("<iframe");
     await page.goto(ETUDE);
-    await page.waitForLoadState("networkidle");
-    // La fenêtre doit commencer hors de l'écran, marge d'approche (200 px) comprise.
-    const apercu = page.getByRole("img", { name: /Écran des marchés de la démo/ });
-    expect((await apercu.boundingBox())!.y).toBeGreaterThan(600 + 200);
-    await expect(page.locator("iframe")).toHaveCount(0);
-    expect(requetes).toEqual([]);
-    await apercu.scrollIntoViewIfNeeded();
     await expect(page.frameLocator('iframe[title^="Démo interactive"]').getByRole("heading", { name: "Mes chantiers" })).toBeVisible();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
 
   test("dans l'iframe : thème sombre, connectée d'office, rien hors du site", async ({ page, baseURL }) => {
     const erreurs = surveillerErreurs(page);
     const externes = surveillerExternes(page, baseURL);
     await page.goto(ETUDE);
-    await page.getByRole("img", { name: /Écran des marchés de la démo/ }).scrollIntoViewIfNeeded();
     await expect(page.frameLocator('iframe[title^="Démo interactive"]').getByRole("heading", { name: "Mes chantiers" })).toBeVisible();
     const cadre = page.frames().find((f) => f.url().includes("/demo/suivi-de-marches/"))!;
     expect(await cadre.evaluate(() => document.documentElement.dataset.theme)).toBe("dark");
