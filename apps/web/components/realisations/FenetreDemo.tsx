@@ -76,8 +76,13 @@ export function FenetreDemo({ demo }: { demo: Demo }) {
           className="rounded-full bg-accent px-5 py-2.5 font-medium text-sur-accent transition-opacity hover:opacity-85"
         >
           Ouvrir la démo en plein écran<span className="sr-only"> (nouvel onglet)</span>
+          <span aria-hidden="true" className="md:hidden">
+            &nbsp;*
+          </span>
         </a>
       </figcaption>
+      {/* Sous LARGEUR_MIN, la démo n'est pas manipulable dans la page : on conseille l'ordinateur. */}
+      <p className="text-sm text-texte-doux md:hidden">* Pour tester la démo, mieux vaut visiter le site sur un ordinateur.</p>
     </figure>
   );
 }

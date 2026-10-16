@@ -31,7 +31,7 @@ export default function RealisationsPage() {
         <h1 className="max-w-4xl font-serif text-4xl leading-[1.05] sm:text-5xl">{enTeteRealisations.titre}</h1>
       </header>
       <OngletsRealisations panneaux={{ "application-metier": etudesDe("application-metier"), "site-vitrine": etudesDe("site-vitrine") }} />
-      <footer className="mx-auto flex w-full max-w-6xl 2xl:max-w-page flex-col items-start gap-6 border-t border-trait px-5 py-14 sm:px-8 sm:py-20">
+      <footer className="mx-auto flex w-full max-w-6xl 2xl:max-w-page flex-col items-center gap-6 border-t text-center sm:items-start sm:text-left border-trait px-5 py-14 sm:px-8 sm:py-20">
         <p className="font-serif text-3xl">Un projet similaire ?</p>
         <Link
           href="/#contact"
