@@ -42,15 +42,23 @@ export function OngletsRealisations({ panneaux }: { panneaux: Record<Categorie, 
   // suivie quand elle change sur la page : retour arrière, palette de commandes, défilement doux.
   useLayoutEffect(() => {
     const suivre = () => choisir(categorieDeAncre(window.location.hash));
+    // Next écrit l'historique dans un useInsertionEffect, où React interdit de changer d'état : l'API
+    // Navigation y signale `currententrychange` de façon synchrone. L'attribut est posé tout de suite,
+    // l'état React juste après l'effet.
+    const suivreNavigation = () => {
+      const c = categorieDeAncre(window.location.hash);
+      racine.current?.setAttribute("data-categorie", c);
+      queueMicrotask(() => setChoisi(c));
+    };
     suivre();
     const navigation = (window as { navigation?: EventTarget }).navigation;
     window.addEventListener("hashchange", suivre);
     window.addEventListener("popstate", suivre);
-    navigation?.addEventListener("currententrychange", suivre);
+    navigation?.addEventListener("currententrychange", suivreNavigation);
     return () => {
       window.removeEventListener("hashchange", suivre);
       window.removeEventListener("popstate", suivre);
-      navigation?.removeEventListener("currententrychange", suivre);
+      navigation?.removeEventListener("currententrychange", suivreNavigation);
     };
   }, []);
 
