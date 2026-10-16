@@ -17,7 +17,7 @@ export default function CoulissesPage() {
     <div className="mx-auto flex max-w-6xl flex-col gap-16 px-5 py-16 sm:px-8 2xl:max-w-page">
       <header className="flex flex-col gap-4">
         <h1 className="font-serif text-5xl">Coulisses</h1>
-        <p className="max-w-2xl text-lg text-texte-doux">{PHRASE}</p>
+        <p className="text-lg text-texte-doux">{PHRASE}</p>
       </header>
       <ArchitectureVivante />
       <SectionDeploiement infos={lireBuildInfo()} />

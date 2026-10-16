@@ -21,7 +21,7 @@ export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
         <h2 id={id("titre")} className="max-w-4xl font-serif text-3xl leading-[1.08] sm:text-4xl">
           {etude.titre}
         </h2>
-        <p className="mt-3 max-w-3xl text-texte-doux">{etude.sousTitre}</p>
+        <p className="mt-3 text-texte-doux">{etude.sousTitre}</p>
         {etude.site && (
           <a
             href={etude.site}
@@ -51,7 +51,7 @@ export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
         <h3 id={id("besoin")} className={classeTitreBloc}>
           Le besoin
         </h3>
-        <div className="flex max-w-3xl flex-col gap-4 text-lg text-texte-doux">
+        <div className="flex flex-col gap-4 text-lg text-texte-doux">
           {etude.besoin.map((paragraphe) => (
             <p key={paragraphe}>{paragraphe}</p>
           ))}
