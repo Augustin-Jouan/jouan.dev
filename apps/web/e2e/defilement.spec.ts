@@ -5,17 +5,23 @@ const lenisActif = (page: Page) => page.evaluate(() => document.documentElement.
 const attendreLenis = (page: Page) =>
   page.waitForFunction(() => document.documentElement.classList.contains("lenis"), null, { timeout: 10_000 });
 
-/** Positions de défilement relevées image par image pendant `ms`. */
-const relever = (page: Page, ms: number) =>
-  page.evaluate(async (ms) => {
+/**
+ * Positions de défilement relevées image par image jusqu'à l'arrivée (position inchangée sur 10 images),
+ * 10 s au plus. Pas de durée fixe : en CI, le navigateur sans carte graphique peut n'afficher qu'une
+ * douzaine d'images par seconde, et le glissé de Lenis avance image par image.
+ */
+const releverJusquALArret = (page: Page) =>
+  page.evaluate(async () => {
     const valeurs: number[] = [];
-    const fin = performance.now() + ms;
+    const fin = performance.now() + 10_000;
     while (performance.now() < fin) {
       await new Promise((ok) => requestAnimationFrame(ok));
       valeurs.push(Math.round(window.scrollY));
+      const dernieres = valeurs.slice(-10);
+      if (dernieres.length === 10 && dernieres.every((y) => y === dernieres[0]) && dernieres[0] !== 0) break;
     }
     return valeurs;
-  }, ms);
+  });
 
 test.beforeEach(async ({ page }) => {
   // Intro déjà vue : l'accueil s'affiche tout de suite.
@@ -32,17 +38,17 @@ test.describe("avec une souris", () => {
     await attendreLenis(page);
     await page.mouse.move(640, 400);
     await page.mouse.wheel(0, 500);
-    const positions = await relever(page, 1_200);
+    const positions = await releverJusquALArret(page);
     const intermediaires = new Set(positions.filter((y) => y > 5 && y < 495));
     expect(intermediaires.size, positions.join(" ")).toBeGreaterThanOrEqual(3);
-    expect(positions.at(-1)).toBeGreaterThanOrEqual(495);
+    expect(positions.at(-1), positions.join(" ")).toBeGreaterThanOrEqual(495);
   });
 
   test("un lien du menu glisse jusqu'à sa section et garde la personnalisation", async ({ page }) => {
     await page.goto("/?pour=inconnu-0000");
     await attendreLenis(page);
     await page.getByRole("banner").getByRole("link", { name: "Contact" }).click();
-    const positions = await relever(page, 2_000);
+    const positions = await releverJusquALArret(page);
     expect(new Set(positions.filter((y) => y > 5 && y < positions.at(-1)! - 5)).size, positions.join(" ")).toBeGreaterThanOrEqual(3);
     expect(new URL(page.url()).search).toBe("?pour=inconnu-0000");
     expect(new URL(page.url()).hash).toBe("#contact");
