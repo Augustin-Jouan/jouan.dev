@@ -10,8 +10,9 @@ export function SectionContact({ jeton }: { jeton?: string }) {
       <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr]">
         <ContactForm jeton={jeton} />
         {/* Le trait conducteur (lib/trait) signe dans la place libre sous l'adresse. */}
-        <div data-trait="signature" className="flex flex-col gap-3 text-texte-doux">
-          <p>Vous préférez l&apos;e-mail ? Écrivez-moi directement :</p>
+        {/* Centré sur téléphone ; l'espace insécable garde le deux-points avec son mot. */}
+        <div data-trait="signature" className="flex flex-col gap-3 text-texte-doux max-sm:items-center max-sm:text-center">
+          <p>Vous préférez l&apos;e-mail ? Écrivez-moi directement&nbsp;:</p>
           <p>
             <a
               href={`mailto:${contact.email}`}

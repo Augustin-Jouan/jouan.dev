@@ -73,4 +73,12 @@ describe("FenetreDemo", () => {
     expect(screen.getByText("Essai — démo")).toBeInTheDocument();
     expect(screen.getByText("Données fictives.")).toBeInTheDocument();
   });
+
+  it("sous 768 px, une note conseille l'ordinateur ; l'astérisque du bouton ne change pas son nom", () => {
+    simulerEcran(false);
+    render(<FenetreDemo demo={demo} />);
+    const note = screen.getByText("* Pour tester la démo, mieux vaut visiter le site sur un ordinateur.");
+    expect(note).toHaveClass("md:hidden");
+    expect(screen.getByRole("link", { name: /Ouvrir la démo/ })).toHaveAccessibleName(/^Ouvrir la démo en plein écran\s*\(nouvel onglet\)$/);
+  });
 });

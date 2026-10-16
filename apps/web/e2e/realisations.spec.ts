@@ -4,9 +4,11 @@ import { surveillerErreurs } from "./outils";
 const titreMetier = (page: Page) => page.getByRole("heading", { level: 2, name: /suivi des marchés de travaux/ });
 const titreVitrine = (page: Page) => page.getByRole("heading", { level: 2, name: /Un site d'artisan rapide/ });
 
-test("depuis l'accueil, l'exemple du site vitrine ouvre l'onglet Site vitrine, à son étude", async ({ page }) => {
+test("depuis l'accueil, l'exemple du site vitrine ouvre l'onglet Site vitrine, à son étude", async ({ page, isMobile }) => {
   const erreurs = surveillerErreurs(page);
   await page.goto("/");
+  // Sur téléphone, les offres sont sous deux onglets : celle du site vitrine est dans le second.
+  if (isMobile) await page.locator("#offre label", { hasText: "Site vitrine" }).click();
   await page.getByRole("link", { name: "Voir l'exemple : Site vitrine d'artisan" }).click();
   await expect(page).toHaveURL(/\/realisations#site-vitrine$/);
   await expect(page.getByRole("tab", { name: "Site vitrine" })).toHaveAttribute("aria-selected", "true");

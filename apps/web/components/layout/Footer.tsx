@@ -21,16 +21,29 @@ function Profil({ href, children }: { href: string; children: string }) {
 /**
  * Une colonne : son titre et ses liens, puis son indice. Sur ordinateur, les trois colonnes partagent les
  * rangées du pied de page (subgrid) : les indices s'alignent sur une même ligne, quelle que soit la
- * longueur des listes.
+ * longueur des listes. Sur téléphone, la colonne s'efface (`contents`) : ses liens, centrés et en ligne,
+ * s'empilent avec ceux des autres, et son indice rejoint les autres en bas (`order-last`).
  */
-function Colonne({ titre, indice, className = "", children }: { titre: string; indice: ReactNode; className?: string; children: ReactNode }) {
+function Colonne({
+  titre,
+  indice,
+  className = "",
+  classeIndice = "",
+  children,
+}: {
+  titre: string;
+  indice: ReactNode;
+  className?: string;
+  classeIndice?: string;
+  children: ReactNode;
+}) {
   return (
-    <div className={`flex flex-col gap-4 sm:row-span-2 sm:grid sm:grid-rows-subgrid sm:gap-y-10 ${className}`}>
-      <div>
+    <div className={`max-sm:contents sm:row-span-2 sm:grid sm:grid-rows-subgrid sm:gap-y-10 ${className}`}>
+      <div className="max-sm:mb-8">
         <h2 className="mb-3 text-xs uppercase tracking-[0.14em] text-texte">{titre}</h2>
-        <ul className="flex flex-col gap-2">{children}</ul>
+        <ul className="flex flex-col gap-2 max-sm:flex-row max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-5">{children}</ul>
       </div>
-      <p>{indice}</p>
+      <p className={`max-sm:order-last max-sm:mb-2 ${classeIndice}`}>{indice}</p>
     </div>
   );
 }
@@ -44,10 +57,16 @@ export function Footer() {
     <footer>
       <nav
         aria-label="Pied de page"
-        className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-10 px-5 pb-8 pt-12 text-sm text-texte-doux sm:grid-cols-[1fr_auto_1fr] sm:gap-y-0 sm:px-8 2xl:max-w-page"
+        className="mx-auto grid max-w-6xl grid-cols-1 justify-items-center px-5 pb-8 pt-12 text-center text-sm text-texte-doux sm:grid-cols-[1fr_auto_1fr] sm:justify-items-stretch sm:gap-x-6 sm:px-8 sm:text-left 2xl:max-w-page"
       >
-        <Colonne titre="Me joindre" indice={<code className="font-mono">curl -L {hoteSite}</code>}>
-          <li>
+        <Colonne
+          titre="Me joindre"
+          indice={<code className="font-mono">curl -L {hoteSite}</code>}
+          // Sur téléphone, un filet sépare les liens des trois indices.
+          classeIndice="max-sm:w-full max-sm:border-t max-sm:border-trait max-sm:pt-8"
+        >
+          {/* L'adresse seule sur sa ligne ; GitHub et LinkedIn ensemble dessous. */}
+          <li className="max-sm:basis-full">
             <a href={`mailto:${contact.email}`} className={lien}>
               {contact.email}
             </a>

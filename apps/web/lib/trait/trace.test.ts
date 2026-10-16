@@ -34,7 +34,7 @@ const TELEPHONE: Reperes = {
     { x: 120, y: 5300, r: 56 },
     { x: 270, y: 5300, r: 56 },
   ],
-  envoi: { gauche: 20, haut: 6400, droite: 134, bas: 6444 },
+  envoi: { gauche: 20, haut: 6400, droite: 124, bas: 6444 },
   finLecture: 6613,
 };
 
@@ -275,13 +275,12 @@ describe("tracer, écran haut", () => {
 });
 
 describe("tracer, variante « bord »", () => {
-  it("téléphone : longe le bord gauche, suit la ligne verticale, finit sur le bord gauche du bouton", () => {
+  it("téléphone : longe le bord gauche jusqu'à la Méthode et en suit la ligne verticale", () => {
     const trace = tracer(TELEPHONE);
     expect(trace.variante).toBe("bord");
     const n1 = TELEPHONE.noeuds[0]!;
     for (const p of trace.echantillons) {
-      const sousPhoto = p.y > 300 + 54 + 40;
-      if ((sousPhoto && p.y < n1.y - 60) || (p.y > TELEPHONE.fil.fin.y + 60 && p.y < 6422 - 60)) {
+      if (p.y > 300 + 54 + 40 && p.y < n1.y - 60) {
         expect(p.x, `(${p.x}, ${p.y})`).toBeGreaterThanOrEqual(4);
         expect(p.x, `(${p.x}, ${p.y})`).toBeLessThanOrEqual(12);
       }
@@ -289,10 +288,85 @@ describe("tracer, variante « bord »", () => {
     TELEPHONE.noeuds.forEach((noeud, i) => {
       expect(distance(pointA(longueurDe(trace, "etape", i), trace.echantillons, trace.longueur), noeud)).toBeLessThan(1);
     });
-    expect(trace.allumables.some((a) => a.cible.type === "logo")).toBe(false);
+  });
+
+  it("téléphone : après l'étape 05, le trait passe sur le bord droit, puis enlace les deux logos sans passer sur leurs images", () => {
+    const trace = tracer(TELEPHONE);
+    const { largeur: W, logos } = TELEPHONE;
+    const hautLogos = Math.min(...logos.map((l) => l.y - l.r));
+    const basLogos = Math.max(...logos.map((l) => l.y + l.r));
+    for (const p of trace.echantillons) {
+      if ((p.y > TELEPHONE.fil.fin.y + 140 && p.y < hautLogos - 70) || (p.y > basLogos + 80 && p.y < 6300)) {
+        expect(p.x, `(${p.x}, ${p.y})`).toBeGreaterThanOrEqual(W - 12);
+        expect(p.x, `(${p.x}, ${p.y})`).toBeLessThanOrEqual(W - 4);
+      }
+      for (const logo of logos) expect(distance(p, logo), `(${p.x}, ${p.y})`).toBeGreaterThan(logo.r + 2);
+    }
+    for (const logo of logos) {
+      const surAnneau = trace.echantillons.filter((p) => Math.abs(distance(p, logo) - (logo.r + ECART_ANNEAU)) < 1);
+      expect(surAnneau.length * 4).toBeGreaterThan(Math.PI * (logo.r + ECART_ANNEAU) * 0.8);
+    }
+    // Le logo de droite d'abord (le trait arrive par la droite), puis celui de gauche, puis l'envoi.
+    const ordre = trace.allumables.filter((a) => a.cible.type !== "etape").map((a) => ("indice" in a.cible ? `logo${a.cible.indice}` : a.cible.type));
+    expect(ordre).toEqual(["portrait", "logo1", "logo0", "envoi"]);
+  });
+
+  it("téléphone : signe à droite du bouton d'envoi, puis finit sur son bord droit", () => {
+    const trace = tracer(TELEPHONE);
+    const { envoi, largeur: W } = TELEPHONE;
+    const centre = (envoi.haut + envoi.bas) / 2;
+    const ecrits = trace.echantillons.filter((p) => p.x > envoi.droite + 8 && p.x < W - 4 && p.y > centre - 90 && p.y < centre + 30);
+    expect(ecrits.length * 4).toBeGreaterThan(800);
+    // La signature reste à côté du bouton, sans déborder de l'écran.
+    for (const p of trace.echantillons.filter((q) => q.y > centre - 90)) {
+      expect(p.x).toBeLessThanOrEqual(W - 4);
+      if (p.y > envoi.haut - 4 && p.y < envoi.bas + 4) expect(p.x).toBeGreaterThanOrEqual(envoi.droite - 0.5);
+    }
     const fin = trace.echantillons.at(-1)!;
-    expect(fin.x).toBeCloseTo(TELEPHONE.envoi.gauche, 5);
-    expect(fin.y).toBeCloseTo(6422, 5);
+    expect(fin.x).toBeCloseTo(envoi.droite, 5);
+    expect(fin.y).toBeCloseTo(centre, 5);
+    expect(longueurDe(trace, "envoi")).toBe(trace.longueur);
+    // L'écriture s'étale au défilement : au moins un quart d'écran.
+    const [avant, arrivee] = trace.reperes.slice(-2);
+    expect(arrivee!.y - avant!.y).toBeGreaterThan(0.25 * TELEPHONE.hauteurEcran);
+  });
+
+  it("tablette (768 px) : la signature ne grandit pas au-delà de 0,8, pour ne pas monter sur le champ Message", () => {
+    const TABLETTE: Reperes = { ...TELEPHONE, largeur: 768, logos: [{ x: 300, y: 5300, r: 56 }, { x: 460, y: 5300, r: 56 }] };
+    const trace = tracer(TABLETTE);
+    const centre = (TABLETTE.envoi.haut + TABLETTE.envoi.bas) / 2;
+    const signature = trace.echantillons.filter((p) => p.x > TABLETTE.envoi.droite + 8 && p.x < 768 - 20 && p.y > centre - 200);
+    expect(signature.length * 4).toBeGreaterThan(800);
+    // Haut de la signature (110 unités au-dessus de la ligne de base, elle-même 4 px au-dessus du milieu du bouton).
+    for (const p of signature) expect(p.y).toBeGreaterThanOrEqual(centre - 4 - 110 * 0.8 - 1);
+  });
+
+  it("téléphone étroit (360 px) : signature trop petite, le trait arrive directement sur le bord droit du bouton", () => {
+    const ETROIT: Reperes = { ...TELEPHONE, largeur: 360, logos: [{ x: 110, y: 5300, r: 52 }, { x: 250, y: 5300, r: 52 }] };
+    const trace = tracer(ETROIT);
+    const { envoi } = ETROIT;
+    const centre = (envoi.haut + envoi.bas) / 2;
+    const ecrits = trace.echantillons.filter((p) => p.x > envoi.droite + 8 && p.x < 360 - 20 && p.y > centre - 90 && p.y < centre + 30);
+    expect(ecrits.length * 4).toBeLessThan(400);
+    const fin = trace.echantillons.at(-1)!;
+    expect(fin.x).toBeCloseTo(envoi.droite, 5);
+    expect(fin.y).toBeCloseTo(centre, 5);
+  });
+
+  it("téléphone sans les deux logos : le trait descend le long du bord droit, sans enlacer", () => {
+    const trace = tracer({ ...TELEPHONE, logos: TELEPHONE.logos.slice(0, 1) });
+    expect(trace.allumables.some((a) => a.cible.type === "logo")).toBe(false);
+    expect(trace.echantillons.at(-1)!.x).toBeCloseTo(TELEPHONE.envoi.droite, 5);
+  });
+
+  it("téléphone : des repères strictement croissants, du départ (0) à l'envoi (longueur totale)", () => {
+    const trace = tracer(TELEPHONE);
+    expect(trace.reperes[0]!.l).toBe(0);
+    expect(trace.reperes.at(-1)!.l).toBe(trace.longueur);
+    trace.reperes.slice(1).forEach((p, i) => {
+      expect(p.l).toBeGreaterThan(trace.reperes[i]!.l);
+      expect(p.y).toBeGreaterThan(trace.reperes[i]!.y);
+    });
   });
 
   it("téléphone : la traversée suit le défilement, sans étalement", () => {

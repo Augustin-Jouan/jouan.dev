@@ -237,13 +237,42 @@ test.describe("ordinateur", () => {
   });
 });
 
-test("téléphone : un trait fin le long du bord, qui allume la Méthode et l'envoi, sans détour par les logos", async ({ page, isMobile }) => {
-  test.skip(!isMobile, "Variante « bord » : téléphone seulement.");
-  await page.goto("/");
-  await attendreTrait(page);
-  await expect(page.locator(".trait-calque")).toHaveAttribute("data-variante", "bord");
-  const { ordre } = await parcourir(page, 200);
-  expect(ordre).toEqual(["portrait", "etape0", "etape1", "etape2", "etape3", "etape4", "envoi"]);
+test.describe("téléphone", () => {
+  test.skip(({ isMobile }) => !isMobile, "Variante « bord » : téléphone seulement.");
+
+  test("un trait fin le long du bord : la Méthode, puis le ∞ autour des logos, puis l'envoi", async ({ page }) => {
+    await page.goto("/");
+    await attendreTrait(page);
+    await expect(page.locator(".trait-calque")).toHaveAttribute("data-variante", "bord");
+    const { ordre } = await parcourir(page, 200);
+    expect(ordre).toEqual(["portrait", "etape0", "etape1", "etape2", "etape3", "etape4", "logo1", "logo0", "envoi"]);
+  });
+
+  test("le trait signe à droite du bouton « Envoyer », sans toucher le champ Message", async ({ page }) => {
+    await page.goto("/");
+    await attendreTrait(page);
+    await defiler(page, (await etat(page)).bas);
+    expect((await etat(page)).allumees).toContain("envoi");
+    const { aDroite, surMessage } = await page.evaluate(() => {
+      const bouton = document.querySelector('[data-trait="envoi"]')!.getBoundingClientRect();
+      const message = document.querySelector("#contact textarea")!.getBoundingClientRect();
+      const ligne = document.querySelector<SVGPathElement>(".trait-ligne")!;
+      const calque = ligne.ownerSVGElement!.getBoundingClientRect();
+      let aDroite = 0;
+      let surMessage = 0;
+      for (let l = 0; l < ligne.getTotalLength(); l += 4) {
+        const p = ligne.getPointAtLength(l);
+        const x = p.x + calque.left;
+        const y = p.y + calque.top;
+        if (x > bouton.right && y > message.bottom && y < bouton.bottom + 20) aDroite++;
+        if (x > message.left && x < message.right && y > message.top && y < message.bottom) surMessage++;
+      }
+      return { aDroite, surMessage };
+    });
+    // Une signature, pas une simple traversée : plus de 600 px de trait à droite du bouton.
+    expect(aDroite * 4).toBeGreaterThan(600);
+    expect(surMessage).toBe(0);
+  });
 });
 
 test.describe("mouvement réduit", () => {
