@@ -5,7 +5,10 @@ import { ancresEtudes, type EtudeDeCas } from "@/data/realisations";
 const classeBloc = "mx-auto w-full max-w-6xl 2xl:max-w-page px-5 py-14 sm:px-8 sm:py-20";
 const classeTitreBloc = "mb-8 font-serif text-3xl sm:text-4xl";
 
-/** Une étude de cas complète, posée sur /realisations sous son ancre (`#site-vitrine`). */
+/**
+ * Une étude de cas complète, posée sur /realisations sous son ancre (`#site-vitrine`) : un titre court, la
+ * démo (ou les captures) tout de suite, puis les explications (chiffres, besoin, livré, sous le capot).
+ */
 export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
   const ancre = ancresEtudes[etude.slug];
   const id = (bloc: string) => `${ancre}-${bloc}`;
@@ -13,24 +16,40 @@ export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
 
   return (
     <article id={ancre} aria-labelledby={id("titre")} className="scroll-mt-8 border-t border-trait">
-      <header className={`${classeBloc} pb-6`}>
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{etude.surtitre}</p>
-        <h2 id={id("titre")} className="max-w-4xl font-serif text-4xl leading-[1.05] sm:text-6xl">
+      <header className="mx-auto w-full max-w-6xl 2xl:max-w-page px-5 pb-6 pt-8 sm:px-8 sm:pt-10">
+        <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{etude.surtitre}</p>
+        <h2 id={id("titre")} className="max-w-4xl font-serif text-3xl leading-[1.08] sm:text-4xl">
           {etude.titre}
         </h2>
-        <p className="mt-6 max-w-3xl text-lg text-texte-doux">{etude.sousTitre}</p>
+        <p className="mt-3 max-w-3xl text-texte-doux">{etude.sousTitre}</p>
         {etude.site && (
           <a
             href={etude.site}
             target="_blank"
             rel="noopener"
-            className="mt-6 inline-block font-medium text-accent underline underline-offset-4"
+            className="mt-3 inline-block font-medium text-accent underline underline-offset-4"
           >
             Voir le site<span aria-hidden="true"> ↗</span>
             <span className="sr-only"> (nouvel onglet)</span>
           </a>
         )}
-        <dl className="mt-10 grid gap-6 sm:grid-cols-3">
+      </header>
+
+      {/* La démo d'abord, juste sous le titre : la barre de la fenêtre la nomme, l'intitulé reste pour les lecteurs d'écran. */}
+      <section aria-labelledby={id("media")} className="mx-auto w-full max-w-6xl 2xl:max-w-page px-5 sm:px-8">
+        <h3 id={id("media")} className="sr-only">
+          {avecDemo ? "La démo" : "Le résultat"}
+        </h3>
+        {etude.media.type === "demo" ? (
+          <FenetreDemo demo={etude.media} />
+        ) : (
+          <Captures images={etude.media.images} />
+        )}
+      </section>
+
+      {/* Puis les explications, ouvertes par les chiffres. */}
+      <div className={`${classeBloc} pb-0 sm:pb-0`}>
+        <dl className="grid gap-6 sm:grid-cols-3">
           {etude.chiffres.map((chiffre) => (
             <div key={chiffre.libelle} className="flex flex-col-reverse gap-1 border-t border-trait pt-4">
               <dt className="text-sm text-texte-doux">{chiffre.libelle}</dt>
@@ -38,7 +57,7 @@ export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
             </div>
           ))}
         </dl>
-      </header>
+      </div>
 
       <section aria-labelledby={id("besoin")} className={classeBloc}>
         <h3 id={id("besoin")} className={classeTitreBloc}>
@@ -49,17 +68,6 @@ export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
             <p key={paragraphe}>{paragraphe}</p>
           ))}
         </div>
-      </section>
-
-      <section aria-labelledby={id("media")} className={classeBloc}>
-        <h3 id={id("media")} className={classeTitreBloc}>
-          {avecDemo ? "La démo" : "Le résultat"}
-        </h3>
-        {etude.media.type === "demo" ? (
-          <FenetreDemo demo={etude.media} />
-        ) : (
-          <Captures images={etude.media.images} />
-        )}
       </section>
 
       <section aria-labelledby={id("livre")} className={classeBloc}>

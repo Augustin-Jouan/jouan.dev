@@ -26,9 +26,9 @@ const etudesDe = (categorie: Categorie) =>
 export default function RealisationsPage() {
   return (
     <div>
-      <header className="mx-auto w-full max-w-6xl 2xl:max-w-page px-5 pb-10 pt-16 sm:px-8 sm:pt-24">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{enTeteRealisations.surtitre}</p>
-        <h1 className="max-w-4xl font-serif text-5xl leading-[1.02] sm:text-7xl">{enTeteRealisations.titre}</h1>
+      <header className="mx-auto w-full max-w-6xl 2xl:max-w-page px-5 pb-6 pt-10 sm:px-8 sm:pt-14">
+        <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-texte-doux">{enTeteRealisations.surtitre}</p>
+        <h1 className="max-w-4xl font-serif text-4xl leading-[1.05] sm:text-5xl">{enTeteRealisations.titre}</h1>
       </header>
       <OngletsRealisations panneaux={{ "application-metier": etudesDe("application-metier"), "site-vitrine": etudesDe("site-vitrine") }} />
       <footer className="mx-auto flex w-full max-w-6xl 2xl:max-w-page flex-col items-start gap-6 border-t border-trait px-5 py-14 sm:px-8 sm:py-20">
