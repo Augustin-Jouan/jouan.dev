@@ -40,10 +40,11 @@ gauche jusqu'au bouton d'envoi. Nouveau parcours :
    au passage. S'il n'y a pas exactement deux logos, le trait descend tout droit le long du bord droit.
 4. Il redescend le long du bord droit et **écrit la signature à droite du bouton « Envoyer »**, puis rejoint le
    bord droit du bouton.
-   - Zone : du bord droit du bouton (+ 14 px) au bord de l'écran (− 10 px), ligne de base au milieu du bouton.
-   - Échelle : la plus grande qui tient en largeur, au plus 1,3. Sous **0,6**, pas de signature : arrivée
-     directe sur le bord droit du bouton.
-   - Plus d'espace au-dessus du bouton sur téléphone, pour que la signature ne touche pas le champ Message.
+   - Zone : du bord droit du bouton (+ 10 px) vers le bord de l'écran (− 6 px), ligne de base 4 px au-dessus du
+     milieu du bouton. Sur un téléphone de 390 px, l'échelle vaut environ 0,62 ; sur 412 px, 0,68.
+   - Échelle : la plus grande qui tient en largeur, entre **0,6** et **0,8**. Au-delà de 0,8 (tablette), elle
+     monterait sur le champ Message ; sous 0,6, pas de signature : arrivée directe sur le bord droit du bouton.
+   - Sous 64 rem, 3,5 rem de marge au-dessus du bouton, pour que la signature ne touche pas le champ Message.
 5. Progression : les logos s'allument quand la ligne de lecture les atteint. La signature s'écrit pendant que la
    ligne de lecture la traverse, comme sur ordinateur.
 

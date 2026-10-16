@@ -72,6 +72,11 @@ export const MARGE_MIN = 56;
 export const ECART_ANNEAU = 6;
 /** Taille de la signature : au plus 1,3 fois son dessin ; en dessous de 0,7, elle serait illisible. */
 const ECHELLE_SIGNATURE: Bornes = [0.7, 1.3];
+/**
+ * À droite du bouton d'envoi (téléphone, tablette) : un peu plus petit qu'ailleurs, pas moins de 0,6 ; au plus 0,8,
+ * pour rester sous le champ Message (marge au-dessus du bouton, components/contact/ContactForm.tsx).
+ */
+const ECHELLE_SIGNATURE_TELEPHONE: Bornes = [0.6, 0.8];
 /** Graine fixe : la même mise en page donne toujours le même trait. */
 const GRAINE = 20261014;
 /** Pas vertical moyen entre deux inflexions du tracé libre. */
@@ -215,6 +220,83 @@ function tourPortrait(r: Reperes) {
   };
 }
 
+/** Les deux logos (de gauche à droite), leurs anneaux, et les points où le ∞ passe d'un anneau à l'autre. */
+function geometrieLogos(logos: Cercle[]) {
+  const [logoGauche, logoDroite] = [...logos].sort((a, b) => a.x - b.x) as [Cercle, Cercle];
+  const r1 = logoGauche.r + ECART_ANNEAU;
+  const r2 = logoDroite.r + ECART_ANNEAU;
+  // Tangentes intérieures communes aux deux anneaux : elles se croisent entre les deux logos.
+  const ecart = distance(logoGauche, logoDroite);
+  const axe = fois(retirer(logoDroite, logoGauche), 1 / ecart);
+  const normale = { x: -axe.y, y: axe.x };
+  const croisement = ajouter(logoGauche, fois(axe, (ecart * r1) / (r1 + r2)));
+  const sinus = Math.min(0.95, (r1 + r2) / ecart);
+  const cosinus = Math.sqrt(1 - sinus * sinus);
+  const descendGauche = ajouter(fois(axe, -cosinus), fois(normale, sinus));
+  const descendDroite = ajouter(fois(axe, cosinus), fois(normale, sinus));
+  const brin1 = distance(croisement, logoGauche) * cosinus;
+  const brin2 = distance(croisement, logoDroite) * cosinus;
+  return {
+    logoGauche,
+    logoDroite,
+    r1,
+    r2,
+    haut1: { x: logoGauche.x, y: logoGauche.y - r1 },
+    haut2: { x: logoDroite.x, y: logoDroite.y - r2 },
+    bas1: { x: logoGauche.x, y: logoGauche.y + r1 },
+    bas2: { x: logoDroite.x, y: logoDroite.y + r2 },
+    contact2: retirer(croisement, fois(descendGauche, brin2)),
+    contact1: ajouter(croisement, fois(descendGauche, brin1)),
+    retour1: retirer(croisement, fois(descendDroite, brin1)),
+    retour2: ajouter(croisement, fois(descendDroite, brin2)),
+  };
+}
+
+/**
+ * ∞, depuis le haut de l'anneau de droite : le trait l'épouse par le haut, croise en ligne droite, fait le tour
+ * de l'anneau de gauche par le bas, recroise et finit en bas de l'anneau de droite. Il ne passe jamais sur les
+ * images. Renvoie le jalon où il atteint l'anneau de gauche.
+ */
+function enlacerLogos(chemin: Chemin, g: ReturnType<typeof geometrieLogos>): Jalon {
+  const { logoGauche, logoDroite, r1, r2 } = g;
+  chemin.arc(logoDroite, r2, -90, angle(g.contact2, logoDroite)).ligne(g.contact1);
+  const jalonLogoGauche = chemin.jalon;
+  const depuis1 = angle(g.contact1, logoGauche);
+  const vers1 = angle(g.retour1, logoGauche);
+  chemin.arc(logoGauche, r1, depuis1, vers1 + (vers1 < depuis1 ? 360 : 0));
+  chemin.ligne(g.retour2).arc(logoDroite, r2, angle(g.retour2, logoDroite), 90);
+  return jalonLogoGauche;
+}
+
+type PlaceSignature = { origine: Point; echelle: number };
+
+/**
+ * Écrit « Augustin Jouan » à sa place, en y entrant par une courbe dont `controle` est la première poignée, puis
+ * file en ligne droite jusqu'à `arrivee`. Renvoie le jalon du début de l'écriture.
+ */
+function ecrireSignature(chemin: Chemin, { origine, echelle }: PlaceSignature, controle: Point, arrivee: Point): Jalon {
+  const local = (x: number, y: number) => ({ x: origine.x + x * echelle, y: origine.y + y * echelle });
+  chemin.courbe(controle, local(44, -92), local(SIGNATURE_DEPART.x, SIGNATURE_DEPART.y));
+  const jalon = chemin.jalon;
+  for (let i = 0; i < SIGNATURE.length; i += 6) {
+    const [a, b, c, d, e, f] = SIGNATURE.slice(i, i + 6) as [number, number, number, number, number, number];
+    chemin.courbe(local(a, b), local(c, d), local(e, f));
+  }
+  chemin.ligne(arrivee);
+  return jalon;
+}
+
+/**
+ * Téléphone : la signature à droite du bouton d'envoi, de son bord (+ 10 px) vers le bord de l'écran (− 6 px), ligne
+ * de base au milieu du bouton. `null` sous l'échelle 0,6 : trop petite pour se lire.
+ */
+function placerSignatureADroite(envoi: Boite, largeur: number): PlaceSignature | null {
+  const gauche = envoi.droite + 10;
+  const echelle = Math.min(ECHELLE_SIGNATURE_TELEPHONE[1], (largeur - 6 - gauche) / (SIGNATURE_DROITE - SIGNATURE_GAUCHE));
+  if (echelle < ECHELLE_SIGNATURE_TELEPHONE[0]) return null;
+  return { origine: { x: gauche - SIGNATURE_GAUCHE * echelle, y: (envoi.haut + envoi.bas) / 2 - 4 }, echelle };
+}
+
 function tracerMarges(r: Reperes, alea: () => number): Construction {
   const { marge: M, largeur: W, hauteurEcran: h } = r;
   const gauche: Bornes = [12, M - 16];
@@ -249,40 +331,13 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
   // Sortie à droite, descente libre jusqu'au-dessus du logo de droite.
   const sortie = { x: milieuDroite, y: fin.y + 80 };
   chemin.courbe({ x: fin.x + 40, y: fin.y }, { x: sortie.x, y: sortie.y - 40 }, sortie);
-  const [logoGauche, logoDroite] = [...r.logos].sort((a, b) => a.x - b.x) as [Cercle, Cercle];
-  const r1 = logoGauche.r + ECART_ANNEAU;
-  const r2 = logoDroite.r + ECART_ANNEAU;
-  const haut2 = { x: logoDroite.x, y: logoDroite.y - r2 };
+  const logos = geometrieLogos(r.logos);
+  const { logoGauche, logoDroite, haut1, haut2, bas1, bas2 } = logos;
   const avantLogos = { x: milieuDroite, y: haut2.y - 60 };
   chemin.lisse([...inflexions(alea, sortie.y, avantLogos.y, resserre(droite)), avantLogos], BAS, BAS, droite);
-  chemin.courbe({ x: avantLogos.x, y: avantLogos.y + 40 }, { x: haut2.x + K_ARC * r2, y: haut2.y }, haut2);
+  chemin.courbe({ x: avantLogos.x, y: avantLogos.y + 40 }, { x: haut2.x + K_ARC * logos.r2, y: haut2.y }, haut2);
   const jalonLogoDroite = chemin.jalon;
-
-  // ∞ : le trait épouse l'anneau de droite par le haut, croise en ligne droite (tangentes intérieures
-  // communes aux deux anneaux), fait le tour de l'anneau de gauche par le bas, recroise et finit en bas de
-  // l'anneau de droite. Il ne passe jamais sur les images.
-  const ecart = distance(logoGauche, logoDroite);
-  const axe = fois(retirer(logoDroite, logoGauche), 1 / ecart);
-  const normale = { x: -axe.y, y: axe.x };
-  const croisement = ajouter(logoGauche, fois(axe, (ecart * r1) / (r1 + r2)));
-  const sinus = Math.min(0.95, (r1 + r2) / ecart);
-  const cosinus = Math.sqrt(1 - sinus * sinus);
-  const descendGauche = ajouter(fois(axe, -cosinus), fois(normale, sinus));
-  const descendDroite = ajouter(fois(axe, cosinus), fois(normale, sinus));
-  const brin1 = distance(croisement, logoGauche) * cosinus;
-  const brin2 = distance(croisement, logoDroite) * cosinus;
-  const contact2 = retirer(croisement, fois(descendGauche, brin2));
-  const contact1 = ajouter(croisement, fois(descendGauche, brin1));
-  const retour1 = retirer(croisement, fois(descendDroite, brin1));
-  const retour2 = ajouter(croisement, fois(descendDroite, brin2));
-  const bas1 = { x: logoGauche.x, y: logoGauche.y + r1 };
-  const haut1 = { x: logoGauche.x, y: logoGauche.y - r1 };
-  const bas2 = { x: logoDroite.x, y: logoDroite.y + r2 };
-  chemin.arc(logoDroite, r2, -90, angle(contact2, logoDroite)).ligne(contact1);
-  const jalonLogoGauche = chemin.jalon;
-  const depuis1 = angle(contact1, logoGauche);
-  chemin.arc(logoGauche, r1, depuis1, angle(retour1, logoGauche) + (angle(retour1, logoGauche) < depuis1 ? 360 : 0));
-  chemin.ligne(retour2).arc(logoDroite, r2, angle(retour2, logoDroite), 90);
+  const jalonLogoGauche = enlacerLogos(chemin, logos);
   const jalonApresLogos = chemin.jalon;
 
   // Retour dans la marge droite, descente libre, puis arrivée sur le bord droit du bouton d'envoi : en
@@ -294,16 +349,9 @@ function tracerMarges(r: Reperes, alea: () => number): Construction {
   let jalonSignature = 0;
   if (signature) {
     const { origine, echelle } = signature;
-    const local = (x: number, y: number) => ({ x: origine.x + x * echelle, y: origine.y + y * echelle });
     const avant = { x: milieuDroite, y: origine.y + SIGNATURE_HAUT * echelle };
     chemin.lisse([...inflexions(alea, reprise.y, avant.y, resserre(droite)), avant], BAS, BAS, droite);
-    chemin.courbe({ x: milieuDroite, y: origine.y - 60 * echelle }, local(44, -92), local(SIGNATURE_DEPART.x, SIGNATURE_DEPART.y));
-    jalonSignature = chemin.jalon;
-    for (let i = 0; i < SIGNATURE.length; i += 6) {
-      const [a, b, c, d, e, f] = SIGNATURE.slice(i, i + 6) as [number, number, number, number, number, number];
-      chemin.courbe(local(a, b), local(c, d), local(e, f));
-    }
-    chemin.ligne(arrivee);
+    jalonSignature = ecrireSignature(chemin, signature, { x: milieuDroite, y: origine.y - 60 * echelle }, arrivee);
   } else {
     const avantEnvoi = { x: milieuDroite, y: arrivee.y - 90 };
     chemin.lisse([...inflexions(alea, reprise.y, avantEnvoi.y, resserre(droite)), avantEnvoi], BAS, BAS, droite);
@@ -355,8 +403,9 @@ function placerSignature(zone: Boite, arrivee: Point, plancher: number): { origi
 }
 
 /**
- * Variante « bord » : le long du bord gauche, puis la ligne de la Méthode. Ligne verticale (téléphone) :
- * retour au bord gauche. Ligne horizontale (portable à marge étroite) : on finit le long du bord droit.
+ * Variante « bord » : le long du bord gauche, puis la ligne de la Méthode, puis le long du bord droit jusqu'au
+ * bouton d'envoi. Ligne verticale (téléphone) : au passage, le ∞ autour des deux logos et la signature à droite
+ * du bouton, quand la place le permet. Ligne horizontale (portable à marge étroite) : droit au bouton.
  */
 function tracerBord(r: Reperes, alea: () => number): Construction {
   const { largeur: W, hauteurEcran: h, ordinateur } = r;
@@ -373,28 +422,60 @@ function tracerBord(r: Reperes, alea: () => number): Construction {
   const fin = r.fil.fin;
   chemin.ligne(fin);
   const jalonFin = chemin.jalon;
+  const reperes = [
+    ...tour.reperes,
+    { jalon: jalonN1, y: ordinateur ? n1.y - 0.25 * h : n1.y },
+    { jalon: jalonFin, y: ordinateur ? n1.y + 0.25 * h : fin.y },
+  ];
+  const allumables = [tour.allumable, ...etapes(r, jalonN1)];
 
-  const x = ordinateur ? W - 8 : 8;
-  const bornes: Bornes = ordinateur ? [W - 12, W - 4] : [4, 12];
-  const reprise = { x, y: fin.y + 60 };
-  chemin.courbe(ordinateur ? { x: fin.x + 30, y: fin.y } : { x: fin.x, y: fin.y + 30 }, { x, y: reprise.y - 30 }, reprise);
-  const centreEnvoi = (r.envoi.haut + r.envoi.bas) / 2;
-  const arrivee = ordinateur ? { x: r.envoi.droite, y: centreEnvoi } : { x: r.envoi.gauche, y: centreEnvoi };
-  const avantEnvoi = { x, y: arrivee.y - 60 };
-  chemin.lisse([...inflexions(alea, reprise.y, avantEnvoi.y, [bornes[0] + 1, bornes[1] - 1]), avantEnvoi], BAS, BAS, bornes);
-  chemin.courbe({ x, y: avantEnvoi.y + 40 }, ordinateur ? { x: arrivee.x + 40, y: arrivee.y } : { x: arrivee.x - 12, y: arrivee.y }, arrivee);
-  const jalonArrivee = chemin.jalon;
+  // Le bord droit : juste après la ligne horizontale, ou en traversant l'écran sous la dernière étape.
+  const x = W - 8;
+  const bornes: Bornes = [W - 12, W - 4];
+  const serre: Bornes = [bornes[0] + 1, bornes[1] - 1];
+  let reprise = ordinateur ? { x, y: fin.y + 60 } : { x, y: fin.y + 120 };
+  chemin.courbe(ordinateur ? { x: fin.x + 30, y: fin.y } : { x: fin.x, y: fin.y + 60 }, { x, y: reprise.y - (ordinateur ? 30 : 60) }, reprise);
 
-  return {
-    chemin,
-    reperes: [
-      ...tour.reperes,
-      { jalon: jalonN1, y: ordinateur ? n1.y - 0.25 * h : n1.y },
-      { jalon: jalonFin, y: ordinateur ? n1.y + 0.25 * h : fin.y },
-      { jalon: jalonArrivee, y: arrivee.y },
-    ],
-    allumables: [tour.allumable, ...etapes(r, jalonN1), { jalon: jalonArrivee, decalage: 0, cible: { type: "envoi" } }],
-  };
+  // Téléphone : le ∞ autour des logos, côte à côte sous le parcours.
+  if (!ordinateur && r.logos.length === 2) {
+    const logos = geometrieLogos(r.logos);
+    const { haut1, haut2, bas1, bas2 } = logos;
+    const avantLogos = { x, y: haut2.y - 60 };
+    chemin.lisse([...inflexions(alea, reprise.y, avantLogos.y, serre), avantLogos], BAS, BAS, bornes);
+    chemin.courbe({ x, y: avantLogos.y + 40 }, { x: haut2.x + K_ARC * logos.r2, y: haut2.y }, haut2);
+    const jalonLogoDroite = chemin.jalon;
+    const jalonLogoGauche = enlacerLogos(chemin, logos);
+    reperes.push({ jalon: jalonLogoDroite, y: Math.min(haut1.y, haut2.y) }, { jalon: chemin.jalon, y: Math.max(bas1.y, bas2.y) });
+    allumables.push(
+      { jalon: jalonLogoDroite, decalage: 0, cible: { type: "logo", indice: r.logos.indexOf(logos.logoDroite) } },
+      { jalon: jalonLogoGauche, decalage: 0, cible: { type: "logo", indice: r.logos.indexOf(logos.logoGauche) } },
+    );
+    reprise = { x, y: bas2.y + 70 };
+    chemin.courbe({ x: bas2.x + 40, y: bas2.y }, { x, y: reprise.y - 40 }, reprise);
+  }
+
+  // L'arrivée, sur le bord droit du bouton ; sur téléphone, en signant d'abord à sa droite.
+  const arrivee = { x: r.envoi.droite, y: (r.envoi.haut + r.envoi.bas) / 2 };
+  const signature = ordinateur ? null : placerSignatureADroite(r.envoi, W);
+  if (signature && signature.origine.y + SIGNATURE_HAUT * signature.echelle > reprise.y + 40) {
+    const { origine, echelle } = signature;
+    const avant = { x, y: origine.y + SIGNATURE_HAUT * echelle };
+    chemin.lisse([...inflexions(alea, reprise.y, avant.y, serre), avant], BAS, BAS, bornes);
+    const jalonSignature = ecrireSignature(chemin, signature, { x, y: origine.y - 60 * echelle }, arrivee);
+    // L'écriture s'étale au défilement, comme sur ordinateur.
+    reperes.push(
+      { jalon: jalonSignature, y: origine.y + SIGNATURE_DEPART.y * echelle - 0.15 * h },
+      { jalon: chemin.jalon, y: arrivee.y + 0.15 * h },
+    );
+  } else {
+    const avantEnvoi = { x, y: arrivee.y - 60 };
+    chemin.lisse([...inflexions(alea, reprise.y, avantEnvoi.y, serre), avantEnvoi], BAS, BAS, bornes);
+    chemin.courbe({ x, y: avantEnvoi.y + 40 }, { x: arrivee.x + 40, y: arrivee.y }, arrivee);
+    reperes.push({ jalon: chemin.jalon, y: arrivee.y });
+  }
+  allumables.push({ jalon: chemin.jalon, decalage: 0, cible: { type: "envoi" } });
+
+  return { chemin, reperes, allumables };
 }
 
 function bezier([p0, c1, c2, p1]: Segment, t: number): Point {

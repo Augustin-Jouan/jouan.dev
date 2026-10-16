@@ -95,7 +95,8 @@ export function ContactForm({ jeton }: { jeton?: string }) {
       />
       {jeton && <input type="hidden" name="pour" value={jeton} />}
 
-      <button type="submit" disabled={pending} data-trait="envoi" className="self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-sur-accent transition-opacity hover:opacity-85 disabled:opacity-60">
+      {/* Sous 64 rem, le trait conducteur signe à droite du bouton : la marge laisse la place au-dessus. */}
+      <button type="submit" disabled={pending} data-trait="envoi" className="self-start max-lg:mt-14 rounded-full bg-accent px-6 py-3 text-sm font-medium text-sur-accent transition-opacity hover:opacity-85 disabled:opacity-60">
         {pending ? "Envoi…" : "Envoyer"}
       </button>
 
