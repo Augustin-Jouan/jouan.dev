@@ -5,9 +5,8 @@ import { realisations } from "./accueil";
 import { apercuEtude, categorieDeAncre, categories, cheminEtude, etudesDeCas, trouverEtude } from "./realisations";
 
 describe("études de cas", () => {
-  it("ont des slugs uniques et trois chiffres clés", () => {
+  it("ont des slugs uniques", () => {
     expect(new Set(etudesDeCas.map((e) => e.slug)).size).toBe(etudesDeCas.length);
-    for (const etude of etudesDeCas) expect(etude.chiffres).toHaveLength(3);
   });
   it("chaque carte de l'accueil mène à une étude existante", () => {
     for (const carte of realisations) expect(trouverEtude(carte.slug)).toBeDefined();

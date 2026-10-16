@@ -101,11 +101,10 @@ for (const onglet of ["Application métier", "Site vitrine"]) {
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     const titre = await haut(panneau.getByRole("heading", { level: 2 }));
     const demo = await haut(panneau.getByRole("figure"));
-    const chiffres = await haut(panneau.locator("dl"));
     const besoin = await haut(panneau.getByRole("heading", { level: 3, name: "Le besoin" }));
     expect(titre).toBeLessThan(demo);
-    expect(demo).toBeLessThan(chiffres);
-    expect(chiffres).toBeLessThan(besoin);
+    expect(demo).toBeLessThan(besoin);
+    await expect(panneau.locator("dl")).toHaveCount(0);
     // Sans défiler, on voit au moins 150 px de la fenêtre sur ordinateur ; sur téléphone, son aperçu est à un écran au plus.
     const ecran = page.viewportSize()!.height;
     if (isMobile) expect(demo).toBeLessThan(ecran * 2);

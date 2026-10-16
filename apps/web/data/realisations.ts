@@ -26,8 +26,6 @@ export type EtudeDeCas = {
   surtitre: string;
   titre: string;
   sousTitre: string;
-  /** Trois chiffres clés, vérifiables. */
-  chiffres: { valeur: string; libelle: string }[];
   besoin: string[];
   livre: { titre: string; texte: string }[];
   stack: string[];
@@ -77,11 +75,6 @@ export const etudesDeCas: EtudeDeCas[] = [
     titre: "Le suivi des marchés de travaux, sans tableur ni courrier retapé",
     sousTitre:
       "Une application web pour une entreprise qui pilote des chantiers : marchés, avenants, certificats de paiement, planning et suivi de chantier, avec des documents PDF générés en un clic.",
-    chiffres: [
-      { valeur: "4", libelle: "modules : marchés, planning, finances, suivi de chantier" },
-      { valeur: "0,01 €", libelle: "précision de chaque ligne de certificat, recalculée côté serveur" },
-      { valeur: "1", libelle: "seul outil à la place des tableurs et des modèles de courrier" },
-    ],
     besoin: [
       "Chaque chantier se suivait dans plusieurs tableurs : les marchés d'un côté, le planning de l'autre, les paiements ailleurs. Un avenant signé obligeait à reporter le nouveau montant à la main, partout.",
       "Chaque mois, les certificats de paiement se calculaient à la calculatrice puis se retapaient dans un modèle de courrier : des heures de ressaisie, et le risque d'une erreur de quelques euros sur un document signé.",
@@ -116,11 +109,6 @@ export const etudesDeCas: EtudeDeCas[] = [
     titre: "Un site d'artisan rapide, bien référencé, et enfin entre ses mains",
     sousTitre:
       "La refonte complète du site d'un électricien-plombier : design sur mesure, formulaire de contact fiable, mesure d'audience sans cookie et hébergement maîtrisé.",
-    chiffres: [
-      { valeur: "89", libelle: "sur 100, performance Lighthouse sur mobile" },
-      { valeur: "100", libelle: "sur 100, référencement Lighthouse" },
-      { valeur: "0", libelle: "cookie déposé : pas de bandeau de consentement" },
-    ],
     besoin: [
       "L'artisan dépendait d'un ancien prestataire pour la moindre modification de son site, et ne savait plus précisément qui détenait son nom de domaine et ses comptes en ligne.",
       "Il voulait un site moderne qui donne confiance, qui se trouve bien sur Google dans sa zone, et dont il garde la maîtrise.",

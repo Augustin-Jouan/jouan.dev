@@ -7,7 +7,7 @@ const classeTitreBloc = "mb-8 font-serif text-3xl sm:text-4xl";
 
 /**
  * Une étude de cas complète, posée sur /realisations sous son ancre (`#site-vitrine`) : un titre court, la
- * démo (ou les captures) tout de suite, puis les explications (chiffres, besoin, livré, sous le capot).
+ * démo (ou les captures) tout de suite, puis les explications (besoin, livré, sous le capot).
  */
 export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
   const ancre = ancresEtudes[etude.slug];
@@ -46,18 +46,6 @@ export function EtudeComplete({ etude }: { etude: EtudeDeCas }) {
           <Captures images={etude.media.images} />
         )}
       </section>
-
-      {/* Puis les explications, ouvertes par les chiffres. */}
-      <div className={`${classeBloc} pb-0 sm:pb-0`}>
-        <dl className="grid gap-6 sm:grid-cols-3">
-          {etude.chiffres.map((chiffre) => (
-            <div key={chiffre.libelle} className="flex flex-col-reverse gap-1 border-t border-trait pt-4">
-              <dt className="text-sm text-texte-doux">{chiffre.libelle}</dt>
-              <dd className="font-serif text-5xl">{chiffre.valeur}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
 
       <section aria-labelledby={id("besoin")} className={classeBloc}>
         <h3 id={id("besoin")} className={classeTitreBloc}>

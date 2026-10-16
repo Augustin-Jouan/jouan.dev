@@ -22,7 +22,8 @@ describe("page des réalisations", () => {
     etudes.forEach((article, i) => {
       const etude = etudesDeCas[i];
       expect(within(article).getByRole("heading", { level: 2 })).toHaveTextContent(etude.titre);
-      for (const chiffre of etude.chiffres) expect(within(article).getByText(chiffre.libelle)).toBeInTheDocument();
+      // Plus de chiffres clés : la démo, puis directement le besoin.
+      expect(article.querySelector("dl")).toBeNull();
       expect(within(article).getAllByRole("heading", { level: 3 }).slice(0, 4).map((h) => h.textContent)).toEqual([
         // La démo d'abord (intitulé réservé aux lecteurs d'écran), puis les explications.
         etude.media.type === "demo" ? "La démo" : "Le résultat",
