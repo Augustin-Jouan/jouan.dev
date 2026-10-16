@@ -25,12 +25,19 @@ describe("Parcours", () => {
 
   it("ouvre le site de l'employeur et de l'école dans un nouvel onglet, sans quitter le portfolio", () => {
     const { container } = render(<Parcours />);
-    const liens = [...container.querySelectorAll("a")];
+    const liens = [...container.querySelectorAll("a")].filter((a) => a.getAttribute("href")?.startsWith("http"));
     expect(liens).toHaveLength(4);
     for (const lien of liens) {
       expect(lien).toHaveAttribute("target", "_blank");
       expect(lien).toHaveAttribute("rel", "noopener");
       expect(lien).toHaveTextContent("(nouvel onglet)");
     }
+  });
+
+  it("renvoie vers tout le parcours sur /a-propos, dans le même onglet", () => {
+    render(<Parcours />);
+    const lien = screen.getByRole("link", { name: /Tout mon parcours/ });
+    expect(lien).toHaveAttribute("href", "/a-propos");
+    expect(lien).not.toHaveAttribute("target");
   });
 });

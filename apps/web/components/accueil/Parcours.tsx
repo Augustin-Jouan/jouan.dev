@@ -1,10 +1,11 @@
+import { LienAuSurvol } from "@/components/layout/LienAuSurvol";
 import { Section } from "./Section";
 import { ANCRES, parcours, sections } from "@/data/accueil";
 
 /** L'employeur et l'école qui ont un logo, mis en avant à côté des lignes. */
 const enseignes = parcours.flatMap(({ lien }) => (lien?.logo ? [{ ...lien, logo: lien.logo }] : []));
 
-/** Parcours en quelques lignes ; la version complète viendra avec /api/me. */
+/** Parcours en quelques lignes ; la version complète est sur /a-propos. */
 export function Parcours() {
   return (
     <Section id={ANCRES.parcours} {...sections.parcours}>
@@ -56,6 +57,13 @@ export function Parcours() {
           ))}
         </ul>
       </div>
+      {/* Préchargé à l'intention seulement : pas de JS en plus au chargement de l'accueil. */}
+      <LienAuSurvol
+        href="/a-propos"
+        className="mt-10 inline-block font-medium text-accent underline-offset-4 hover:underline"
+      >
+        Tout mon parcours<span aria-hidden="true"> →</span>
+      </LienAuSurvol>
     </Section>
   );
 }

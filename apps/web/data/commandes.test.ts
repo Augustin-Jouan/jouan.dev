@@ -20,7 +20,7 @@ describe("commandes", () => {
   it("mènent à chaque section de l'accueil, chaque étude de cas et chaque page", () => {
     for (const ancre of Object.values(ANCRES)) expect(liens).toContain(`/#${ancre}`);
     for (const r of realisations) expect(liens).toContain(cheminEtude(r.slug));
-    for (const page of ["/", "/coulisses", "/contact", "/mentions-legales", "/politique-de-confidentialite"]) {
+    for (const page of ["/", "/a-propos", "/coulisses", "/contact", "/mentions-legales", "/politique-de-confidentialite"]) {
       expect(liens).toContain(page);
     }
   });

@@ -48,6 +48,13 @@ export const commandes: Commande[] = [
     action: { type: "lien", href: "/coulisses" },
   },
   {
+    id: "a-propos",
+    libelle: "À propos",
+    groupe: "Navigation",
+    motsCles: ["parcours", "projets", "portfolio", "formation", "epitech"],
+    action: { type: "lien", href: "/a-propos" },
+  },
+  {
     id: "contact",
     libelle: "Contact",
     groupe: "Navigation",

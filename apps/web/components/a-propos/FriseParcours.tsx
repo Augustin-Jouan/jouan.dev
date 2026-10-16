@@ -22,7 +22,7 @@ export function FriseParcours({ etapes }: { etapes: EtapeParcours[] }) {
             {/* Le fil et son point : décoratifs. Le fil s'arrête au point de la dernière étape. */}
             <div aria-hidden="true" className="relative col-start-1 row-span-2 row-start-1 sm:col-start-2">
               <span
-                className={`absolute left-1/2 top-0 w-px -translate-x-1/2 bg-accent/50 ${derniere ? "h-3" : "bottom-0"}`}
+                className={`absolute left-1/2 top-0 w-px -translate-x-1/2 bg-trait-fort ${derniere ? "h-3" : "bottom-0"}`}
               />
               <span className="absolute left-1/2 top-2 size-2.5 -translate-x-1/2 rounded-full bg-accent shadow-[0_0_10px_var(--color-accent)]" />
             </div>

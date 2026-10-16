@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const PAGES = ["/", "/realisations", "/coulisses", "/contact", "/mentions-legales", "/politique-de-confidentialite"];
+const PAGES = ["/", "/realisations", "/a-propos", "/coulisses", "/contact", "/mentions-legales", "/politique-de-confidentialite"];
 
 for (const chemin of PAGES) {
   test(`${chemin} : les liens vers un autre site s'ouvrent dans un nouvel onglet`, async ({ page, baseURL }) => {
