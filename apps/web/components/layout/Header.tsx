@@ -12,9 +12,9 @@ export function Header() {
           {siteName}
         </LienAuSurvol>
         <nav aria-label="Navigation principale">
-          <ul className="flex gap-5 text-sm text-texte-doux 2xl:gap-7 2xl:text-base">
+          <ul className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-texte-doux sm:gap-x-5 2xl:gap-x-7 2xl:text-base">
             {navLinks.map((link) => (
-              <li key={link.href}>
+              <li key={link.href} className="whitespace-nowrap">
                 <LienSection href={link.href} className="transition-[color] hover:text-texte">
                   {link.label}
                 </LienSection>

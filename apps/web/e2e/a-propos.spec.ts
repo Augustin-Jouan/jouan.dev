@@ -1,16 +1,32 @@
 import { expect, test } from "@playwright/test";
 
-test("téléphone de 360 px : avec « À propos », le menu du haut tient sur une ligne sans déborder", async ({ page, isMobile }) => {
+test("petit téléphone (350 px) : avec « À propos », le menu du haut tient sur une ligne, aucun lien coupé en deux, sans déborder", async ({ page, isMobile }) => {
   test.skip(!isMobile, "Largeur de téléphone seulement.");
-  await page.setViewportSize({ width: 360, height: 800 });
+  await page.setViewportSize({ width: 350, height: 800 });
   await page.goto("/a-propos");
   const menu = page.getByRole("navigation", { name: "Navigation principale" });
   await expect(menu.getByRole("link", { name: "À propos" })).toBeVisible();
-  const { hauts, deborde } = await menu.locator("ul").evaluate((ul) => ({
+  const { hauts, lignes, deborde } = await menu.locator("ul").evaluate((ul) => ({
     hauts: [...ul.children].map((li) => (li as HTMLElement).offsetTop),
+    // Un lien qui passe à la ligne (« À / propos ») a deux boîtes de texte.
+    lignes: [...ul.querySelectorAll("a")].map((a) => a.getClientRects().length),
     deborde: ul.scrollWidth > ul.clientWidth || document.documentElement.scrollWidth > document.documentElement.clientWidth,
   }));
   expect(new Set(hauts).size).toBe(1);
+  expect(lignes.every((n) => n === 1)).toBe(true);
+  expect(deborde).toBe(false);
+});
+
+test("très petit téléphone (320 px) : le menu passe à la ligne entre deux liens, jamais au milieu d'un lien", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Largeur de téléphone seulement.");
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/a-propos");
+  const menu = page.getByRole("navigation", { name: "Navigation principale" });
+  const { lignes, deborde } = await menu.locator("ul").evaluate((ul) => ({
+    lignes: [...ul.querySelectorAll("a")].map((a) => a.getClientRects().length),
+    deborde: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  }));
+  expect(lignes.every((n) => n === 1)).toBe(true);
   expect(deborde).toBe(false);
 });
 

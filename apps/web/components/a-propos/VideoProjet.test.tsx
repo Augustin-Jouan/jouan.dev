@@ -63,6 +63,14 @@ describe("VideoProjet", () => {
     expect(lire).toHaveBeenCalledTimes(2);
   });
 
+  it("arrivée par un lien du site (geste déjà fait avant le montage) : la vidéo visible démarre sans attendre", () => {
+    simulerMouvementReduit(false);
+    vi.stubGlobal("navigator", { ...navigator, userActivation: { hasBeenActive: true, isActive: false } });
+    render(<VideoProjet video={video} />);
+    act(() => declencher(true));
+    expect(lire).toHaveBeenCalledTimes(1);
+  });
+
   it("après un geste, une vidéo qui arrive à l'écran démarre aussitôt", () => {
     simulerMouvementReduit(false);
     render(<VideoProjet video={video} />);

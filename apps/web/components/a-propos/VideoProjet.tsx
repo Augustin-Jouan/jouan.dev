@@ -36,7 +36,8 @@ export function VideoProjet({ video, prioritaire = false }: { video: Video; prio
     // La lecture attend le premier geste du visiteur : Chrome cesse alors de mesurer
     // le LCP, et la première image de la vidéo ne le repousse plus après le chargement.
     let visible = false;
-    let geste = false;
+    // Arrivée par un lien du site, ou page défilée avant l'hydratation : le geste a déjà eu lieu.
+    let geste = navigator.userActivation?.hasBeenActive === true || window.scrollY > 0;
     // Lecture refusée (économie d'énergie…) : l'affiche reste, sans erreur.
     const lire = () => void lecteur.play()?.catch(() => {});
     const gestes = new AbortController();
