@@ -17,7 +17,7 @@ describe("page /a-propos", () => {
   it("les projets d'école dans l'ordre, puis les deux études freelance", () => {
     render(<AProposPage />);
     const projets = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
-    expect(projets.slice(0, 3)).toEqual(["Time Manager", "EpitChat", "JOJA"]);
+    expect(projets.slice(0, 3)).toEqual(["Time Manager", "EpitChat", "Asterix: Sit Them All"]);
     expect(screen.getAllByRole("link", { name: /Voir l'étude/ })).toHaveLength(2);
   });
 

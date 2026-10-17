@@ -8,10 +8,9 @@ import { parcours, type Logo } from "./accueil";
 import type { Image, SlugEtude } from "./realisations";
 
 export type VideoProjet = { type: "video"; webm: string; mp4: string; affiche: Image; description: string };
-export type GraphiquesProjet = { type: "graphiques"; images: Image[] };
 
 export type ProjetEcole = {
-  slug: "time-manager" | "epitchat" | "joja";
+  slug: "time-manager" | "epitchat" | "asterix";
   /** École, année, taille de l'équipe : « Epitech · MSc 1 · 2026 · à cinq ». */
   contexte: string;
   titre: string;
@@ -19,7 +18,7 @@ export type ProjetEcole = {
   /** Ce qu'Augustin a fait, tiré de l'historique Git : doit tenir en entretien. Facultatif. */
   part?: string;
   stack: string[];
-  media: VideoProjet | GraphiquesProjet;
+  media: VideoProjet;
 };
 
 export type EtapeParcours = {
@@ -71,35 +70,20 @@ export const projetsEcole: ProjetEcole[] = [
     },
   },
   {
-    slug: "joja",
-    contexte: "Epitech · Pré-MSc · 2026 · à trois",
-    titre: "JOJA",
+    slug: "asterix",
+    contexte: "Epitech · Pré-MSc · 2025 · à trois",
+    titre: "Asterix: Sit Them All",
     description:
-      "Analyse exploratoire d'un extrait anonymisé d'un site de livraison de courses : 3,4 millions de commandes, 206 000 clients, 50 000 produits, transformés en recommandations concrètes.",
-    part: "Trois des quatre études détaillées : produits les plus rachetés, premier produit ajouté au panier, part du bio.",
-    stack: ["Python", "pandas", "Jupyter", "Visualisation"],
+      "Jeu de plateforme 2D en Java : on incarne Obélix, on saute sur les légionnaires pour les éliminer et on traverse le niveau jusqu'à Idéfix, avec des vies limitées et des potions de soin.",
+    part: "Deuxième contributeur (76 commits sur 274) : animations d'Obélix (marche, course, saut), déplacement des légionnaires, décor en parallaxe, Javadoc et tests unitaires.",
+    stack: ["Java", "JavaFX", "Maven", "JUnit"],
     media: {
-      type: "graphiques",
-      images: [
-        {
-          src: "/a-propos/joja-1.webp",
-          alt: "Graphique en barres : le bio fait 10 % du catalogue, 32 % des articles des paniers, et 74 % des commandes en contiennent au moins un.",
-          largeur: 869,
-          hauteur: 539,
-        },
-        {
-          src: "/a-propos/joja-2.webp",
-          alt: "Graphique en barres : taux de réachat médian par rayon, d'environ 65 % pour les animaux et les boissons à environ 33 % pour l'épicerie sèche.",
-          largeur: 979,
-          hauteur: 649,
-        },
-        {
-          src: "/a-propos/joja-3.webp",
-          alt: "Graphique en barres : les quinze produits le plus souvent mis en premier dans le panier, la banane loin devant.",
-          largeur: 1089,
-          hauteur: 649,
-        },
-      ],
+      type: "video",
+      webm: "/a-propos/asterix.webm",
+      mp4: "/a-propos/asterix.mp4",
+      affiche: { src: "/a-propos/asterix-affiche.webp", alt: "", largeur: 960, hauteur: 528 },
+      description:
+        "Démo d'Asterix: Sit Them All : depuis le menu, Obélix court à travers le niveau, écrase deux légionnaires en leur sautant dessus, prend une potion, franchit les fosses et rejoint Idéfix.",
     },
   },
 ];
@@ -134,7 +118,7 @@ export const etapesParcours: EtapeParcours[] = [
     titre: "Pré-MSc",
     lieu: { libelle: "Epitech Rennes", href: epitech!.href, logo: epitech!.logo },
     recit:
-      "Une pédagogie par projets, en équipe : web full stack, temps réel, DevOps, IA et data. Projets de l'année : EpitChat, JOJA, Robocar (voiture autonome en simulateur).",
+      "Une pédagogie par projets, en équipe : web full stack, temps réel, DevOps, IA et data. Projets de l'année : EpitChat, un jeu de plateforme 2D en Java, JOJA, Robocar (voiture autonome en simulateur).",
   },
   {
     annee: "2026 – 2028",

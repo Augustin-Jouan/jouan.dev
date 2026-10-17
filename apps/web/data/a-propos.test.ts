@@ -6,13 +6,14 @@ import { enTeteAPropos, etapesParcours, projetsEcole, projetsFreelance } from ".
 const dansPublic = (src: string) => existsSync(join(__dirname, "..", "public", src));
 
 describe("contenus de /a-propos", () => {
-  it("met en avant Time Manager, EpitChat puis JOJA, sans Robocar", () => {
-    expect(projetsEcole.map((p) => p.slug)).toEqual(["time-manager", "epitchat", "joja"]);
+  it("met en avant Time Manager, EpitChat puis Asterix: Sit Them All, sans Robocar ni JOJA", () => {
+    expect(projetsEcole.map((p) => p.slug)).toEqual(["time-manager", "epitchat", "asterix"]);
+    expect(JSON.stringify(projetsEcole.map((p) => p.titre))).not.toMatch(/joja/i);
     expect(JSON.stringify(projetsEcole.map((p) => p.titre))).not.toMatch(/robocar/i);
   });
 
-  it("chaque projet dit ce qu'il est, avec ses technologies ; « Ma part » pour EpitChat et JOJA seulement", () => {
-    expect(projetsEcole.filter((p) => p.part).map((p) => p.slug)).toEqual(["epitchat", "joja"]);
+  it("chaque projet dit ce qu'il est, avec ses technologies ; « Ma part » pour EpitChat et le jeu seulement", () => {
+    expect(projetsEcole.filter((p) => p.part).map((p) => p.slug)).toEqual(["epitchat", "asterix"]);
     for (const projet of projetsEcole) {
       expect(projet.description, projet.slug).not.toBe("");
       if (projet.part !== undefined) expect(projet.part, projet.slug).not.toBe("");
@@ -21,24 +22,12 @@ describe("contenus de /a-propos", () => {
     }
   });
 
-  it("Time Manager et EpitChat ont une vidéo décrite ; JOJA, deux ou trois graphiques décrits", () => {
-    const [timeManager, epitchat, joja] = projetsEcole;
-    for (const projet of [timeManager!, epitchat!]) {
-      expect(projet.media.type, projet.slug).toBe("video");
-      if (projet.media.type === "video") expect(projet.media.description).not.toBe("");
-    }
-    expect(joja!.media.type).toBe("graphiques");
-    if (joja!.media.type === "graphiques") {
-      expect(joja!.media.images.length).toBeGreaterThanOrEqual(2);
-      expect(joja!.media.images.length).toBeLessThanOrEqual(3);
-      for (const image of joja!.media.images) expect(image.alt).not.toBe("");
-    }
+  it("chaque projet a une vidéo décrite", () => {
+    for (const projet of projetsEcole) expect(projet.media.description, projet.slug).not.toBe("");
   });
 
   it("chaque média référencé existe dans public/", () => {
-    const fichiers = projetsEcole.flatMap(({ media }) =>
-      media.type === "video" ? [media.webm, media.mp4, media.affiche.src] : media.images.map((i) => i.src),
-    );
+    const fichiers = projetsEcole.flatMap(({ media }) => [media.webm, media.mp4, media.affiche.src]);
     for (const fichier of fichiers) expect(dansPublic(fichier), fichier).toBe(true);
   });
 
@@ -58,6 +47,7 @@ describe("contenus de /a-propos", () => {
     ]);
     expect(etapesParcours.find((e) => e.titre === "Six mois en Irlande")!.annee).toBe("2024");
     expect(etapesParcours.find((e) => e.titre === "Pré-MSc")!.recit).toMatch(/Robocar/);
+    expect(etapesParcours.find((e) => e.titre === "Pré-MSc")!.recit).toMatch(/jeu de plateforme/);
   });
 
   it("garde la phrase d'introduction validée", () => {

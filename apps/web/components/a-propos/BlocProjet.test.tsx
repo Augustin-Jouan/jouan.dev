@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { projetsEcole } from "@/data/a-propos";
 import { BlocProjet } from "./BlocProjet";
 
-const [timeManager, epitchat, joja] = projetsEcole;
+const [timeManager, epitchat] = projetsEcole;
 
 describe("BlocProjet", () => {
   beforeEach(() => {
@@ -35,11 +35,5 @@ describe("BlocProjet", () => {
     expect(media().querySelector("video")).not.toBeNull();
     rerender(<BlocProjet projet={timeManager!} inverse />);
     expect(media()).toHaveClass("md:order-last");
-  });
-
-  it("des graphiques : une image par entrée, avec son texte alternatif", () => {
-    render(<BlocProjet projet={joja!} inverse={false} />);
-    if (joja!.media.type !== "graphiques") throw new Error("JOJA doit avoir des graphiques");
-    for (const image of joja!.media.images) expect(screen.getByAltText(image.alt)).toBeInTheDocument();
   });
 });
