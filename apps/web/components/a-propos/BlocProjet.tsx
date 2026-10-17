@@ -67,8 +67,12 @@ export function BlocProjet({
           {titre}
         </h3>
         <p className="mt-4 text-lg text-texte-doux">{description}</p>
-        <h4 className="mt-6 font-medium">Ma part</h4>
-        <p className="mt-2 text-texte-doux">{part}</p>
+        {part && (
+          <>
+            <h4 className="mt-6 font-medium">Ma part</h4>
+            <p className="mt-2 text-texte-doux">{part}</p>
+          </>
+        )}
         <ul aria-label="Technologies" className="mt-6 flex flex-wrap gap-2">
           {stack.map((techno) => (
             <li key={techno} className="rounded-full border border-trait px-3 py-1 text-xs">

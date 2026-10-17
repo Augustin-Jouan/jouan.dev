@@ -16,8 +16,8 @@ export type ProjetEcole = {
   contexte: string;
   titre: string;
   description: string;
-  /** Ce qu'Augustin a fait, tiré de l'historique Git : doit tenir en entretien. */
-  part: string;
+  /** Ce qu'Augustin a fait, tiré de l'historique Git : doit tenir en entretien. Facultatif. */
+  part?: string;
   stack: string[];
   media: VideoProjet | GraphiquesProjet;
 };
@@ -43,7 +43,6 @@ export const projetsEcole: ProjetEcole[] = [
     titre: "Time Manager",
     description:
       "Application de pointage et de suivi du temps pour une entreprise fictive : API REST Spring Boot, interface Next.js, reverse proxy nginx, quatre services Docker.",
-    part: "Premier contributeur (39 commits sur 78) : backend Spring Boot, intégration continue GitHub Actions, documentation de l'API (OpenAPI, Swagger UI), documents du projet (rôles et permissions, recherche utilisateur, indicateurs).",
     stack: ["Java", "Spring Boot", "Next.js", "Docker", "nginx", "GitHub Actions"],
     media: {
       type: "video",

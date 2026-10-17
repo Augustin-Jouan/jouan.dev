@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { projetsEcole } from "@/data/a-propos";
 import { BlocProjet } from "./BlocProjet";
 
-const [timeManager, , joja] = projetsEcole;
+const [timeManager, epitchat, joja] = projetsEcole;
 
 describe("BlocProjet", () => {
   beforeEach(() => {
@@ -12,14 +12,20 @@ describe("BlocProjet", () => {
   });
 
   it("titre en h3, contexte, description, « Ma part » et une pastille par technologie", () => {
-    render(<BlocProjet projet={timeManager!} inverse={false} />);
-    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent("Time Manager");
-    expect(screen.getByText(timeManager!.contexte)).toBeInTheDocument();
-    expect(screen.getByText(timeManager!.description)).toBeInTheDocument();
+    render(<BlocProjet projet={epitchat!} inverse={false} />);
+    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent("EpitChat");
+    expect(screen.getByText(epitchat!.contexte)).toBeInTheDocument();
+    expect(screen.getByText(epitchat!.description)).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 4, name: "Ma part" })).toBeInTheDocument();
-    expect(screen.getByText(timeManager!.part)).toBeInTheDocument();
+    expect(screen.getByText(epitchat!.part!)).toBeInTheDocument();
     const pastilles = within(screen.getByRole("list", { name: "Technologies" })).getAllByRole("listitem");
-    expect(pastilles.map((p) => p.textContent)).toEqual(timeManager!.stack);
+    expect(pastilles.map((p) => p.textContent)).toEqual(epitchat!.stack);
+  });
+
+  it("sans « Ma part » (Time Manager) : ni intertitre ni paragraphe vide", () => {
+    render(<BlocProjet projet={timeManager!} inverse={false} />);
+    expect(screen.queryByRole("heading", { level: 4 })).toBeNull();
+    expect(screen.getByRole("list", { name: "Technologies" })).toBeInTheDocument();
   });
 
   it("le média vient d'abord ; inversé, il passe en second sur ordinateur", () => {
