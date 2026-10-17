@@ -11,7 +11,7 @@ describe("page /a-propos", () => {
   it("un seul h1, puis les projets avant le parcours", () => {
     render(<AProposPage />);
     expect(screen.getAllByRole("heading", { level: 1 }).map((h) => h.textContent)).toEqual(["Augustin Jouan"]);
-    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["Projets", "Parcours"]);
+    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["Quelques exemples de projets", "Parcours"]);
   });
 
   it("les projets d'école dans l'ordre, puis les deux études freelance", () => {

@@ -35,7 +35,7 @@ test("la page montre les projets puis le parcours, sans débordement horizontal"
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Augustin Jouan");
   // Le pied de page commun a ses propres titres : seuls comptent ceux du contenu.
   const titres = await page.getByRole("main").getByRole("heading", { level: 2 }).allTextContents();
-  expect(titres).toEqual(["Projets", "Parcours"]);
+  expect(titres).toEqual(["Quelques exemples de projets", "Parcours"]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
 });
 

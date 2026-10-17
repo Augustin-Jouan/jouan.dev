@@ -44,7 +44,7 @@ export default function AProposPage() {
 
       <section aria-labelledby="projets" className={`${bloc} py-14 sm:py-20`}>
         <h2 id="projets" className={titreSection}>
-          Projets
+          Quelques exemples de projets
         </h2>
         <div className="flex flex-col gap-20 sm:gap-28">
           {projetsEcole.map((projet, i) => (
