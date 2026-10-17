@@ -11,21 +11,15 @@ describe("BlocProjet", () => {
     vi.stubGlobal("IntersectionObserver", class { observe() {} disconnect() {} });
   });
 
-  it("titre en h3, contexte, description, « Ma part » et une pastille par technologie", () => {
+  it("titre en h3, contexte, description et une pastille par technologie, sans « Ma part »", () => {
     render(<BlocProjet projet={epitchat!} inverse={false} />);
     expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent("EpitChat");
     expect(screen.getByText(epitchat!.contexte)).toBeInTheDocument();
     expect(screen.getByText(epitchat!.description)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 4, name: "Ma part" })).toBeInTheDocument();
-    expect(screen.getByText(epitchat!.part!)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 4 })).toBeNull();
+    expect(screen.queryByText("Ma part")).toBeNull();
     const pastilles = within(screen.getByRole("list", { name: "Technologies" })).getAllByRole("listitem");
     expect(pastilles.map((p) => p.textContent)).toEqual(epitchat!.stack);
-  });
-
-  it("sans « Ma part » (Time Manager) : ni intertitre ni paragraphe vide", () => {
-    render(<BlocProjet projet={timeManager!} inverse={false} />);
-    expect(screen.queryByRole("heading", { level: 4 })).toBeNull();
-    expect(screen.getByRole("list", { name: "Technologies" })).toBeInTheDocument();
   });
 
   it("le média vient d'abord ; inversé, il passe en second sur ordinateur", () => {

@@ -12,11 +12,10 @@ describe("contenus de /a-propos", () => {
     expect(JSON.stringify(projetsEcole.map((p) => p.titre))).not.toMatch(/robocar/i);
   });
 
-  it("chaque projet dit ce qu'il est, avec ses technologies ; « Ma part » pour EpitChat et le jeu seulement", () => {
-    expect(projetsEcole.filter((p) => p.part).map((p) => p.slug)).toEqual(["epitchat", "asterix"]);
+  it("chaque projet dit ce qu'il est, avec ses technologies, sans « Ma part »", () => {
     for (const projet of projetsEcole) {
       expect(projet.description, projet.slug).not.toBe("");
-      if (projet.part !== undefined) expect(projet.part, projet.slug).not.toBe("");
+      expect(projet, projet.slug).not.toHaveProperty("part");
       expect(projet.contexte, projet.slug).toMatch(/^Epitech · /);
       expect(projet.stack.length, projet.slug).toBeGreaterThan(0);
     }

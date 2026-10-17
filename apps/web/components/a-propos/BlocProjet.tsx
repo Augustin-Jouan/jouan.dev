@@ -18,7 +18,7 @@ export function BlocProjet({
   /** Le premier bloc de la page : son média est le plus grand élément du premier écran. */
   prioritaire?: boolean;
 }) {
-  const { slug, contexte, titre, description, part, stack, media } = projet;
+  const { slug, contexte, titre, description, stack, media } = projet;
   return (
     <article
       aria-labelledby={`projet-${slug}`}
@@ -33,12 +33,6 @@ export function BlocProjet({
           {titre}
         </h3>
         <p className="mt-4 text-lg text-texte-doux">{description}</p>
-        {part && (
-          <>
-            <h4 className="mt-6 font-medium">Ma part</h4>
-            <p className="mt-2 text-texte-doux">{part}</p>
-          </>
-        )}
         <ul aria-label="Technologies" className="mt-6 flex flex-wrap gap-2">
           {stack.map((techno) => (
             <li key={techno} className="rounded-full border border-trait px-3 py-1 text-xs">

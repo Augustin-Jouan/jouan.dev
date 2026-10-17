@@ -15,8 +15,6 @@ export type ProjetEcole = {
   contexte: string;
   titre: string;
   description: string;
-  /** Ce qu'Augustin a fait, tiré de l'historique Git : doit tenir en entretien. Facultatif. */
-  part?: string;
   stack: string[];
   media: VideoProjet;
 };
@@ -58,7 +56,6 @@ export const projetsEcole: ProjetEcole[] = [
     titre: "EpitChat",
     description:
       "Messagerie collaborative en temps réel avec serveurs, canaux et messages, en web et en application desktop.",
-    part: "Deuxième contributeur (84 commits sur 239), sur l'API et le client : authentification et jetons JWT, panneau utilisateur, messages en temps réel, tests et couverture.",
     stack: ["TypeScript", "Express", "Socket.io", "Next.js", "Electron", "PostgreSQL"],
     media: {
       type: "video",
@@ -75,7 +72,6 @@ export const projetsEcole: ProjetEcole[] = [
     titre: "Asterix: Sit Them All",
     description:
       "Jeu de plateforme 2D en Java : on incarne Obélix, on saute sur les légionnaires pour les éliminer et on traverse le niveau jusqu'à Idéfix, avec des vies limitées et des potions de soin.",
-    part: "Deuxième contributeur (76 commits sur 274) : animations d'Obélix (marche, course, saut), déplacement des légionnaires, décor en parallaxe, Javadoc et tests unitaires.",
     stack: ["Java", "JavaFX", "Maven", "JUnit"],
     media: {
       type: "video",
