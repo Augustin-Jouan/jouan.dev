@@ -14,6 +14,11 @@ describe("sitemap", () => {
     expect(urls).not.toContain(`${siteUrl}/mentions-legales`);
     expect(urls).toContain(`${siteUrl}/politique-de-confidentialite`);
     expect(urls).toContain(`${siteUrl}/coulisses`);
+    expect(urls).toContain(`${siteUrl}/a-propos`);
+  });
+
+  it("la page À propos a la priorité 0,8", () => {
+    expect(sitemap().find((e) => e.url === `${siteUrl}/a-propos`)?.priority).toBe(0.8);
   });
 
   it("les coulisses ont la priorité 0,5", () => {

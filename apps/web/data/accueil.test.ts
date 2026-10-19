@@ -101,6 +101,7 @@ describe("contenu de l'accueil", () => {
   it("fait pointer la navigation de l'en-tête vers la page des réalisations et des sections existantes", () => {
     expect(navLinks).toEqual([
       { href: "/realisations", label: "Réalisations" },
+      { href: "/a-propos", label: "À propos" },
       { href: "/coulisses", label: "Coulisses" },
       { href: "/#contact", label: "Contact" },
     ]);

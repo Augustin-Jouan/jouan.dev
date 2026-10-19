@@ -9,6 +9,7 @@ const pages = [
   "",
   "/contact",
   "/realisations",
+  "/a-propos",
   "/coulisses",
   "/politique-de-confidentialite",
 ];

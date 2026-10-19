@@ -11,5 +11,12 @@ describe("Header", () => {
     expect(within(nav).getByRole("link", { name: "Réalisations" })).toHaveAttribute("href", "/realisations");
     expect(within(nav).getByRole("link", { name: "Coulisses" })).toHaveAttribute("href", "/coulisses");
     expect(within(nav).getByRole("link", { name: "Contact" })).toHaveAttribute("href", "/#contact");
+    expect(within(nav).getByRole("link", { name: "À propos" })).toHaveAttribute("href", "/a-propos");
+  });
+
+  it("range les liens dans l'ordre Réalisations, À propos, Coulisses, Contact", () => {
+    render(<Header />);
+    const nav = screen.getByRole("navigation", { name: "Navigation principale" });
+    expect(within(nav).getAllByRole("link").map((a) => a.textContent)).toEqual(["Réalisations", "À propos", "Coulisses", "Contact"]);
   });
 });

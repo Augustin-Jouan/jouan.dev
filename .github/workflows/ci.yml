@@ -148,6 +148,8 @@ jobs:
 
       - run: pnpm --filter web verifier-taille-commandes
 
+      - run: pnpm --filter web verifier-taille-a-propos
+
       - uses: actions/upload-artifact@v4
         with:
           name: mesures-e2e

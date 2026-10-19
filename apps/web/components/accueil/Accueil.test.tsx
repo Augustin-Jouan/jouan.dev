@@ -24,6 +24,11 @@ describe("Accueil", () => {
     expect(screen.queryByText("Développeur full stack · indépendant")).toBeNull();
   });
 
+  it("la section Parcours renvoie vers tout le parcours, sur /a-propos", () => {
+    render(<Accueil />);
+    expect(screen.getByRole("link", { name: /Tout mon parcours/ })).toHaveAttribute("href", "/a-propos");
+  });
+
   it("angle vitrine : salutation échappée, accroche, offre et étude vitrine d'abord, champ caché", () => {
     const { container } = render(
       <Accueil personnalisation={{ nom: "<b>Boulangerie</b> 🍞", angle: "vitrine", jeton: "boulangerie-k7f3" }} />,
