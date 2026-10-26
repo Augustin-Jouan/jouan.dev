@@ -1,13 +1,21 @@
-# Vérifie chaque push et chaque pull request : lint, types, tests, build Next,
-# tests de bout en bout et Lighthouse (trois jobs en parallèle), puis
-# construction de l'image Docker. Sur `main`, l'image est publiée sur GHCR et
-# Coolify est prévenu : le VPS ne compile rien, il tire l'image.
+# Sur une pull request : lint, types, tests, build Next et tests de bout en
+# bout (deux jobs en parallèle). Sur `main`, en plus : Lighthouse, puis
+# construction des images Docker, publiées sur GHCR, et Coolify est prévenu :
+# le VPS ne compile rien, il tire l'image. Lighthouse et les images ne tournent
+# donc qu'une fois par changement, après la fusion ; un échec bloque le
+# déploiement. Pour tout lancer sur une branche avant de fusionner (sans rien
+# publier) : Actions → CI → Run workflow.
+# Un commit qui ne touche que de la documentation (`docs/`, fichiers `.md`) ne
+# lance pas la CI : rien ne change dans le site.
 name: CI
 
 on:
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '**/*.md']
   pull_request:
+    paths-ignore: ['docs/**', '**/*.md']
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -165,9 +173,11 @@ jobs:
           retention-days: 7
 
   # En parallèle des tests de bout en bout : son propre build et sa propre base,
-  # pour ne pas attendre la fin de Playwright (près de 5 minutes).
+  # pour ne pas attendre la fin de Playwright (près de 8 minutes).
+  # Pas sur les pull requests : il tourne sur `main`, avant les images.
   lighthouse:
     name: Performances (Lighthouse)
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -242,6 +252,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [verifier, e2e, lighthouse]
+    # Pas sur les pull requests : construites et publiées une fois, sur `main`.
+    if: github.event_name != 'pull_request'
     permissions:
       contents: read
       packages: write
@@ -281,7 +293,7 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      # Sur une PR, l'image est construite mais pas publiée.
+      # Lancée à la main (Run workflow), l'image est construite mais pas publiée.
       - name: Connexion à GHCR
         if: github.event_name == 'push'
         uses: docker/login-action@v3
