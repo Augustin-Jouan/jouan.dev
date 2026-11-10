@@ -9,7 +9,8 @@
  * - apercu.png : les deux faces au format fini, pour relire à l'écran.
  *
  * Couleurs, nuage, signature, nom et adresses viennent du site (lib/charte.ts,
- * lib/encre/nuage.ts, lib/trait/signature.ts, data/site.ts, data/contact.ts). Le QR code mène à l'adresse du site.
+ * lib/encre/nuage.ts, lib/trait/signature.ts, data/site.ts, data/contact.ts, data/legal.ts pour le
+ * téléphone). Le QR code mène à l'adresse du site.
  *
  * Usage : `pnpm fabriquer-carte-de-visite`. Sans le Chromium de Playwright (`playwright install`),
  * donner celui de la machine : `CHROMIUM=/chemin/vers/chromium pnpm fabriquer-carte-de-visite`.
@@ -17,17 +18,21 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { registerHooks } from "node:module";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "@playwright/test";
 import qrcode from "qrcode-generator";
 
-// Les modules du site s'importent entre eux sans extension (`../charte`) : Node l'exige.
+const app = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+// Les modules du site s'importent entre eux sans extension (`../charte`) ou par l'alias `@/` : Node
+// exige l'extension et ne connaît pas l'alias.
 registerHooks({
   resolve(cible, contexte, suivant) {
+    const chemin = cible.startsWith("@/") ? pathToFileURL(join(app, cible.slice(2))).href : cible;
     try {
-      return suivant(cible, contexte);
+      return suivant(chemin, contexte);
     } catch (erreur) {
-      if (cible.startsWith(".")) return suivant(`${cible}.ts`, contexte);
+      if (chemin !== cible || cible.startsWith(".")) return suivant(`${chemin}.ts`, contexte);
       throw erreur;
     }
   },
@@ -38,8 +43,8 @@ const { COULEURS_NUAGE, opaciteTrait, semerTraits } = await import("../lib/encre
 const { SIGNATURE, SIGNATURE_DEPART } = await import("../lib/trait/signature.ts");
 const { hoteSite, siteMetier, siteName, siteUrl } = await import("../data/site.ts");
 const { contact } = await import("../data/contact.ts");
+const { mentionsLegales } = await import("../data/legal.ts");
 
-const app = join(dirname(fileURLToPath(import.meta.url)), "..");
 const sortie = join(app, "../../docs/carte-de-visite");
 
 /** Format fini et fond perdu, en millimètres. */
@@ -108,7 +113,7 @@ function nuage({ x, y, rayon }, reserve) {
 }
 
 /** Bouton pêche du verso, où le trait arrive (le bouton « Envoyer » du site). */
-const BOUTON = { x: MARGE, y: 41.4, largeur: 23, hauteur: 6.6 };
+const BOUTON = { x: MARGE, y: 42.6, largeur: 23, hauteur: 6.6 };
 /** Tuile du QR code, en haut à droite du verso : le trait en part, comme il part du portrait sur l'accueil. */
 const TUILE = { x: LARGEUR - MARGE - 14.5, y: MARGE, cote: 14.5, marge: 1.5 };
 
@@ -140,10 +145,10 @@ function qr() {
  * e-mail du Contact (lib/trait/trace.ts, `ecrireSignature`).
  */
 function trait() {
-  const echelle = 0.092;
+  const echelle = 0.088;
   const arrivee = { x: BOUTON.x + BOUTON.largeur, y: BOUTON.y + BOUTON.hauteur / 2 };
   // Le paraphe finit 26 unités sous la ligne de base : c'est la hauteur du soulignement.
-  const origine = { x: 44.6, y: arrivee.y - 26 * echelle };
+  const origine = { x: 46.1, y: arrivee.y - 26 * echelle };
   const local = (x, y) => `${n(origine.x + x * echelle)} ${n(origine.y + y * echelle)}`;
   const droite = 78.5;
   const depart = { x: TUILE.x + TUILE.cote / 2, y: TUILE.y + TUILE.cote };
@@ -197,6 +202,7 @@ const verso = face(
      <p class="surtitre">${TEXTES.surtitreContact}</p>
      <p class="titre">${TEXTES.titreContact}</p>
      <p class="email">${contact.email}</p>
+     <p class="telephone">${mentionsLegales.telephone}</p>
      <p class="doux profils">${TEXTES.profils.join("<br>")}</p>
    </div>
    <p class="bouton" style="left:${BOUTON.x}mm;top:${BOUTON.y}mm;width:${BOUTON.largeur}mm;height:${BOUTON.hauteur}mm">${hoteSite}</p>`
@@ -217,10 +223,12 @@ const styles = `
   .surtitre{font-size:5.8pt;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:${couleur("accent")}}
   .nom{margin-top:1.2mm;font-family:"Instrument Serif",serif;font-size:28pt;line-height:1;letter-spacing:-0.01em}
   .doux{margin-top:2.2mm;font-size:6.5pt;line-height:1.5;color:${couleur("texte-doux")}}
-  .titre{margin-top:1.4mm;font-family:"Instrument Serif",serif;font-size:16pt;line-height:1.05}
-  .email{margin-top:4.4mm;font-family:"Instrument Serif",serif;font-size:12.5pt;line-height:1.1;
+  .titre{margin-top:1.2mm;font-family:"Instrument Serif",serif;font-size:16pt;line-height:1.05}
+  .email,.telephone{font-family:"Instrument Serif",serif;font-size:12pt;line-height:1.1}
+  .telephone{margin-top:0.9mm}
+  .email{margin-top:3.2mm;
     text-decoration:underline;text-decoration-color:${couleur("trait-fort")};text-decoration-thickness:0.18mm;text-underline-offset:0.9mm}
-  .profils{margin-top:2.4mm}
+  .profils{margin-top:1.9mm;font-size:6.2pt;line-height:1.45}
   .bouton{position:absolute;display:flex;align-items:center;justify-content:center;border-radius:99mm;
     background:${couleur("accent")};color:${couleur("sur-accent")};font-size:7.4pt;font-weight:500}
 `;
