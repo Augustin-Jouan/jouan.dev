@@ -14,11 +14,21 @@
  *
  * Usage : `pnpm fabriquer-carte-de-visite`. Sans le Chromium de Playwright (`playwright install`),
  * donner celui de la machine : `CHROMIUM=/chemin/vers/chromium pnpm fabriquer-carte-de-visite`.
+ *
+ * Pour le gabarit d'un imprimeur, un autre PDF (l'aperçu n'est pas refait) :
+ *   pnpm fabriquer-carte-de-visite --pdf=carte-de-visite-saxoprint.pdf --fond-perdu=2 --cmjn=/chemin/PSOcoated_v3.icc
+ * - `--fond-perdu` : fond perdu en millimètres (3 par défaut) ;
+ * - `--cmjn` : profil ICC de l'imprimeur (Saxoprint : PSO Coated v3, téléchargeable sur eci.org) ; le PDF
+ *   est alors converti en CMJN vers ce profil par Ghostscript (`gs`, à installer), qui pose aussi la
+ *   zone de rogne (TrimBox). Sans lui, le PDF est en RVB.
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { registerHooks } from "node:module";
-import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { parseArgs } from "node:util";
 import { chromium } from "@playwright/test";
 import qrcode from "qrcode-generator";
 
@@ -50,7 +60,15 @@ const sortie = join(app, "../../docs/carte-de-visite");
 /** Format fini et fond perdu, en millimètres. */
 const LARGEUR = 85;
 const HAUTEUR = 55;
-const FOND_PERDU = 3;
+const { values: options } = parseArgs({
+  options: {
+    pdf: { type: "string", default: "carte-de-visite.pdf" },
+    "fond-perdu": { type: "string", default: "3" },
+    cmjn: { type: "string" },
+  },
+});
+const FOND_PERDU = Number(options["fond-perdu"]);
+if (!(FOND_PERDU >= 0 && FOND_PERDU <= 10)) throw new Error(`Fond perdu invalide : « ${options["fond-perdu"]} » (en millimètres).`);
 /** Marge du texte depuis le bord fini. */
 const MARGE = 7;
 
@@ -64,6 +82,19 @@ const TEXTES = {
 };
 
 const n = (valeur) => Math.round(valeur * 100) / 100;
+
+/**
+ * Une couleur posée sur le fond à l'opacité donnée, en couleur pleine : le PDF ne contient ainsi aucune
+ * transparence (à l'impression, elle peut être aplatie de travers).
+ */
+function surFond(teinte, opacite) {
+  const canal = (hex, i) => parseInt(hex.slice(1 + 2 * i, 3 + 2 * i), 16);
+  const fond = couleur("fond");
+  return `#${[0, 1, 2]
+    .map((i) => Math.round(canal(fond, i) + (canal(teinte, i) - canal(fond, i)) * opacite))
+    .map((v) => v.toString(16).padStart(2, "0"))
+    .join("")}`;
+}
 
 /** Police du site en `@font-face`, le fichier dans la page (aucune requête au rendu). */
 function police(famille, paquet, fichier, graisse) {
@@ -107,7 +138,7 @@ function nuage({ x, y, rayon }, reserve) {
   return [...groupes.values()]
     .map(
       (g) =>
-        `<path d="${g.chemin}" fill="none" stroke="${g.teinte}" stroke-opacity="${n(g.opacite)}" stroke-width="0.2" stroke-linecap="round"/>`
+        `<path d="${g.chemin}" fill="none" stroke="${surFond(g.teinte, g.opacite)}" stroke-width="0.2" stroke-linecap="round"/>`
     )
     .join("");
 }
@@ -161,17 +192,18 @@ function trait() {
     d += `C${local(a, b)} ${local(c, e)} ${local(f, g)}`;
   }
   d += `L${arrivee.x} ${arrivee.y}`;
+  // La lueur de la tête sous le trait, le trait par-dessus : ses couleurs sont pleines, pas translucides.
   return `
     <defs>
       <radialGradient id="tete">
-        <stop offset="0.25" stop-color="${couleur("accent")}" stop-opacity="0.85"/>
-        <stop offset="0.6" stop-color="${couleur("lueur")}" stop-opacity="0.35"/>
-        <stop offset="1" stop-color="${couleur("lueur")}" stop-opacity="0"/>
+        <stop offset="0.25" stop-color="${surFond(couleur("accent"), 0.85)}"/>
+        <stop offset="0.6" stop-color="${surFond(couleur("lueur"), 0.35)}"/>
+        <stop offset="1" stop-color="${couleur("fond")}"/>
       </radialGradient>
     </defs>
-    <path d="${d}" fill="none" stroke="${couleur("lueur")}" stroke-opacity="0.28" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="${d}" fill="none" stroke="${couleur("accent")}" stroke-width="0.23" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="${arrivee.x}" cy="${arrivee.y}" r="1.7" fill="url(#tete)"/>
+    <path d="${d}" fill="none" stroke="${surFond(couleur("lueur"), 0.28)}" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${d}" fill="none" stroke="${couleur("accent")}" stroke-width="0.23" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="${arrivee.x}" cy="${arrivee.y}" r="0.5" fill="${couleur("texte")}"/>`;
 }
 
@@ -250,6 +282,43 @@ const pageApercu = document(
    .face svg{inset:${-FOND_PERDU}mm}.texte{left:0;top:0}`
 );
 
+/**
+ * Convertit le PDF en CMJN vers le profil de l'imprimeur (Ghostscript), au format exact avec fond perdu
+ * (Chromium arrondit la page au pixel), et y pose la zone de rogne : le format fini.
+ *
+ * Ghostscript convertit vers son profil CMJN par défaut, quel que soit `-sOutputICCProfile` : on lui
+ * donne donc un dossier de profils où celui de l'imprimeur tient la place de `default_cmyk.icc`.
+ */
+function versCmjn(source, cible, profil) {
+  const init = /^\s*(\S+)\/Resource\/Init\b/m.exec(execFileSync("gs", ["-h"], { encoding: "utf8" }))?.[1];
+  const profilsGs = init && join(init, "iccprofiles");
+  if (!profilsGs || !existsSync(join(profilsGs, "default_cmyk.icc"))) {
+    throw new Error("Profils ICC de Ghostscript introuvables (dossier « iccprofiles » de son installation).");
+  }
+  const profils = mkdtempSync(join(tmpdir(), "profils-"));
+  cpSync(profilsGs, profils, { recursive: true, dereference: true });
+  copyFileSync(profil, join(profils, "default_cmyk.icc"));
+
+  const pt = (mm) => (mm * 72) / 25.4;
+  const [l, h] = [LARGEUR + 2 * FOND_PERDU, HAUTEUR + 2 * FOND_PERDU];
+  const rogne = [FOND_PERDU, FOND_PERDU, FOND_PERDU + LARGEUR, FOND_PERDU + HAUTEUR].map((mm) => n(pt(mm))).join(" ");
+  execFileSync(
+    "gs",
+    [
+      "-q", "-dBATCH", "-dNOPAUSE", "-dSAFER", `--permit-file-read=${profils}/`, `-sICCProfilesDir=${profils}/`,
+      "-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.6",
+      "-sColorConversionStrategy=CMYK", "-sProcessColorModel=DeviceCMYK",
+      "-dEmbedAllFonts=true", "-dSubsetFonts=true",
+      `-dDEVICEWIDTHPOINTS=${pt(l)}`, `-dDEVICEHEIGHTPOINTS=${pt(h)}`, "-dFIXEDMEDIA", "-dPDFFitPage",
+      `-sOutputFile=${cible}`,
+      // La zone de rogne se pose page par page, à la fin de chacune (`/PAGES pdfmark` est sans effet ici).
+      "-c", `<< /EndPage { 0 eq { pop [ /TrimBox [${rogne}] /PAGE pdfmark true } { pop false } ifelse } >> setpagedevice`,
+      "-f", source,
+    ],
+    { stdio: ["ignore", "inherit", "inherit"] }
+  );
+}
+
 const navigateur = await chromium.launch({ executablePath: process.env.CHROMIUM || undefined });
 try {
   mkdirSync(sortie, { recursive: true });
@@ -257,14 +326,19 @@ try {
   const pdf = await navigateur.newPage();
   await pdf.setContent(pagePdf);
   await pdf.evaluate(() => globalThis.document.fonts.ready);
-  await pdf.pdf({ path: join(sortie, "carte-de-visite.pdf"), preferCSSPageSize: true, printBackground: true });
+  const fichierPdf = join(sortie, options.pdf);
+  const rvb = options.cmjn ? join(mkdtempSync(join(tmpdir(), "carte-")), "rvb.pdf") : fichierPdf;
+  await pdf.pdf({ path: rvb, preferCSSPageSize: true, printBackground: true });
+  if (options.cmjn) versCmjn(rvb, fichierPdf, resolve(options.cmjn));
 
-  const apercu = await navigateur.newPage({ deviceScaleFactor: 4 });
-  await apercu.setContent(pageApercu);
-  await apercu.evaluate(() => globalThis.document.fonts.ready);
-  writeFileSync(join(sortie, "apercu.png"), await apercu.locator("main").screenshot({ type: "png" }));
+  if (options.pdf === "carte-de-visite.pdf") {
+    const apercu = await navigateur.newPage({ deviceScaleFactor: 4 });
+    await apercu.setContent(pageApercu);
+    await apercu.evaluate(() => globalThis.document.fonts.ready);
+    writeFileSync(join(sortie, "apercu.png"), await apercu.locator("main").screenshot({ type: "png" }));
+  }
 
-  console.log(`Carte de visite fabriquée : ${sortie}`);
+  console.log(`Carte de visite fabriquée : ${fichierPdf}`);
 } finally {
   await navigateur.close();
 }

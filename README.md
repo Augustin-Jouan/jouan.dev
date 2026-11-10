@@ -86,6 +86,8 @@ fond nuit `#2a2127`, texte papier, accent pêche, alerte corail, « en direct »
 deux faces au format fini. Le recto reprend le premier écran de l'accueil (nuage de traits), le verso
 la section Contact (le trait conducteur part du QR code du site, signe et file jusqu'au bouton). Nom, adresses, couleurs, nuage
 et signature viennent du site : après un changement, `pnpm --filter web fabriquer-carte-de-visite`.
+`carte-de-visite-saxoprint.pdf` est le même fichier au gabarit de Saxoprint (2 mm de fond perdu, CMJN
+PSO Coated v3) : les options du script sont décrites dans son en-tête.
 
 ## Easter eggs
 
