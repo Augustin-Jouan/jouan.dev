@@ -79,6 +79,14 @@ fond nuit `#2a2127`, texte papier, accent pêche, alerte corail, « en direct »
   contraste reste suffisant ; `e2e/accessibilite.spec.ts` passe chaque page à axe-core.
 - La démo de l'étude de cas est intégrée en thème sombre (`?theme=sombre`).
 
+## Carte de visite
+
+`docs/carte-de-visite/` : la carte aux couleurs de la charte, 85 × 55 mm. `carte-de-visite.pdf`
+(recto puis verso, 3 mm de fond perdu : 91 × 61 mm) part chez l'imprimeur ; `apercu.png` montre les
+deux faces au format fini. Le recto reprend le premier écran de l'accueil (nuage de traits), le verso
+la section Contact (le trait conducteur part du QR code du site, signe et file jusqu'au bouton). Nom, adresses, couleurs, nuage
+et signature viennent du site : après un changement, `pnpm --filter web fabriquer-carte-de-visite`.
+
 ## Easter eggs
 
 Pour les curieux (spec : `docs/superpowers/specs/2026-10-09-easter-eggs-design.md`) :
