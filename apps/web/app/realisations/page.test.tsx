@@ -35,7 +35,7 @@ describe("page des réalisations", () => {
     expect(within(etudes[0]).queryByRole("link", { name: /^Voir le site\s*\(nouvel onglet\)$/ })).toBeNull();
     expect(within(etudes[0]).getByRole("link", { name: /Ouvrir la démo en plein écran/ })).toBeInTheDocument();
     expect(within(etudes[1]).getByText("Site vitrine · SARL Dufourd Jérôme, électricien-plombier à Châteaubriant")).toBeInTheDocument();
-    expect(within(etudes[1]).getByRole("link", { name: /^Voir le site\s*\(nouvel onglet\)$/ })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
+    expect(within(etudes[1]).getByRole("link", { name: /^Voir le site\s*\(nouvel onglet\)$/ })).toHaveAttribute("href", "https://www.sdj-elec.fr/");
     expect(screen.getAllByRole("link", { name: "Parlons-en" })).toHaveLength(1);
   });
 

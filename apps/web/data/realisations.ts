@@ -52,11 +52,8 @@ export const categories: { id: Categorie; libelle: string }[] = [
   { id: "site-vitrine", libelle: "Site vitrine" },
 ];
 
-/**
- * Site du client artisan : sa prévisualisation, jusqu'à la bascule de son
- * domaine (www.sdj-elec.fr affiche encore l'ancien site).
- */
-export const SITE_ARTISAN = "https://sdj-elec.jouan.dev/";
+/** Site du client artisan, sur son propre domaine. */
+export const SITE_ARTISAN = "https://www.sdj-elec.fr/";
 
 /**
  * Le suivi de marchés reste anonyme (ni nom de client, ni lieu, ni montant réel) ;

@@ -30,7 +30,7 @@ test("« Voir mes réalisations » ouvre l'onglet Application métier ; « Site 
   await expect(titreVitrine(page)).toBeVisible();
   await expect(titreMetier(page)).toBeHidden();
   await expect(page.getByRole("tabpanel", { name: "Site vitrine" }).getByRole("figure")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Voir le site (nouvel onglet)" })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
+  await expect(page.getByRole("link", { name: "Voir le site (nouvel onglet)" })).toHaveAttribute("href", "https://www.sdj-elec.fr/");
   expect(erreurs).toEqual([]);
 });
 
@@ -230,7 +230,7 @@ test.describe("copie du site de l'artisan", () => {
     const bandeau = page.getByRole("complementary", { name: "Copie de démonstration" });
     await expect(bandeau).toBeVisible();
     await expect(bandeau).toContainText("Démo réalisée par Augustin Jouan");
-    await expect(bandeau.getByRole("link", { name: /Le vrai site/ })).toHaveAttribute("href", "https://sdj-elec.jouan.dev/");
+    await expect(bandeau.getByRole("link", { name: /Le vrai site/ })).toHaveAttribute("href", "https://www.sdj-elec.fr/");
     await bandeau.getByRole("link", { name: "Retour au portfolio" }).click();
     await expect(page).toHaveURL(/\/realisations#site-vitrine$/);
   });

@@ -123,17 +123,17 @@ describe("copie de démo du site de l'artisan : adaptations", () => {
   });
 
   it("le bandeau : visible hors d'une iframe seulement, avec le vrai site et le retour au portfolio", () => {
-    const source = bandeauDemo("https://sdj-elec.jouan.dev/");
+    const source = bandeauDemo("https://www.sdj-elec.fr/");
     expect(source).toContain("window.self===window.top");
     expect(source).toContain("data-plein-ecran");
     expect(source).toContain("[html[data-plein-ecran]_&]:block");
     expect(source).toContain("Démo réalisée par Augustin Jouan");
-    expect(source).toContain('href="https://sdj-elec.jouan.dev/"');
+    expect(source).toContain('href="https://www.sdj-elec.fr/"');
     expect(source).toContain('href="/realisations#site-vitrine"');
   });
 
   it("un clic sur un lien téléphone ou e-mail ne fait rien (dans l'iframe, Chrome bloquerait la navigation)", () => {
-    const source = bandeauDemo("https://sdj-elec.jouan.dev/");
+    const source = bandeauDemo("https://www.sdj-elec.fr/");
     const script = source.match(/__html: ("[^\n]*"),?\n/)![1]!;
     document.documentElement.removeAttribute("data-plein-ecran");
     document.body.innerHTML = '<a href="tel:+33600000000"><span>06</span></a><a href="mailto:a@b.fr">mail</a><a href="/services">ok</a>';
@@ -155,7 +155,7 @@ describe("copie de démo du site de l'artisan : adaptations", () => {
   });
 
   it("l'adresse en ligne vient de data/realisations.ts", () => {
-    expect(lireSiteEnLigne('export const SITE_ARTISAN = "https://sdj-elec.jouan.dev/";')).toBe("https://sdj-elec.jouan.dev/");
+    expect(lireSiteEnLigne('export const SITE_ARTISAN = "https://www.sdj-elec.fr/";')).toBe("https://www.sdj-elec.fr/");
     expect(() => lireSiteEnLigne("rien")).toThrow(/SITE_ARTISAN/);
   });
 });
