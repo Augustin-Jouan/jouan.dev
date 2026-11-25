@@ -90,7 +90,7 @@ describe("contenu de l'accueil", () => {
     expect(marches.site).toBeUndefined();
     expect(artisan.slug).toBe("site-artisan");
     expect(artisan.contexte).toBe("SARL Dufourd Jérôme · Électricien-plombier à Châteaubriant");
-    expect(artisan.site).toBe("https://sdj-elec.jouan.dev/");
+    expect(artisan.site).toBe("https://www.sdj-elec.fr/");
   });
 
   it("fait pointer les actions de l'accroche vers des sections existantes", () => {
